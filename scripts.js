@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Page loaded.');
 
-    // Example of potential future interactivity:
-    // Highlight active section based on scroll position
+    // If using IntersectionObserver, ensure styles are intentional and consistent
     const sections = document.querySelectorAll('section');
     const options = {
         root: null,
@@ -12,9 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.backgroundColor = '#f9f9f9';
+                entry.target.style.backgroundColor = 'transparent'; // Ensure background is transparent
             } else {
-                entry.target.style.backgroundColor = '';
+                entry.target.style.backgroundColor = 'transparent'; // Reset to transparent
             }
         });
     }, options);
