@@ -1,12 +1,13 @@
 /* General Styles */
 body {
     font-family: 'Inter', sans-serif; /* Modern font with Cyrillic support */
-    font-size: 18px; 
+    font-size: 20px; 
     background-color: #d8cec9; /* Beige background */
     color: #0c4eb9; /* Vibrant blue for text */
     margin: 0;
     padding: 0;
-    line-height: 1.4; /* Improve text readability */
+    line-height: 1.5; /* Improve text readability */
+    font-weight: 400;
     text-rendering: optimizeLegibility;
 }
 
@@ -47,7 +48,7 @@ section {
 }
 
 section h3 {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: #0c4eb9;
     margin-bottom: 15px;
