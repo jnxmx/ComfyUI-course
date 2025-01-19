@@ -1,4 +1,8 @@
 /* General Styles */
+html {
+    font-size: 18px; 
+}
+
 body {
     font-family: 'Inter', sans-serif; /* Modern font with Cyrillic support */
     background-color: #d8cec9; /* Beige background */
@@ -43,6 +47,7 @@ main {
 }
 
 section {
+    font-size: 1rem;
     margin-bottom: 40px;
 }
 
