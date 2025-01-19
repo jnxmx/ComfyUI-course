@@ -1,8 +1,4 @@
 /* General Styles */
-html (
-    font-size: 24px;
-}
-
 body {
     font-family: 'Inter', sans-serif; /* Modern font with Cyrillic support */
     background-color: #d8cec9; /* Beige background */
