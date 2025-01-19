@@ -1,67 +1,111 @@
 /* General Styles */
 body {
-    font-family: "Inter", sans-serif; /* Use Inter font from Google Fonts */
-   background-color: #d3c7b8; /* Beige background */
-    color: #0c4eb9; /* Vibrant blue text */
+    font-family: 'Inter', sans-serif; /* Modern font with Cyrillic support */
+    background-color: #d3c7b8; /* Beige background */
+    color: #0c4eb9; /* Vibrant blue for text */
     margin: 0;
     padding: 0;
-    line-height: 1.6;
+    line-height: 1.8; /* Improve text readability */
     text-rendering: optimizeLegibility;
 }
 
+/* Header */
 header {
     text-align: center;
-    padding: 50px 20px;
-    background-color: transparent; /* No background for the header */
-    color: #0c4eb9; /* Blue header text */
+    padding: 60px 20px;
+    background-color: transparent;
+    color: #0c4eb9;
 }
 
 header h1 {
-    font-size: 3.5rem; /* Large heading */
-    font-weight: 600;
+    font-size: 4rem; /* Bold and large for authority */
+    font-weight: 800;
     margin-bottom: 10px;
-    letter-spacing: 0.03em;
+    letter-spacing: -0.02em; /* Tight kerning for impactful headings */
 }
 
 header h2 {
     font-size: 1.8rem;
     font-weight: 400;
-    color: #0c4eb9; /* Ensure consistent blue */
-    margin-bottom: 20px;
+    color: #0c4eb9;
+    margin-bottom: 30px;
 }
 
+/* Section Styling */
 main {
     max-width: 900px;
     margin: auto;
-    padding: 20px;
+    padding: 40px 20px;
 }
 
 section {
-    margin-bottom: 40px;
-    text-align: center; /* Center-align content */
-    line-height: 1.8;
+    margin-bottom: 60px; /* Add breathing room between sections */
+    text-align: center;
 }
 
 section h3 {
-    font-size: 2.2rem;
-    font-weight: 500;
-    color: #0c4eb9; /* Consistent blue */
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #0c4eb9;
     margin-bottom: 20px;
-    text-transform: uppercase;
-    border-bottom: 2px solid #0c4eb9;
+    text-transform: uppercase; /* Add authority to section headings */
+    border-bottom: 4px solid #0c4eb9;
     display: inline-block;
+    padding-bottom: 10px;
+    letter-spacing: 0.05em;
 }
 
 p, ul, li {
-    color: #0c4eb9; /* Ensure all text uses blue */
+    font-size: 1.2rem; /* Improve readability for body text */
+    color: #0c4eb9;
+    line-height: 2; /* Comfortable spacing for long blocks of text */
+    margin: 10px 0;
+}
+
+/* Numbered List (Plan of Classes) */
+ol {
+    counter-reset: list-counter; /* Reset custom counter */
+    padding: 0;
+    list-style: none; /* Remove default numbers */
+    margin: 0 auto;
+    max-width: 800px; /* Align list within content */
+    text-align: left; /* Left-align content for better readability */
+}
+
+ol li {
+    margin: 20px 0;
+    display: flex;
+    align-items: flex-start;
     font-size: 1.2rem;
 }
 
-ul {
-    list-style-type: none; /* Remove bullet points */
-    padding: 0;
+ol li::before {
+    counter-increment: list-counter; /* Increment counter */
+    content: counter(list-counter) '.'; /* Display the counter */
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0c4eb9;
+    margin-right: 15px;
+    line-height: 1;
 }
 
+li p {
+    margin: 5px 0;
+}
+
+li ul {
+    margin-top: 5px;
+    padding-left: 30px;
+    list-style: none;
+}
+
+li ul li::before {
+    content: '•'; /* Add bullet points for sublist */
+    color: #0c4eb9;
+    margin-right: 10px;
+}
+
+/* Links */
 a {
     color: #0c4eb9;
     text-decoration: none;
@@ -74,26 +118,6 @@ a:hover {
     border-color: #082c7c;
 }
 
-/* Accent Shapes */
-.accent-circle {
-    width: 150px;
-    height: 150px;
-    background-color: #0c4eb9;
-    border-radius: 50%;
-    position: absolute;
-    right: 20%;
-    top: 10%;
-    z-index: -1; /* Place behind text */
-}
-
-.accent-line {
-    width: 80%;
-    height: 2px;
-    background-color: #0c4eb9;
-    margin: 20px auto;
-    position: relative;
-}
-
 /* Footer */
 footer {
     text-align: center;
@@ -101,6 +125,27 @@ footer {
     background-color: transparent;
     color: #0c4eb9;
     font-size: 1rem;
+    margin-top: 40px;
+    border-top: 2px solid #0c4eb9;
+}
+
+/* Accent Shapes */
+.accent-circle {
+    width: 180px;
+    height: 180px;
+    background-color: #0c4eb9;
+    border-radius: 50%;
+    position: absolute;
+    left: -90px;
+    top: 20px;
+    z-index: -1;
+}
+
+.accent-line {
+    width: 80%;
+    height: 4px;
+    background-color: #0c4eb9;
+    margin: 30px auto;
 }
 
 /* Responsive Design */
@@ -111,5 +156,13 @@ footer {
 
     header h2 {
         font-size: 1.2rem;
+    }
+
+    section h3 {
+        font-size: 2rem;
+    }
+
+    p, ul, li {
+        font-size: 1rem;
     }
 }
