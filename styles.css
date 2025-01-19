@@ -1,11 +1,11 @@
 /* General Styles */
 body {
     font-family: 'Inter', sans-serif; /* Modern font with Cyrillic support */
-    background-color: #bdaea7; /* Beige background */
+    background-color: #e7dfdb; /* Beige background */
     color: #0c4eb9; /* Vibrant blue for text */
     margin: 0;
     padding: 0;
-    line-height: 1.6; /* Improve text readability */
+    line-height: 1.4; /* Improve text readability */
     text-rendering: optimizeLegibility;
 }
 
@@ -46,7 +46,7 @@ section {
 }
 
 section h3 {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: 600;
     color: #0c4eb9;
     margin-bottom: 15px;
@@ -57,7 +57,7 @@ p, ul, li {
     font-size: 1rem;
     color: #0c4eb9;
     margin-bottom: 10px;
-    line-height: 1.8;
+    line-height: 1.4;
 }
 
 /* Numbered List (Plan of Classes) */
