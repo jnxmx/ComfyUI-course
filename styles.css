@@ -1,6 +1,7 @@
 /* General Styles */
 body {
     font-family: 'Inter', sans-serif; /* Modern font with Cyrillic support */
+    font-size: 18px; 
     background-color: #d8cec9; /* Beige background */
     color: #0c4eb9; /* Vibrant blue for text */
     margin: 0;
