@@ -1,168 +1,121 @@
 /* General Styles */
 body {
     font-family: 'Inter', sans-serif; /* Modern font with Cyrillic support */
-    background-color: #d3c7b8; /* Beige background */
+    background-color: #f8f4ed; /* Softer beige background for elegance */
     color: #0c4eb9; /* Vibrant blue for text */
     margin: 0;
     padding: 0;
-    line-height: 1.8; /* Improve text readability */
+    line-height: 1.6; /* Improve text readability */
     text-rendering: optimizeLegibility;
 }
 
 /* Header */
 header {
-    text-align: center;
-    padding: 60px 20px;
+    text-align: left; /* Align text to the left */
+    padding: 40px 20px;
     background-color: transparent;
     color: #0c4eb9;
+    max-width: 900px;
+    margin: auto;
 }
 
 header h1 {
-    font-size: 4rem; /* Bold and large for authority */
-    font-weight: 800;
+    font-size: 3rem;
+    font-weight: 700;
     margin-bottom: 10px;
-    letter-spacing: -0.02em; /* Tight kerning for impactful headings */
+    letter-spacing: -0.02em;
 }
 
 header h2 {
-    font-size: 1.8rem;
+    font-size: 1.2rem;
     font-weight: 400;
     color: #0c4eb9;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 /* Section Styling */
 main {
     max-width: 900px;
     margin: auto;
-    padding: 40px 20px;
+    padding: 20px;
+    text-align: left; /* Align all text to the left */
 }
 
 section {
-    margin-bottom: 60px; /* Add breathing room between sections */
-    text-align: center;
+    margin-bottom: 40px;
 }
 
 section h3 {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
     font-weight: 600;
     color: #0c4eb9;
-    margin-bottom: 20px;
-    text-transform: uppercase; /* Add authority to section headings */
-    border-bottom: 4px solid #0c4eb9;
-    display: inline-block;
-    padding-bottom: 10px;
-    letter-spacing: 0.05em;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #0c4eb9;
+    padding-bottom: 5px;
 }
 
 p, ul, li {
-    font-size: 1.2rem; /* Improve readability for body text */
+    font-size: 1rem;
     color: #0c4eb9;
-    line-height: 2; /* Comfortable spacing for long blocks of text */
-    margin: 10px 0;
+    margin-bottom: 10px;
+    line-height: 1.8;
 }
 
 /* Numbered List (Plan of Classes) */
 ol {
-    counter-reset: list-counter; /* Reset custom counter */
-    padding: 0;
-    list-style: none; /* Remove default numbers */
-    margin: 0 auto;
-    max-width: 800px; /* Align list within content */
-    text-align: left; /* Left-align content for better readability */
+    padding-left: 20px;
+    list-style-type: decimal; /* Simpler numbered list */
+    margin-bottom: 20px;
 }
 
 ol li {
-    margin: 20px 0;
-    display: flex;
-    align-items: flex-start;
-    font-size: 1.2rem;
+    margin-bottom: 10px;
 }
 
-ol li::before {
-    counter-increment: list-counter; /* Increment counter */
-    content: counter(list-counter) '.'; /* Display the counter */
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #0c4eb9;
-    margin-right: 15px;
-    line-height: 1;
-}
-
-li p {
+ol li p {
     margin: 5px 0;
-}
-
-li ul {
-    margin-top: 5px;
-    padding-left: 30px;
-    list-style: none;
-}
-
-li ul li::before {
-    content: '•'; /* Add bullet points for sublist */
-    color: #0c4eb9;
-    margin-right: 10px;
 }
 
 /* Links */
 a {
     color: #0c4eb9;
     text-decoration: none;
-    border-bottom: 2px solid #0c4eb9;
-    transition: color 0.3s, border-color 0.3s;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s;
 }
 
 a:hover {
-    color: #082c7c;
-    border-color: #082c7c;
+    border-color: #0c4eb9;
 }
 
 /* Footer */
 footer {
-    text-align: center;
-    padding: 20px;
+    text-align: left; /* Align footer text to the left */
+    padding: 20px 20px;
     background-color: transparent;
     color: #0c4eb9;
-    font-size: 1rem;
-    margin-top: 40px;
-    border-top: 2px solid #0c4eb9;
-}
-
-/* Accent Shapes */
-.accent-circle {
-    width: 180px;
-    height: 180px;
-    background-color: #0c4eb9;
-    border-radius: 50%;
-    position: absolute;
-    left: -90px;
-    top: 20px;
-    z-index: -1;
-}
-
-.accent-line {
-    width: 80%;
-    height: 4px;
-    background-color: #0c4eb9;
-    margin: 30px auto;
+    font-size: 0.9rem;
+    max-width: 900px;
+    margin: auto;
+    border-top: 1px solid #e0ded7;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     header h1 {
-        font-size: 2.5rem;
-    }
-
-    header h2 {
-        font-size: 1.2rem;
-    }
-
-    section h3 {
         font-size: 2rem;
     }
 
-    p, ul, li {
+    header h2 {
         font-size: 1rem;
+    }
+
+    section h3 {
+        font-size: 1.5rem;
+    }
+
+    p, ul, li {
+        font-size: 0.9rem;
     }
 }
