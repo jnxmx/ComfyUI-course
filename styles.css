@@ -1,14 +1,12 @@
 body {
   margin: 0 auto;
   max-width: 900px;
-  padding: 2rem 2rem 2rem 11px;
+  padding: 2rem;
   background-color: #d8cec9;
   color: #0c4eb9;
   text-align: left;
-  font-size: 1.2rem;
+  font-size: 18px;
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-style: normal;
 }
 
 h1 {
@@ -17,7 +15,9 @@ h1 {
 }
 
 h3 {
-  font-size: 1.3rem;
+  font-size: 1.18rem;
+  font-style: normal;
+  font-weight: 600;
   margin: 0 0 1rem;
 }
 
@@ -38,7 +38,8 @@ a:hover {
   text-decoration: underline;
 }
 
-ul, ol {
+ul,
+ol {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -81,9 +82,10 @@ ol li ul li::before {
   list-style: decimal outside;
   column-count: 2;
   column-gap: 2rem;
+  padding-right: 2rem;
   font-size: 0.9rem;
   margin: 0;
-  padding: 1rem 2rem 1rem 1rem;
+  padding: 1rem;
 }
 
 #schedule ol li {
@@ -114,4 +116,18 @@ footer {
   text-align: center;
   margin: 2rem 0;
   font-size: 0.8rem;
+}
+
+h1,
+h3,
+p,
+ul,
+ol,
+section,
+footer {
+  margin-left: 11px;
+}
+
+iframe[data-tally-src] {
+  margin-left: 0 !important;
 }
