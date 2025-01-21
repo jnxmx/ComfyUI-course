@@ -1,12 +1,14 @@
 body {
   margin: 0 auto;
   max-width: 900px;
-  padding: 2rem;
+  padding: 2rem 2rem 2rem 11px;
   background-color: #d8cec9;
   color: #0c4eb9;
   text-align: left;
-  font-size: 18px;
+  font-size: 1.2rem;
   font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-style: normal;
 }
 
 h1 {
@@ -78,10 +80,10 @@ ol li ul li::before {
 #schedule ol {
   list-style: decimal outside;
   column-count: 2;
-  column-gap: 1.5rem;
-  font-size: 0.85rem;
+  column-gap: 2rem;
+  font-size: 0.9rem;
   margin: 0;
-  padding: 1rem;
+  padding: 1rem 2rem 1rem 1rem;
 }
 
 #schedule ol li {
@@ -95,7 +97,7 @@ ol li ul li::before {
 }
 
 #schedule ol li ul {
-  font-size: 0.7rem;
+  font-size: 0.85rem;
 }
 
 #schedule ol li ul li {
