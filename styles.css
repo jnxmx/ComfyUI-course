@@ -1,4 +1,4 @@
-/* General Styles */
+/* Общие стили, оставляем как есть (примерно) */
 html {
     font-size: 18px; 
 }
@@ -9,15 +9,13 @@ body {
     color: #0c4eb9; /* Vibrant blue for text */
     margin: 0;
     padding: 0;
-    line-height: 1; /* Improve text readability */
+    line-height: 1;
     font-weight: 400;
     text-rendering: optimizeLegibility;
 }
 
-/* Header */
 header {
-    text-align: left; /* Align text to the left */
-    /*padding: 40px 20px;*/
+    text-align: left;
     background-color: transparent;
     color: #0c4eb9;
     max-width: 900px;
@@ -32,39 +30,58 @@ h1 {
     line-height: 1.2;
 }
 
-/* Section Styling */
+/* Основные стили для текста */
 main {
     max-width: 900px;
     margin: auto;
     padding: 20px;
-    text-align: left; /* Align all text to the left */
+    text-align: left;
 }
 
-section {
-    font-size: 1rem;
-  font-weight: 500;
-    margin-bottom: 40px;
-}
-
-h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #0c4eb9;
-    margin-bottom: 15px;
-    letter-spacing: 0.02em;
-}
-
+/* --- Списки и текстовые элементы --- */
 p, ul, li {
     font-size: 1rem;
     margin-bottom: 0.4rem;
     line-height: 1.6;
 }
 
-/* Numbered List (Plan of Classes) */
+/* 
+   1) Списки первого уровня: “длинная” тире вместо стандартного буллета,
+      тире начинаетcя слева от страницы, текст с отступом.
+   Применяем только к тем <ul>, которые напрямую лежат в <section>. 
+*/
+section > ul {
+    list-style-type: none;  /* отключаем встроенные маркеры */
+    margin: 0 0 20px 0;
+    padding: 0;
+}
+
+section > ul > li {
+    position: relative;     /* позволит позиционировать псевдоэлемент */
+    margin-left: 2rem;      /* отступ слева для текста */
+    margin-bottom: 0.4rem;  /* можно менять под вкус */
+}
+
+section > ul > li::before {
+    content: "— ";          /* длинное тире в начале строки */
+    position: absolute;
+    left: 0;                /* "прижимаем" к левому краю родителя */
+}
+
+/* 2) Нумерованный список (план занятий) в две колонки + меньший кегль */
 ol {
     padding-left: 20px;
-    list-style-type: decimal; /* Simpler numbered list */
+    list-style-type: decimal;
     margin-bottom: 20px;
+
+    /* Две колонки */
+    columns: 2;
+    -webkit-columns: 2;
+    -moz-columns: 2;
+    column-gap: 2rem; /* расстояние между колонками */
+
+    /* Пониженный кегль */
+    font-size: 0.9rem;
 }
 
 ol li {
@@ -75,21 +92,21 @@ ol li p {
     margin: 5px 0;
 }
 
-/* Links */
+/* 3) Цвет ссылок. Исправляем синтаксис с точкой с запятой */
 a {
-    color: #d97725
+    color: #d97725;  /* <-- важно поставить ; */
     text-decoration: none;
     border-bottom: 2px solid transparent;
     transition: border-color 0.2s;
 }
 
 a:hover {
-    border-color: #d97725
+    border-color: #d97725; /* заодно можно добавить ; для единообразия */
 }
 
-/* Footer */
+/* Footer и медиазапросы (для примера) */
 footer {
-    text-align: left; /* Align footer text to the left */
+    text-align: left;
     padding: 20px 20px;
     background-color: transparent;
     color: #0c4eb9;
@@ -99,7 +116,6 @@ footer {
     border-top: 1px solid #e0ded7;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     header h1 {
         font-size: 2.5rem;
