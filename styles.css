@@ -26,7 +26,7 @@ header {
 
 /* Main heading */
 h1 {
-    font-size: 2.5rem;
+    font-size: 2.7rem;
     font-weight: 700;
     margin-bottom: -0.7rem;
     letter-spacing: -0.02em;
@@ -58,8 +58,10 @@ section > ul {
 /* Section list items */
 section > ul > li {
     position: relative;
-    margin-left: 2rem;
+    padding-left: 2rem;
     margin-bottom: 0.4rem;
+    display: flex;
+    align-items: flex-start;
 }
 
 /* Section list item marker */
@@ -67,7 +69,8 @@ section > ul > li::before {
     content: "— ";
     position: absolute;
     left: 0;
-    width: 2rem;
+    transform: translateY(0.2rem);
+    font-size: 1rem;
     text-align: left;
 }
 
