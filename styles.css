@@ -67,6 +67,8 @@ section > ul > li::before {
     content: "— ";
     position: absolute;
     left: 0;
+    width: 2rem;
+    text-align: left;
 }
 
 /* Ordered lists for course plan */
