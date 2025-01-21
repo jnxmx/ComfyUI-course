@@ -81,7 +81,7 @@ ol li ul li::before {
 #schedule ol {
   list-style: decimal outside;
   column-count: 2;
-  column-gap: 2rem;
+  column-gap: 4rem; 
   padding-right: 2rem;
   font-size: 0.9rem;
   margin: 0;
