@@ -15,7 +15,7 @@ h1 {
 }
 
 h3 {
-  font-size: 1.18rem;
+  font-size: 1.2rem;
   font-style: normal;
   font-weight: 600;
   margin: 0 0 1rem;
@@ -125,9 +125,9 @@ ul,
 ol,
 section,
 footer {
-  margin-left: 11px;
+  margin-left: 0px;
 }
 
 iframe[data-tally-src] {
-  margin-left: 0 !important;
+  margin-left: -11 !important;
 }
