@@ -102,6 +102,12 @@ ol li ul li::before {
   font-size: 0.85rem;
 }
 
+#schedule ol li > ul {
+  border-top: 1px solid #0c4eb9; 
+  width: 100%;                  
+  box-sizing: border-box;       
+}
+
 #schedule ol li ul li {
   margin-bottom: 0.3em;
 }
