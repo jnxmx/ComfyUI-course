@@ -22,7 +22,7 @@ header {
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 700;
     margin-bottom: -0.7rem;
     letter-spacing: -0.02em;
@@ -65,7 +65,7 @@ ol {
     -webkit-columns: 2;
     -moz-columns: 2;
     column-gap: 2rem;
-    font-size: 0.9rem;
+    font-size: 0.7rem;
     list-style-type: decimal; 
     padding-left: 20px; 
     margin-bottom: 20px;
@@ -82,7 +82,7 @@ ol li {
 ol li ul {
     list-style: none;
     margin-left: 1.5rem;
-    font-size: 0.8rem;
+    font-size: 0.55rem;
     margin-top: 0.3rem;
     margin-bottom: 0.3rem;
 }
