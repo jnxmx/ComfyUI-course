@@ -91,7 +91,7 @@ ol li ul li::before {
 #schedule ol li {
   position: static;
   padding-left: 0;
-  margin-bottom: 0.75em;
+  margin-bottom: 1.25em;
 }
 
 #schedule ol li::before {
