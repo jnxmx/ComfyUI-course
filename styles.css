@@ -36,7 +36,8 @@ a:hover {
   text-decoration: underline;
 }
 
-ul, ol {
+ul,
+ol {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -58,7 +59,7 @@ ol > li::before {
 
 ul li ul,
 ol li ul {
-  font-size: 0.5rem;
+  font-size: 0.7rem;
   margin: 0.5em 0;
   padding: 0;
 }
@@ -77,8 +78,9 @@ ol li ul li::before {
 
 #schedule ol {
   column-count: 2;
-  column-gap: 2rem;
-  font-size: 0.7rem;
+  column-width: 15rem;
+  column-gap: 1.2rem;
+  font-size: 0.85rem;
   margin: 0;
   padding: 1rem;
 }
