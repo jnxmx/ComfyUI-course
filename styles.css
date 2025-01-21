@@ -1,7 +1,9 @@
+/* Base font size */
 html {
     font-size: 18px; 
 }
 
+/* Body styles */
 body {
     font-family: 'Inter', sans-serif;
     background-color: #d8cec9;
@@ -13,6 +15,7 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+/* Header styles */
 header {
     text-align: left;
     background-color: transparent;
@@ -21,6 +24,7 @@ header {
     margin: auto;
 }
 
+/* Main heading */
 h1 {
     font-size: 3rem;
     font-weight: 700;
@@ -29,6 +33,7 @@ h1 {
     line-height: 1.2;
 }
 
+/* Main content area */
 main {
     max-width: 900px;
     margin: auto;
@@ -36,30 +41,35 @@ main {
     text-align: left;
 }
 
+/* Paragraphs and lists */
 p, ul, li {
     font-size: 1rem;
     margin-bottom: 0.4rem;
     line-height: 1.6;
 }
 
+/* Section-level unordered lists */
 section > ul {
     list-style-type: none;
     margin: 0 0 20px 0;
     padding: 0;
 }
 
+/* Section list items */
 section > ul > li {
     position: relative;
     margin-left: 2rem;
     margin-bottom: 0.4rem;
 }
 
+/* Section list item marker */
 section > ul > li::before {
     content: "— ";
     position: absolute;
     left: 0;
 }
 
+/* Ordered lists for course plan */
 ol {
     columns: 2;
     -webkit-columns: 2;
@@ -71,14 +81,17 @@ ol {
     margin-bottom: 20px;
 }
 
+/* Force column break before 10th item */
 ol > li:nth-child(10) {
     break-before: column;
 }
 
+/* Ordered list items */
 ol li {
     margin-bottom: 10px;
 }
 
+/* Nested unordered lists in ordered lists */
 ol li ul {
     list-style: none;
     margin-left: 1.5rem;
@@ -87,10 +100,12 @@ ol li ul {
     margin-bottom: 0.3rem;
 }
 
+/* Nested list items in ordered lists */
 ol li ul li {
     margin-bottom: 0.2rem;
 }
 
+/* Link styles */
 a {
     color: #d97725;
     text-decoration: none;
@@ -98,10 +113,12 @@ a {
     transition: border-color 0.2s;
 }
 
+/* Link hover effect */
 a:hover {
     border-color: #d97725;
 }
 
+/* Footer styles */
 footer {
     text-align: left;
     padding: 20px 20px;
@@ -113,6 +130,7 @@ footer {
     border-top: 1px solid #e0ded7;
 }
 
+/* Media query for smaller screens */
 @media (max-width: 768px) {
     header h1 {
         font-size: 2.5rem;
