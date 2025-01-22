@@ -52,4 +52,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
       requestAnimationFrame(animateGradient);
     }
-    requestAnimationFrame(animateGradient);
