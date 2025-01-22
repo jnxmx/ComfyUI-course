@@ -107,9 +107,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
   // Функция изменения размеров Canvas
-   function resizeCanvas() {
+  function resizeCanvas() {
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight * 0.35;
+    canvas.height = Math.max(window.innerHeight * 0.35, 250); // Минимальная высота 250px
     console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
     calculateVisibleVideos();
   }
