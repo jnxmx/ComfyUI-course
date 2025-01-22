@@ -125,7 +125,8 @@ ol li ul li::before {
 #schedule ol li:nth-child(9)::after {
   content: "";
   display: block;
-  break-after: column;
+  -webkit-column-break-after: always; /* Для Safari */
+  column-break-after: always;        /* Универсальный стандарт */
 }
 
 footer {
@@ -150,7 +151,7 @@ iframe[data-tally-src] {
 
 @media (max-width: 600px) {
   h1 {
-    font-size: 2rem; /* уменьшаем h1 */
+    font-size: 1.5rem; /* уменьшаем h1 */
   }
 
   /* #schedule на мобильном делаем одну колонку */
