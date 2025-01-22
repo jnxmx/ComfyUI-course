@@ -111,8 +111,8 @@ ol li ul li::before {
 }
 
 #schedule ol li > ul {
-  margin-top: 0.3em;
-  padding-top: 0.3rem;
+  margin-top: 0.2em;
+  padding-top: 0.4rem;
   border-top: 1px solid #0c4eb9; 
   width: 100%;                  
   box-sizing: border-box;       
