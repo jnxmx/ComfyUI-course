@@ -1,84 +1,50 @@
-// carousel.js
-
 document.addEventListener('DOMContentLoaded', function() {
-  // Количество видеофайлов: "Timeline 1.mp4" до "Timeline N.mp4"
+  // Количество видеофайлов
   const VIDEO_COUNT = 7; // Измените на нужное количество, например, 10
-  // Скорость движения в пикселях в секунду
-  const SPEED_PX_PER_SEC = 60;
+  // Скорость движения в секундах на один набор (например, 700s для 100px/s, где 700 = (100vw * VIDEO_COUNT) / SPEED_PX_PER_SEC)
+  const ANIMATION_DURATION = 700; // в секундах
 
   const container = document.getElementById('mobile-timeline');
   const track = document.getElementById('carousel-track');
 
-  // Создаём и добавляем видеоэлементы
-  for (let i = 1; i <= VIDEO_COUNT; i++) {
-    const videoEl = document.createElement('video');
-    videoEl.src = `assets/video/Timeline ${i}.mp4`;
-    videoEl.autoplay = true;
-    videoEl.muted = true;
-    videoEl.loop = true;
-    videoEl.playsInline = true; // Для мобильных устройств
-    track.appendChild(videoEl);
+  // Функция для создания видеоэлементов
+  function createVideos(count) {
+    const fragment = document.createDocumentFragment();
+    for (let i = 1; i <= count; i++) {
+      const videoEl = document.createElement('video');
+      videoEl.src = `assets/video/Timeline ${i}.mp4`;
+      videoEl.autoplay = true;
+      videoEl.muted = true;
+      videoEl.loop = true;
+      videoEl.playsInline = true; // Для мобильных устройств
+      videoEl.preload = 'auto'; // Предзагрузка видео
+      videoEl.onerror = () => {
+        console.error(`Не удалось загрузить видео: Timeline ${i}.mp4`);
+      };
+      fragment.appendChild(videoEl);
+    }
+    return fragment;
   }
 
-  // Ждём, пока все видео загрузятся, чтобы корректно измерить ширину
-  const videos = track.querySelectorAll('video');
-  let videosLoaded = 0;
+  // Создаём первый набор видео
+  track.appendChild(createVideos(VIDEO_COUNT));
+  // Дублируем видео для бесконечной прокрутки
+  track.appendChild(createVideos(VIDEO_COUNT));
 
-  videos.forEach(video => {
-    if (video.complete) {
-      videosLoaded++;
-      if (videosLoaded === VIDEO_COUNT) {
-        initializeCarousel();
+  // Устанавливаем анимацию с учётом VIDEO_COUNT
+  track.style.animation = `scroll-left ${ANIMATION_DURATION}s linear infinite`;
+
+  // Обновляем ключевые кадры с учётом VIDEO_COUNT
+  const styleSheet = document.styleSheets[0];
+  const keyframes = `
+    @keyframes scroll-left {
+      0% {
+        transform: translateX(0);
       }
-    } else {
-      video.addEventListener('loadeddata', () => {
-        videosLoaded++;
-        if (videosLoaded === VIDEO_COUNT) {
-          initializeCarousel();
-        }
-      });
-    }
-  });
-
-  function initializeCarousel() {
-    // Получаем ширину первого видео (должно быть 100vw)
-    const firstVideo = track.firstElementChild;
-    const videoWidth = firstVideo.offsetWidth;
-
-    let shift = 0;
-    let lastTime = performance.now();
-
-    function animate(time) {
-      const dt = (time - lastTime) / 1000; // Время с последнего кадра в секундах
-      lastTime = time;
-
-      shift += SPEED_PX_PER_SEC * dt;
-
-      // Если первое видео полностью вышло за левый край
-      if (shift >= videoWidth) {
-        shift -= videoWidth;
-        const firstVideo = track.firstElementChild;
-        track.appendChild(firstVideo);
+      100% {
+        transform: translateX(-${100 * VIDEO_COUNT}vw);
       }
-
-      track.style.transform = `translateX(-${shift}px)`;
-      requestAnimationFrame(animate);
     }
-
-    // Устанавливаем начальное положение без сдвига
-    shift = 0;
-    track.style.transform = 'translateX(0)';
-    
-    requestAnimationFrame(animate);
-  }
-
-  // Обработка изменения размера окна (ресайз)
-  window.addEventListener('resize', () => {
-    // Перезапускаем карусель при изменении размера
-    // Для этого можно обновить позицию или перезапустить анимацию
-    // В данном примере проще перезагрузить страницу
-    // Альтернативно, можно сохранить текущее положение и пересчитать shift
-    // Здесь реализуем простую перезагрузку
-    location.reload();
-  });
+  `;
+  styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
 });
