@@ -105,18 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 
-    // Добавляем одно дополнительное видео для плавного перехода
-    const video = videos[i % VIDEO_COUNT];
-    const width = videoWidths[i % VIDEO_COUNT];
-    carousel.push({
-      video: video,
-      width: width,
-      x: totalWidth
-    });
-    totalWidth += width;
-
-    console.log('Инициализированный карусельный массив:', carousel);
-  }
+   
 
   // Функция изменения размеров Canvas
    function resizeCanvas() {
