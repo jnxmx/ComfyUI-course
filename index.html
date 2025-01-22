@@ -210,6 +210,7 @@
         <p>© 2025 Иван Якушев <a href="docs/public_offer.pdf">Договор-офферта</a></p>
     </footer>
     </div>
+    <script src="carousel.js"></script>
     <script>   const DURATION_MS = 5000; 
 
     const topStart     = [12, 78, 185];  // #d97725 217, 119, 37
@@ -245,23 +246,28 @@
       const now = Date.now();
       const tCycle = (now % DURATION_MS) / DURATION_MS;
       const t = pingPong(tCycle);
-
+    
       const topColorArr    = interpolateColor(topStart, topEnd, t);
       const bottomColorArr = interpolateColor(bottomStart, bottomEnd, t);
-
+    
       const topColor    = rgbToString(topColorArr);
       const bottomColor = rgbToString(bottomColorArr);
-
+    
       const gradientStr = `linear-gradient(
         to bottom,
         ${topColor} 0%,
         #d8cec9 9%,
         #d8cec9 100%
       )`;
-
+    
       document.getElementById('bg').style.background = gradientStr;
+    
+      // Call the function again
+      requestAnimationFrame(animateGradient);
     }
-      requestAnimationFrame(animateGradient);</script>
-    <script src="carousel.js"></script>
+    
+    // Start the animation loop
+    requestAnimationFrame(animateGradient);
+
 </body>
 </html>
