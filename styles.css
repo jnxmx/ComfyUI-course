@@ -206,15 +206,11 @@ iframe[data-tally-src] {
   /* Анимация будет добавлена через JavaScript */
 }
 
-/* Видео в карусели */
-#carousel-track video {
-  height: 100%;
-  width: auto; /* Автоматическая ширина для сохранения пропорций */
-  object-fit: cover; /* Заполнение без искажения */
-  flex-shrink: 0; /* Не сжимать */
+/* Canvas для карусели видео */
+#video-carousel {
+  width: 100vw;
+  height: 35vh; /* 35% от высоты экрана */
   display: block;
-  margin: 0;
-  padding: 0;
 }
 
 /* Контейнер основного контента */
