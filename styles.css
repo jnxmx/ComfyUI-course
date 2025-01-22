@@ -142,21 +142,9 @@ iframe[data-tally-src] {
 }
 
 .highlight {
-  position: relative;    /* чтобы ::before позиционировать относительно самой .highlight */
-  z-index: 1;            /* текст выше псевдоэлемента */
-  color: #000;           /* цвет текста, если нужно */
-}
-
-.highlight::before {
-  content: "";
-  position: absolute;
-  z-index: -1;           /* фон позади текста */
-  top: 0; 
-  left: -0.1em; 
-  right: -0.1em; 
-  bottom: 0; 
-  background-color: #fff;
-  border-radius: 0.05em;
+  background-color: #fff;  
+  padding: 0.077em 0.1em;    
+  border-radius: 0.05em;  
 }
 
 @media (max-width: 600px) {
