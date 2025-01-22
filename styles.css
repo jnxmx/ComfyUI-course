@@ -15,20 +15,6 @@ html, body {
   z-index: -1;  
 }
 
-
-.content-wrapper {
-  margin: 0 auto;
-  max-width: 850px;
-  padding: 2rem;
-
- 
-  color: #0c4eb9;
-  text-align: left;
-  font-size: 18px;
-  font-family: 'Inter', sans-serif;
-}
-
-
 h1 {
   font-size: 2.7rem;
   margin: 0 0 1.5rem;
@@ -196,7 +182,8 @@ iframe[data-tally-src] {
   }
   
 }
-/* The container is 100vw wide, 50vh tall */
+
+
 #mobile-timeline {
   width: 100vw;
   height: 50vh; 
@@ -206,38 +193,40 @@ iframe[data-tally-src] {
   padding: 0;
 }
 
-/* The track is a single row (flex), the full height */
+
 #carousel-track {
   position: absolute;
   top: 0;
   left: 0;
   display: flex;
   flex-wrap: nowrap;
-  gap: 0;       /* No extra spacing between items */
+  gap: 0; 
+  margin: 0;
+  padding: 0;
   height: 100%;
   transform: translateX(0);
 }
 
-/* Each image: match container's height, auto width 
-   so aspect ratio is preserved */
-#carousel-track img {
-  height: 100%;
-  width: auto;
+
+#carousel-track video {
+  display: block;
+  width: 100vw;    
+  height: 50vh;    
+  object-fit: cover; 
   flex-shrink: 0;  
-  display: block;  
   margin: 0;
   padding: 0;
 }
 
-/* If using <video> instead of <img>, 
-   you can apply similar rules: */
-#carousel-track video {
-  height: 100%;
-  width: auto;
-  flex-shrink: 0;
-  object-fit: cover; /* or 'contain', depending on desired cropping */
-  display: block;
-  margin: 0;
-  padding: 0;
+
+.content-wrapper {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  color: #0c4eb9;
+  text-align: left;
+  font-size: 18px;
+  font-family: 'Inter', sans-serif;
 }
 
