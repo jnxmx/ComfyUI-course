@@ -131,6 +131,7 @@ ol li ul li::before {
   break-before: column; 
   margin-top: 0; 
   padding-top: 0;
+  line-height: normal;
 }
 
 footer {
