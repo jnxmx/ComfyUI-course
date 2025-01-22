@@ -192,27 +192,29 @@ iframe[data-tally-src] {
   
 }
 #mobile-timeline {
-  /* Квадратный блок: ширина = ширина экрана, высота = ширина экрана */
   width: 100vw;
   height: 100vw;
   position: relative;
-  overflow: hidden; /* чтобы видео "обрезалось" за границей */
+  overflow: hidden; 
+  /* Если хотите убирать горизонтальный скролл на любом экране: */
+  /* Можно также в body добавить overflow-x: hidden; */
 }
 
-/* Внутренний "трек" со всеми видео */
 #carousel-track {
   position: absolute;
   top: 0; 
   left: 0;
-  display: flex;   /* видео идут в одну строку */
-  height: 100%;    /* высота та же, что и у родителя */
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  height: 100%;
   transform: translateX(0);
 }
 
-/* Каждое видео занимает всю "ширину экрана", 
-   чтобы стыковаться впритык */
 #carousel-track video {
-  width: 100vw;
-  height: 100vw;
-  object-fit: cover; /* обрезает или зумирует видео под квадрат */
+  flex-shrink: 0;   /* Не даём сжиматься */
+  width: 100vw;     /* Ровно ширина экрана */
+  height: 100vw;    
+  object-fit: cover; 
+  display: block;  
 }
