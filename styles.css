@@ -1,46 +1,32 @@
-:root {
-  --top-color: #d97725;
-  --bottom-color: #0c4eb9;
-}
-
-@keyframes gradient-anim {
-  0% {
-    --top-color: #d97725;    /* рыжеватый */
-    --bottom-color: #0c4eb9; /* синий */
-  }
-  100% {
-    --top-color: #0c4eb9;    /* синий */
-    --bottom-color: #d97725; /* рыжеватый */
-  }
-}
-
-body {
-  animation: gradient-anim 10s infinite alternate;
-
-  background: linear-gradient(
-    to bottom,
-    var(--top-color) 0%,
-    var(--top-color) 10%,
-    #d8cec9 10%,
-    #d8cec9 90%,
-    var(--bottom-color) 90%,
-    var(--bottom-color) 100%
-  );
- 
-  background-repeat: no-repeat;
-  background-attachment: fixed; 
+html, body {
+  margin: 0;
   padding: 0;
-  min-height: 100vh; 
-  
+  height: 100%; 
+}
+
+
+#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;  
+}
+
+
+.content-wrapper {
   margin: 0 auto;
   max-width: 850px;
   padding: 2rem;
 
+ 
   color: #0c4eb9;
   text-align: left;
   font-size: 18px;
   font-family: 'Inter', sans-serif;
 }
+
 
 h1 {
   font-size: 2.7rem;
