@@ -1,16 +1,15 @@
-  document.addEventListener('DOMContentLoaded', function() {
-    // Number of video files: "Timeline 1.mp4" through "Timeline N.mp4"
-    const VIDEO_COUNT = 7;       // Change to 10, etc., as needed
-    const SPEED_PX_PER_SEC = 60; // 60px per second to the left
+document.addEventListener('DOMContentLoaded', function() {
+    const VIDEO_COUNT = 7;       // or however many you want
+    const SPEED_PX_PER_SEC = 60; // speed of scroll
 
     const container = document.getElementById('mobile-timeline');
     const track = document.getElementById('carousel-track');
 
-    // We want to measure the screen width for 100vw, 
-    // so let's just take innerWidth to keep it simple
+    // We'll use window.innerWidth as the "width threshold"
+    // If items have varied widths, see the note below.
     const containerWidth = window.innerWidth;
 
-    // Create the video elements
+    // Create and append videos (or images)
     for (let i = 1; i <= VIDEO_COUNT; i++) {
       const videoEl = document.createElement('video');
       videoEl.src = `assets/video/Timeline ${i}.mp4`;
@@ -29,17 +28,16 @@
 
       shift += SPEED_PX_PER_SEC * dt;
 
-      // If the first video is fully offscreen, move it to the end
+      // If the first item is off the screen by at least containerWidth
       if (shift >= containerWidth) {
         shift -= containerWidth;
-        const firstVideo = track.firstElementChild;
-        track.appendChild(firstVideo);
+        const firstItem = track.firstElementChild;
+        track.appendChild(firstItem);
       }
 
-      // Translate the track to the left
       track.style.transform = `translateX(-${shift}px)`;
       requestAnimationFrame(animate);
     }
 
     requestAnimationFrame(animate);
-  });
+    });
