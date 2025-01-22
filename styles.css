@@ -142,9 +142,11 @@ iframe[data-tally-src] {
 }
 
 .highlight {
-  background-color: #fff;  
-  padding: 0.077em 0.1em;    
-  border-radius: 0.05em;  
+  position: relative;
+  background-color: #fff;
+  border-radius: 0.05em;
+  padding: 0.2em 0.15em;
+  margin: -0.2em -0.15em;
 }
 
 @media (max-width: 600px) {
