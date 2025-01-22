@@ -209,7 +209,8 @@ iframe[data-tally-src] {
 /* Canvas для карусели видео */
 #video-carousel {
   width: 100vw;
-  height: 35vh; /* 35% от высоты экрана */
+  height: 35vh; 
+  min-height: 250px;
   display: block;
 }
 
