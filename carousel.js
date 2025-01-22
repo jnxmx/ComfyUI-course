@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const VIDEO_COUNT = 7;
   const SPEED_PX_PER_SEC = 60;
 
@@ -7,8 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   let carousel = [];
   let totalWidth = 0;
-  let lastTime = performance.now(); // Объявляем один раз здесь
-
+  let lastTime = performance.now();
 
   const videos = [];
   for (let i = 1; i <= VIDEO_COUNT; i++) {
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     video.loop = true;
     video.playsInline = true;
     video.preload = 'auto';
-    video.style.display = 'none'; // Скрываем видеоэлементы
+    video.style.display = 'none';
     video.oncanplay = () => {
       console.log(`Видео ${video.src} готово к воспроизведению.`);
       video.play().catch(err => {
@@ -33,20 +32,16 @@ document.addEventListener('DOMContentLoaded', function() {
     videos.push(video);
   }
 
-
-  // Ожидание загрузки всех видео
   let videosReady = 0;
   videos.forEach(video => {
-    if (video.readyState >= 3) { // HAVE_FUTURE_DATA
+    if (video.readyState >= 3) {
       videosReady++;
-      console.log(`Видео ${video.src} уже готово.`);
       if (videosReady === VIDEO_COUNT) {
         initializeCarousel();
       }
     } else {
       video.addEventListener('loadeddata', () => {
         videosReady++;
-        console.log(`Видео ${video.src} загружено.`);
         if (videosReady === VIDEO_COUNT) {
           initializeCarousel();
         }
@@ -54,27 +49,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Функция инициализации карусели
   function initializeCarousel() {
     console.log('Инициализация карусели...');
     calculateVisibleVideos();
-    lastTime = performance.now(); // Переинициализация времени
+    lastTime = performance.now();
     requestAnimationFrame(animate);
   }
 
-  // Функция расчёта видимых видео
   function calculateVisibleVideos() {
-  // Очистка текущего каруселя
-  carousel = [];
-  totalWidth = 0;
+    carousel = [];
+    totalWidth = 0;
 
-  // Все видео имеют одинаковую ширину и высоту, равную высоте Canvas
-  const videoSize = canvas.height; // Ширина и высота равны высоте Canvas
+    const videoSize = canvas.height;
 
-  // Определяем, сколько видео нужно для заполнения видимой области
-  let requiredWidth = canvas.width;
-  let i = 0;
-  while (requiredWidth > 0) {
+    let requiredWidth = canvas.width;
+    let i = 0;
+    while (requiredWidth > 0) {
+      const video = videos[i % VIDEO_COUNT];
+      carousel.push({
+        video: video,
+        width: videoSize,
+        x: totalWidth
+      });
+      totalWidth += videoSize;
+      requiredWidth -= videoSize;
+      i++;
+      if (i > VIDEO_COUNT * 2) break;
+    }
+
     const video = videos[i % VIDEO_COUNT];
     carousel.push({
       video: video,
@@ -82,59 +84,47 @@ document.addEventListener('DOMContentLoaded', function() {
       x: totalWidth
     });
     totalWidth += videoSize;
-    requiredWidth -= videoSize;
-    i++;
-    // Ограничиваем количество видео, чтобы избежать бесконечного цикла
-    if (i > VIDEO_COUNT * 2) break;
   }
 
-  // Добавляем одно дополнительное видео для плавного перехода
-  const video = videos[i % VIDEO_COUNT];
-  carousel.push({
-    video: video,
-    width: videoSize,
-    x: totalWidth
-  });
-  totalWidth += videoSize;
-}
+  function resizeCanvas() {
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
+    // Учитываем devicePixelRatio для предотвращения размытых изображений на устройствах с высокой плотностью пикселей
+    const pixelRatio = window.devicePixelRatio || 1;
 
-  // Функция изменения размеров Canvas
-function resizeCanvas() {
-  const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  canvas.width = window.innerWidth * window.devicePixelRatio;
-  canvas.height = Math.max(viewportHeight * 0.35, 250) * window.devicePixelRatio;
-  canvas.style.width = `${window.innerWidth}px`;
-  canvas.style.height = `${Math.max(viewportHeight * 0.35, 250)}px`;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
-  calculateVisibleVideos();
-}
+    // Рассчитываем физические размеры Canvas
+    canvas.width = window.innerWidth * pixelRatio;
+    canvas.height = Math.max(viewportHeight * 0.35, 250) * pixelRatio;
 
+    // Синхронизируем стиль Canvas с реальной видимой областью
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${Math.max(viewportHeight * 0.35, 250)}px`;
+
+    // Масштабируем контекст для работы с высоким DPI
+    ctx.scale(pixelRatio, pixelRatio);
+
+    console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
+    calculateVisibleVideos();
+  }
 
   window.addEventListener('resize', resizeCanvas);
-  resizeCanvas(); 
+  resizeCanvas();
 
-  // Функция анимации
   function animate(time) {
     const deltaTime = (time - lastTime) / 1000;
     lastTime = time;
 
-    // Обновляем позиции видео
     carousel.forEach(obj => {
       obj.x -= SPEED_PX_PER_SEC * deltaTime;
     });
 
-    // Проверяем, вышло ли первое видео за левый край
     const first = carousel[0];
     if (first.x + first.width <= 0) {
-      console.log(`Видео ${first.video.src} вышло за левый край и перемещается в конец.`);
-      // Удаляем первое видео и добавляем его в конец
       carousel.shift();
       const last = carousel[carousel.length - 1];
       const nextVideoIndex = (videos.indexOf(last.video) + 1) % VIDEO_COUNT;
       const nextVideo = videos[nextVideoIndex];
-      const nextWidth = canvas.height; 
+      const nextWidth = canvas.height;
       carousel.push({
         video: nextVideo,
         width: nextWidth,
@@ -142,22 +132,16 @@ function resizeCanvas() {
       });
     }
 
-    // Очищаем Canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Рисуем только видимые видео
     carousel.forEach(obj => {
-      if (obj.x < canvas.width && obj.x + obj.width > 0) { // Если видео видимо
-        if (obj.video.readyState >= 2) { // HAVE_CURRENT_DATA
+      if (obj.x < canvas.width && obj.x + obj.width > 0) {
+        if (obj.video.readyState >= 2) {
           ctx.drawImage(obj.video, obj.x, 0, obj.width, canvas.height);
-        } else {
-          console.log(`Видео ${obj.video.src} не готово к отрисовке.`);
         }
       }
     });
 
-    // Запрашиваем следующий кадр
     requestAnimationFrame(animate);
   }
-
 });
