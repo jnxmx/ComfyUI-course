@@ -7,22 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const canvas = document.getElementById('video-carousel');
   const ctx = canvas.getContext('2d');
 
-  // Установка размеров Canvas
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight * 0.35; // 35% от высоты экрана
-    console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
-    calculateVisibleVideos();
-  }
-
-  window.addEventListener('resize', function() {
-    resizeCanvas();
-    // Пересчитываем карусель при изменении размера
-    // Можно реализовать динамическое обновление без перезагрузки, но для упрощения перезагружаем страницу
-    // location.reload();
-  });
-
-  resizeCanvas(); // Инициализация размеров при загрузке
+  // Объявляем переменные глобально внутри функции
+  let carousel = []; // Массив объектов с видео и их позициями
+  let totalWidth = 0; // Общая ширина одного набора видео
+  let lastTime = performance.now();
 
   // Создание скрытых видеоэлементов
   const videos = [];
@@ -65,16 +53,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  let carousel = []; // Массив объектов с видео и их позициями
-  let totalWidth = 0; // Общая ширина одного набора видео
-
+  // Функция инициализации карусели
   function initializeCarousel() {
     console.log('Инициализация карусели...');
     calculateVisibleVideos();
-    lastTime = performance.now();
+    resizeCanvas(); // Устанавливаем размеры после инициализации карусели
     requestAnimationFrame(animate);
   }
 
+  // Функция расчёта видимых видео
   function calculateVisibleVideos() {
     // Очистка текущего каруселя
     carousel = [];
@@ -119,6 +106,17 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Инициализированный карусельный массив:', carousel);
   }
 
+  // Функция изменения размеров Canvas
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight * 0.35; // 35% от высоты экрана
+    console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
+
+    // Пересчитываем видимые видео после изменения размеров
+    calculateVisibleVideos();
+  }
+
+  // Функция анимации
   function animate(time) {
     const deltaTime = (time - lastTime) / 1000; // Время с последнего кадра в секундах
     lastTime = time;
@@ -163,5 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     requestAnimationFrame(animate);
   }
 
+  // Инициализация последней переменной
   let lastTime = performance.now();
+
 });
