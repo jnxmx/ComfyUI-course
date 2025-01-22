@@ -49,6 +49,11 @@ document.addEventListener('DOMContentLoaded', function() {
       )`;
 
       document.getElementById('bg').style.background = gradientStr;
-    }
-      requestAnimationFrame(animateGradient);
+
+  // Call the function again
+  requestAnimationFrame(animateGradient);
+}
+
+// Start the animation loop
+requestAnimationFrame(animateGradient);
     });
