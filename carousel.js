@@ -1,4 +1,3 @@
-// carousel.js
 
 document.addEventListener('DOMContentLoaded', function() {
   // Количество видеофайлов
