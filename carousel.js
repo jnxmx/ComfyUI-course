@@ -159,7 +159,4 @@ document.addEventListener('DOMContentLoaded', function() {
     requestAnimationFrame(animate);
   }
 
-  // Инициализация последней переменной
-  let lastTime = performance.now();
-
 });
