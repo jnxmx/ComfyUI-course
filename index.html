@@ -214,20 +214,17 @@
     </footer>
         </div>
      <script>
-    const DURATION_MS = 10000; // Полный цикл "туда-обратно" — 10 секунд
+    const DURATION_MS = 10000; 
 
-    // Начальные/конечные цвета (R,G,B) для верха/низа
     const topStart     = [217, 119, 37];  // #d97725
-    const topEnd       = [12, 78, 185];   // #0c4eb9
+    const topEnd       = [216, 206, 201];   // #0c4eb9
     const bottomStart  = [12, 78, 185];   // #0c4eb9
-    const bottomEnd    = [217, 119, 37];  // #d97725
+    const bottomEnd    = [216, 206, 201];  // #d97725
     
-    // Линейная интерполяция для одного канала R/G/B
     function lerp(a, b, t) {
       return a + (b - a) * t;
     }
 
-    // Смешиваем [r1,g1,b1] к [r2,g2,b2] по коэффициенту t [0..1]
     function interpolateColor(colorA, colorB, t) {
       return [
         Math.round(lerp(colorA[0], colorB[0], t)),
@@ -236,15 +233,11 @@
       ];
     }
 
-    // Превращаем [r,g,b] в строку "rgb(r, g, b)"
     function rgbToString(rgbArr) {
       return `rgb(${rgbArr[0]}, ${rgbArr[1]}, ${rgbArr[2]})`;
     }
 
-    // Функция, которая даёт "туда-обратно" значение t (0→1→0) за один цикл
     function pingPong(frac) {
-      // frac идёт от 0 до 1 (за 10 секунд).
-      // На 0..0.5 возвращаем 0..1, на 0.5..1 - 1..0
       if (frac < 0.5) {
         return frac * 2;       // 0..1
       } else {
@@ -254,37 +247,27 @@
 
     function animateGradient() {
       const now = Date.now();
-      // Доля прошедшего времени в текущем 10-секундном цикле
       const tCycle = (now % DURATION_MS) / DURATION_MS;
-      // Получаем "туда-обратно" коэффициент t
       const t = pingPong(tCycle);
 
-      // Смешиваем верхний цвет
       const topColorArr    = interpolateColor(topStart, topEnd, t);
-      // Смешиваем нижний цвет
       const bottomColorArr = interpolateColor(bottomStart, bottomEnd, t);
 
-      // В css-строки
       const topColor    = rgbToString(topColorArr);
       const bottomColor = rgbToString(bottomColorArr);
 
-      // Линейный градиент (0..10% => topColor, 10..90% => #d8cec9, 90..100% => bottomColor)
       const gradientStr = `linear-gradient(
         to bottom,
         ${topColor} 0%,
-        #d8cec9 10%,
-        #d8cec9 90%,
+        #d8cec9 15%,
+        #d8cec9 85%,
         ${bottomColor} 100%
       )`;
 
-      // Обновляем фон у #bg (полноэкранный блок)
       document.getElementById('bg').style.background = gradientStr;
 
-      // Следующий кадр
       requestAnimationFrame(animateGradient);
     }
-
-    // Запуск анимации
     requestAnimationFrame(animateGradient);
   </script>
 </body>
