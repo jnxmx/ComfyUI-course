@@ -72,8 +72,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const videoHeights = canvas.height; // Высота для всех видео равна высоте Canvas
   const videoWidths = videos.map(video => {
     const aspectRatio = video.videoWidth / video.videoHeight; // Соотношение сторон
-    return videoHeights * aspectRatio; // Ширина = высота * соотношение сторон
+    return Math.round(videoHeights * aspectRatio); // Используем округление
   });
+
+  console.log('Рассчитанные ширины видео:', videoWidths);
 
   // Определяем, сколько видео нужно для заполнения видимой области
   let requiredWidth = canvas.width;
@@ -103,9 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   totalWidth += width;
 }
-
-
-   
 
   // Функция изменения размеров Canvas
    function resizeCanvas() {
@@ -137,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const last = carousel[carousel.length - 1];
       const nextVideoIndex = (videos.indexOf(last.video) + 1) % VIDEO_COUNT;
       const nextVideo = videos[nextVideoIndex];
-      const nextWidth = canvas.height * (nextVideo.videoWidth / nextVideo.videoHeight);
+      const nextWidth = Math.round(canvas.height * (nextVideo.videoWidth / nextVideo.videoHeight));
       carousel.push({
         video: nextVideo,
         width: nextWidth,
