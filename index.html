@@ -206,16 +206,23 @@
 
         <iframe data-tally-src="https://tally.so/embed/nGXAPQ?alignLeft=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="736" frameborder="0" marginheight="0" marginwidth="0" title="Нейросети с ComfyUI в облаке"></iframe>
         <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.querySelector('script[src="'+w+'"]')==null){var s=d.createElement("script");s.src=w,s.onload=v,s.onerror=v,d.body.appendChild(s);}</script>
+        <script src="https://unpkg.com/typograf@latest/dist/typograf.min.js"></script>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var tp = new Typograf({
+              locale: ['ru'], 
+              htmlEntity: { type: 'name' } 
+            });
+        
+            // Явно включаем правило расстановки неразрывных пробелов после коротких слов:
+            tp.enableRule('ru/nbsp/afterShortWord'); 
+            tp.enableRule('common/nbsp/afterShortWord');
+        
+            document.body.innerHTML = tp.execute(document.body.innerHTML);
+          });
+        </script>
     <footer>
         <p>&copy; 2025 Иван Якушев</p>
     </footer>
-    <script src="https://unpkg.com/typograf@latest/dist/typograf.min.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var tp = new Typograf({ locale: ['ru', 'en'] });
-    document.body.innerHTML = tp.execute(document.body.innerHTML);
-  });
-</script>
-
 </body>
 </html>
