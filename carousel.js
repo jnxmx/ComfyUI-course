@@ -3,7 +3,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   const VIDEO_COUNT = 7; // Количество видеофайлов: Timeline 1.mp4 до Timeline 7.mp4
   const SPEED_PX_PER_SEC = 60; // Скорость прокрутки в пикселях в секунду
-  const FRAME_RATE = 30; // Целевая частота кадров
 
   const canvas = document.getElementById('video-carousel');
   const ctx = canvas.getContext('2d');
@@ -12,11 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight * 0.35; // 35% от высоты экрана
+    console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
     calculateVisibleVideos();
   }
 
   window.addEventListener('resize', function() {
     resizeCanvas();
+    // Пересчитываем карусель при изменении размера
+    // Можно реализовать динамическое обновление без перезагрузки, но для упрощения перезагружаем страницу
+    // location.reload();
   });
 
   resizeCanvas(); // Инициализация размеров при загрузке
@@ -32,6 +35,12 @@ document.addEventListener('DOMContentLoaded', function() {
     video.playsInline = true;
     video.preload = 'auto';
     video.style.display = 'none'; // Скрываем видеоэлементы
+    video.oncanplay = () => {
+      console.log(`Видео ${video.src} готово к воспроизведению.`);
+    };
+    video.onerror = () => {
+      console.error(`Не удалось загрузить видео: ${video.src}`);
+    };
     document.body.appendChild(video);
     videos.push(video);
   }
@@ -41,12 +50,14 @@ document.addEventListener('DOMContentLoaded', function() {
   videos.forEach(video => {
     if (video.readyState >= 3) { // HAVE_FUTURE_DATA
       videosReady++;
+      console.log(`Видео ${video.src} уже готово.`);
       if (videosReady === VIDEO_COUNT) {
         initializeCarousel();
       }
     } else {
       video.addEventListener('loadeddata', () => {
         videosReady++;
+        console.log(`Видео ${video.src} загружено.`);
         if (videosReady === VIDEO_COUNT) {
           initializeCarousel();
         }
@@ -58,7 +69,9 @@ document.addEventListener('DOMContentLoaded', function() {
   let totalWidth = 0; // Общая ширина одного набора видео
 
   function initializeCarousel() {
+    console.log('Инициализация карусели...');
     calculateVisibleVideos();
+    lastTime = performance.now();
     requestAnimationFrame(animate);
   }
 
@@ -72,6 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const aspectRatio = video.videoWidth / video.videoHeight;
       return canvas.height * aspectRatio; // Ширина = высота * соотношение сторон
     });
+
+    console.log('Рассчитанные ширины видео:', videoWidths);
 
     // Определяем, сколько видео нужно для заполнения видимой области
     let requiredWidth = canvas.width;
@@ -91,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (i > VIDEO_COUNT * 2) break;
     }
 
-    // Добавляем ещё одно видео для плавного перехода
+    // Добавляем одно дополнительное видео для плавного перехода
     const video = videos[i % VIDEO_COUNT];
     const width = videoWidths[i % VIDEO_COUNT];
     carousel.push({
@@ -100,6 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
       x: totalWidth
     });
     totalWidth += width;
+
+    console.log('Инициализированный карусельный массив:', carousel);
   }
 
   function animate(time) {
@@ -114,6 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Проверяем, вышло ли первое видео за левый край
     const first = carousel[0];
     if (first.x + first.width <= 0) {
+      console.log(`Видео ${first.video.src} вышло за левый край и перемещается в конец.`);
       // Удаляем первое видео и добавляем его в конец
       carousel.shift();
       const last = carousel[carousel.length - 1];
@@ -133,7 +151,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Рисуем только видимые видео
     carousel.forEach(obj => {
       if (obj.x < canvas.width && obj.x + obj.width > 0) { // Если видео видимо
-        ctx.drawImage(obj.video, obj.x, 0, obj.width, canvas.height);
+        if (obj.video.readyState >= 2) { // HAVE_CURRENT_DATA
+          ctx.drawImage(obj.video, obj.x, 0, obj.width, canvas.height);
+        } else {
+          console.log(`Видео ${obj.video.src} не готово к отрисовке.`);
+        }
       }
     });
 
@@ -142,5 +164,4 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   let lastTime = performance.now();
-
 });
