@@ -171,6 +171,10 @@ iframe[data-tally-src] {
   header h1 {
     font-size: 2rem; 
   }
+
+  h1 {
+    font-size: 2rem; 
+  }
   
   #schedule ol {
     -webkit-column-count: 1 !important;
