@@ -196,38 +196,48 @@ iframe[data-tally-src] {
   }
   
 }
-/* Container: width = 100% of viewport, height = 50% of viewport height */
+/* The container is 100vw wide, 50vh tall */
 #mobile-timeline {
   width: 100vw;
-  height: 50vh;
+  height: 50vh; 
   position: relative;
   overflow: hidden;
   margin: 0;
   padding: 0;
 }
 
-/* The "track" flex container that holds all video elements in one row */
+/* The track is a single row (flex), the full height */
 #carousel-track {
   position: absolute;
   top: 0;
   left: 0;
   display: flex;
   flex-wrap: nowrap;
-  gap: 0;
-  margin: 0;
-  padding: 0;
+  gap: 0;       /* No extra spacing between items */
   height: 100%;
   transform: translateX(0);
 }
 
-/* Each video occupies the full width (100vw) and half screen height (50vh).
-   object-fit: cover will crop or scale videos to fill that rectangle. */
-#carousel-track video {
-  display: block;
-  width: 100vw;   
-  height: 50vh;   
-  object-fit: cover; 
-  flex-shrink: 0; 
+/* Each image: match container's height, auto width 
+   so aspect ratio is preserved */
+#carousel-track img {
+  height: 100%;
+  width: auto;
+  flex-shrink: 0;  
+  display: block;  
   margin: 0;
   padding: 0;
 }
+
+/* If using <video> instead of <img>, 
+   you can apply similar rules: */
+#carousel-track video {
+  height: 100%;
+  width: auto;
+  flex-shrink: 0;
+  object-fit: cover; /* or 'contain', depending on desired cropping */
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
