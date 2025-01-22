@@ -100,8 +100,6 @@ ol li ul li::before {
   position: static;
   padding-left: 0;
   margin-bottom: 1.25em;
-  break-inside: avoid; 
-  -webkit-column-break-inside: avoid;
 }
 
 #schedule ol li::before {
@@ -125,11 +123,10 @@ ol li ul li::before {
   margin-bottom: 0.3em;
 }
 
-#schedule ol li:nth-child(9)::after {
-  content: "";
-  display: block;
-  -webkit-column-break-after: always;
-  column-break-after: always;        
+#schedule ol li:nth-child(10) {
+  break-before: column; 
+  margin-top: 0; 
+  padding-top: 0;
 }
 
 footer {
@@ -162,5 +159,8 @@ iframe[data-tally-src] {
     column-count: 1; /* вместо 2 */
     column-gap: 0;   /* убираем промежуток, если нужно */
     padding: 0;      /* при желании */
+  }
+  #schedule ol li:nth-child(10) {
+    break-before: auto; 
   }
 }
