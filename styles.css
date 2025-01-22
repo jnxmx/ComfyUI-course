@@ -188,7 +188,7 @@ iframe[data-tally-src] {
 /* Карусель видео: ширина 100vw, высота 50vh */
 #mobile-timeline {
   width: 100vw;
-  height: 50vh; /* Половина высоты экрана */
+  height: 35vh; /* Половина высоты экрана */
   position: relative;
   overflow: hidden;
   margin: 0;
