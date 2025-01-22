@@ -123,6 +123,10 @@ ol li ul li::before {
   margin-bottom: 0.3em;
 }
 
+#schedule ol li:nth-child(9) {
+  margin-bottom: 0; 
+}
+
 #schedule ol li:nth-child(10) {
   break-before: column; 
   margin-top: 0; 
@@ -153,14 +157,14 @@ iframe[data-tally-src] {
   header h1 {
     font-size: 2rem; /* уменьшаем h1 */
   }
-
-  /* #schedule на мобильном делаем одну колонку */
   #schedule ol {
-    column-count: 1; /* вместо 2 */
-    column-gap: 0;   /* убираем промежуток, если нужно */
-    padding: 0;      /* при желании */
+    -webkit-column-count: 1 !important;
+    column-count: 1 !important;
+    -webkit-column-gap: 0 !important;
+    column-gap: 0 !important;
   }
   #schedule ol li:nth-child(10) {
-    break-before: auto; 
+    break-before: auto !important;
+    -webkit-column-break-before: auto !important;
   }
 }
