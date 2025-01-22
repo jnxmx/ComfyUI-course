@@ -184,41 +184,36 @@ iframe[data-tally-src] {
 }
 
 
+/* Карусель видео: ширина 100vw, высота 50vh */
 #mobile-timeline {
   width: 100vw;
-  height: 50vh; 
+  height: 50vh; /* Половина высоты экрана */
   position: relative;
   overflow: hidden;
   margin: 0;
   padding: 0;
 }
 
-
+/* Трек карусели: два набора видео для бесконечной прокрутки */
 #carousel-track {
-  position: absolute;
-  top: 0;
-  left: 0;
   display: flex;
   flex-wrap: nowrap;
-  gap: 0; 
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  transform: translateX(0);
+  width: calc(2 * 100vw * 7); /* 2 набора по 7 видео, замените 7 на VIDEO_COUNT */
+  animation: scroll-left 700s linear infinite; /* Скорость настроена ниже */
 }
 
-
+/* Видео в карусели */
 #carousel-track video {
-  display: block;
-  width: 100vw;    
-  height: 50vh;    
-  object-fit: cover; 
-  flex-shrink: 0;  
+  width: 100vw;    /* Полная ширина экрана */
+  height: 50vh;    /* Половина высоты экрана */
+  object-fit: cover; /* Заполнение без искажения */
+  flex-shrink: 0;  /* Не сжимать */
   margin: 0;
   padding: 0;
+  display: block;
 }
 
-
+/* Контейнер основного контента */
 .content-wrapper {
   max-width: 850px;
   margin: 0 auto;
@@ -230,3 +225,12 @@ iframe[data-tally-src] {
   font-family: 'Inter', sans-serif;
 }
 
+/* Ключевые кадры для бесконечной прокрутки */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100vw * 7); /* Сдвиг на ширину одного набора видео */
+  }
+}
