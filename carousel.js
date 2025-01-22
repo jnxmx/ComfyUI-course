@@ -1,82 +1,104 @@
 // carousel-canvas.js
 
 document.addEventListener('DOMContentLoaded', function() {
-  const VIDEO_COUNT = 7; // Количество видеофайлов (например, Timeline 1.mp4 до Timeline 7.mp4)
+  const VIDEO_COUNT = 7; // Количество видеофайлов (Timeline 1.mp4 до Timeline 7.mp4)
   const SPEED_PX_PER_SEC = 60; // Скорость прокрутки в пикселях в секунду
-  const FRAME_RATE = 30; // Целевая частота кадров
 
   const canvas = document.getElementById('video-carousel');
   const ctx = canvas.getContext('2d');
+
+  let videoElements = [];
+  let carousel = [];
+  let totalWidth = 0;
+  let animationId;
 
   // Установка размеров Canvas
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight * 0.35; // 35% от высоты экрана
   }
+
   resizeCanvas();
 
   window.addEventListener('resize', function() {
     resizeCanvas();
-    // При изменении размера можно перезапустить карусель
-    // Для упрощения перезагружаем страницу
-    // Альтернативно, можно реализовать динамическое обновление
-    // location.reload();
+    initializeCarousel();
   });
 
-  // Создание скрытых видеоэлементов
-  const videos = [];
-  for (let i = 1; i <= VIDEO_COUNT; i++) {
-    const video = document.createElement('video');
-    video.src = `assets/video/Timeline ${i}.mp4`;
-    video.autoplay = true;
-    video.muted = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.preload = 'auto';
-    video.style.display = 'none'; // Скрываем видеоэлементы
-    document.body.appendChild(video);
-    videos.push(video);
+  // Создание и добавление видеоэлементов
+  function createVideos(count) {
+    const fragment = document.createDocumentFragment();
+    for (let i = 1; i <= count; i++) {
+      const video = document.createElement('video');
+      video.src = `assets/video/Timeline ${i}.mp4`;
+      video.autoplay = true;
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.style.display = 'none'; // Скрываем видеоэлементы
+      video.addEventListener('error', () => {
+        console.error(`Не удалось загрузить видео: Timeline ${i}.mp4`);
+      });
+      fragment.appendChild(video);
+      videoElements.push(video);
+    }
+    document.body.appendChild(fragment);
   }
 
-  // Ожидание загрузки всех видео
-  let videosReady = 0;
-  videos.forEach(video => {
-    if (video.readyState >= 3) { // HAVE_FUTURE_DATA
-      videosReady++;
-      if (videosReady === VIDEO_COUNT) {
-        startCarousel();
-      }
-    } else {
-      video.addEventListener('loadeddata', () => {
-        videosReady++;
-        if (videosReady === VIDEO_COUNT) {
-          startCarousel();
-        }
-      });
-    }
-  });
+  createVideos(VIDEO_COUNT);
 
-  function startCarousel() {
+  // Проверка загрузки видео
+  function waitForVideosToLoad(videos, callback) {
+    let loaded = 0;
+    videos.forEach(video => {
+      if (video.readyState >= 3) { // HAVE_FUTURE_DATA
+        loaded++;
+        if (loaded === videos.length) {
+          callback();
+        }
+      } else {
+        video.addEventListener('loadeddata', () => {
+          loaded++;
+          if (loaded === videos.length) {
+            callback();
+          }
+        });
+      }
+    });
+  }
+
+  waitForVideosToLoad(videoElements, initializeCarousel);
+
+  // Инициализация карусели
+  function initializeCarousel() {
+    // Остановить предыдущую анимацию, если она есть
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+    }
+
+    // Очистить предыдущие позиции
+    carousel = [];
+    totalWidth = 0;
+
     // Рассчитываем ширину каждого видео на основе высоты Canvas
-    const videoWidths = videos.map(video => {
+    const videoWidths = videoElements.map(video => {
       const aspectRatio = video.videoWidth / video.videoHeight;
       return canvas.height * aspectRatio; // Ширина = высота * соотношение сторон
     });
 
-    // Создаём объекты видео с их шириной и начальной позицией
-    let carousel = [];
-    let currentX = 0;
-    for (let i = 0; i < VIDEO_COUNT * 2; i++) { // Два набора для бесконечной прокрутки
+    // Создаём два набора видео для бесконечной прокрутки
+    for (let i = 0; i < VIDEO_COUNT * 2; i++) {
       const index = i % VIDEO_COUNT;
       carousel.push({
-        video: videos[index],
+        video: videoElements[index],
         width: videoWidths[index],
-        x: currentX
+        x: totalWidth
       });
-      currentX += videoWidths[index];
+      totalWidth += videoWidths[index];
     }
 
-    // Переменные анимации
+    // Запуск анимации
     let lastTime = performance.now();
 
     function animate(time) {
@@ -107,15 +129,18 @@ document.addEventListener('DOMContentLoaded', function() {
       // Рисуем только видимые видео
       carousel.forEach(obj => {
         if (obj.x < canvas.width && obj.x + obj.width > 0) { // Если видео видимо
-          ctx.drawImage(obj.video, obj.x, 0, obj.width, canvas.height);
+          try {
+            ctx.drawImage(obj.video, obj.x, 0, obj.width, canvas.height);
+          } catch (e) {
+            console.error('Ошибка при отрисовке видео на Canvas:', e);
+          }
         }
       });
 
       // Запрашиваем следующий кадр
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
     }
 
-    // Запуск анимации
-    requestAnimationFrame(animate);
+    animationId = requestAnimationFrame(animate);
   }
 });
