@@ -123,15 +123,8 @@ ol li ul li::before {
   margin-bottom: 0.3em;
 }
 
-#schedule ol li:nth-child(9) {
-  margin-bottom: 0; 
-}
-
 #schedule ol li:nth-child(10) {
   break-before: column; 
-  margin-top: 0; 
-  padding-top: 0;
-  line-height: normal;
 }
 
 footer {
@@ -156,16 +149,18 @@ iframe[data-tally-src] {
 
 @media (max-width: 600px) {
   header h1 {
-    font-size: 2rem; /* уменьшаем h1 */
+    font-size: 2rem; 
   }
+  
   #schedule ol {
     -webkit-column-count: 1 !important;
     column-count: 1 !important;
     -webkit-column-gap: 0 !important;
     column-gap: 0 !important;
-      font-size: 0.8rem;
-  line-height: 0.85rem;
+    font-size: 0.8rem;
+    line-height: 0.85rem;
   }
+  
   #schedule ol li:nth-child(10) {
     break-before: auto !important;
     -webkit-column-break-before: auto !important;
