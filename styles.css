@@ -162,9 +162,17 @@ iframe[data-tally-src] {
     column-count: 1 !important;
     -webkit-column-gap: 0 !important;
     column-gap: 0 !important;
+      font-size: 0.8rem;
+  line-height: 0.85rem;
   }
   #schedule ol li:nth-child(10) {
     break-before: auto !important;
     -webkit-column-break-before: auto !important;
   }
+
+  #schedule ol li ul {
+    font-size: 0.7rem;
+    line-height: 0.75rem;
+  }
+  
 }
