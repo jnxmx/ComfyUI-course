@@ -1,5 +1,3 @@
-// carousel-canvas.js
-
 document.addEventListener('DOMContentLoaded', function() {
   const VIDEO_COUNT = 7;
   const SPEED_PX_PER_SEC = 60;
@@ -53,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Функция инициализации карусели
-function initializeCarousel() {
+  function initializeCarousel() {
     console.log('Инициализация карусели...');
     calculateVisibleVideos();
     lastTime = performance.now(); // Переинициализация времени
