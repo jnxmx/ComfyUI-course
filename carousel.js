@@ -100,12 +100,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
   // Функция изменения размеров Canvas
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = Math.max(window.innerHeight * 0.35, 250); // Минимальная высота 250px
-    console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
-    calculateVisibleVideos();
-  }
+function resizeCanvas() {
+  const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  canvas.width = window.innerWidth * window.devicePixelRatio;
+  canvas.height = Math.max(viewportHeight * 0.35, 250) * window.devicePixelRatio;
+  canvas.style.width = `${window.innerWidth}px`;
+  canvas.style.height = `${Math.max(viewportHeight * 0.35, 250)}px`;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
+  calculateVisibleVideos();
+}
+
 
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas(); 
