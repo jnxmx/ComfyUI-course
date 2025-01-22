@@ -88,6 +88,7 @@ ol li ul li::before {
   list-style: decimal outside;
   column-count: 2;
   column-gap: 4rem; 
+  column-fill: auto;
   padding-right: 2rem;
   font-size: 0.9rem;
   line-height: 0.95rem;
@@ -99,6 +100,8 @@ ol li ul li::before {
   position: static;
   padding-left: 0;
   margin-bottom: 1.25em;
+  break-inside: avoid; 
+  -webkit-column-break-inside: avoid;
 }
 
 #schedule ol li::before {
@@ -125,8 +128,8 @@ ol li ul li::before {
 #schedule ol li:nth-child(9)::after {
   content: "";
   display: block;
-  -webkit-column-break-after: always; /* Для Safari */
-  column-break-after: always;        /* Универсальный стандарт */
+  -webkit-column-break-after: always;
+  column-break-after: always;        
 }
 
 footer {
@@ -150,7 +153,7 @@ iframe[data-tally-src] {
 }
 
 @media (max-width: 600px) {
-  h1 {
+  header h1 {
     font-size: 1.5rem; /* уменьшаем h1 */
   }
 
