@@ -85,7 +85,8 @@ ol li ul li::before {
   column-count: 2;
   column-gap: 4rem; 
   padding-right: 2rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  line-height: 0.95rem;
   margin: 0;
   padding: 1rem;
 }
@@ -101,7 +102,8 @@ ol li ul li::before {
 }
 
 #schedule ol li ul {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  line-height: 0.85rem;
 }
 
 #schedule ol li > ul {
