@@ -68,28 +68,21 @@ document.addEventListener('DOMContentLoaded', function() {
   carousel = [];
   totalWidth = 0;
 
-  // Рассчитываем ширину каждого видео на основе высоты Canvas
-  const videoHeights = canvas.height; // Высота для всех видео равна высоте Canvas
-  const videoWidths = videos.map(video => {
-    const aspectRatio = video.videoWidth / video.videoHeight; // Соотношение сторон
-    return Math.round(videoHeights * aspectRatio); // Используем округление
-  });
-
-  console.log('Рассчитанные ширины видео:', videoWidths);
+  // Все видео имеют одинаковую ширину и высоту, равную высоте Canvas
+  const videoSize = canvas.height; // Ширина и высота равны высоте Canvas
 
   // Определяем, сколько видео нужно для заполнения видимой области
   let requiredWidth = canvas.width;
   let i = 0;
   while (requiredWidth > 0) {
     const video = videos[i % VIDEO_COUNT];
-    const width = videoWidths[i % VIDEO_COUNT];
     carousel.push({
       video: video,
-      width: width,
+      width: videoSize,
       x: totalWidth
     });
-    totalWidth += width;
-    requiredWidth -= width;
+    totalWidth += videoSize;
+    requiredWidth -= videoSize;
     i++;
     // Ограничиваем количество видео, чтобы избежать бесконечного цикла
     if (i > VIDEO_COUNT * 2) break;
@@ -97,14 +90,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Добавляем одно дополнительное видео для плавного перехода
   const video = videos[i % VIDEO_COUNT];
-  const width = videoWidths[i % VIDEO_COUNT];
   carousel.push({
     video: video,
-    width: width,
+    width: videoSize,
     x: totalWidth
   });
-  totalWidth += width;
+  totalWidth += videoSize;
 }
+
 
   // Функция изменения размеров Canvas
   function resizeCanvas() {
@@ -136,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const last = carousel[carousel.length - 1];
       const nextVideoIndex = (videos.indexOf(last.video) + 1) % VIDEO_COUNT;
       const nextVideo = videos[nextVideoIndex];
-      const nextWidth = Math.round(canvas.height * (nextVideo.videoWidth / nextVideo.videoHeight));
+      const nextWidth = canvas.height; 
       carousel.push({
         video: nextVideo,
         width: nextWidth,
