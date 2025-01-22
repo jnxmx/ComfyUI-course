@@ -196,25 +196,33 @@ iframe[data-tally-src] {
   height: 100vw;
   position: relative;
   overflow: hidden; 
-  /* Если хотите убирать горизонтальный скролл на любом экране: */
-  /* Можно также в body добавить overflow-x: hidden; */
+  margin: 0; 
+  padding: 0; 
+  /* Если опасаетесь горизонтального скролла, можно явно: */
+  /* overflow-x: hidden; */
 }
 
 #carousel-track {
   position: absolute;
-  top: 0; 
+  top: 0;
   left: 0;
   display: flex;
   flex-wrap: nowrap;
+  flex-direction: row;
   gap: 0;
+  margin: 0;
+  padding: 0;
   height: 100%;
   transform: translateX(0);
 }
 
 #carousel-track video {
-  flex-shrink: 0;   /* Не даём сжиматься */
-  width: 100vw;     /* Ровно ширина экрана */
-  height: 100vw;    
-  object-fit: cover; 
-  display: block;  
+  display: block; 
+  width: 100vw;     /* ровно ширина экрана */
+  height: 100vw;    /* чтобы получился квадрат */
+  object-fit: cover;
+  flex-shrink: 0;   /* не даём сжиматься */
+  margin: 0;
+  padding: 0;
 }
+
