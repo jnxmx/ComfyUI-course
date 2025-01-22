@@ -141,3 +141,22 @@ iframe[data-tally-src] {
 iframe[data-tally-src] {
   margin-left: -11 !important;
 }
+
+.highlight {
+  background-color: #fff;  
+  padding: 0.2em 0.3em;    
+  border-radius: 0.15em;  
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 2rem; /* уменьшаем h1 */
+  }
+
+  /* #schedule на мобильном делаем одну колонку */
+  #schedule ol {
+    column-count: 1; /* вместо 2 */
+    column-gap: 0;   /* убираем промежуток, если нужно */
+    padding: 0;      /* при желании */
+  }
+}
