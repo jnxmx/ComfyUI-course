@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', function() {
     const DURATION_MS = 5000; 
 
     const topStart     = [12, 78, 185];  // #d97725 217, 119, 37
@@ -48,7 +49,7 @@
       )`;
 
       document.getElementById('bg').style.background = gradientStr;
-
+    }
       requestAnimationFrame(animateGradient);
     }
     requestAnimationFrame(animateGradient);
