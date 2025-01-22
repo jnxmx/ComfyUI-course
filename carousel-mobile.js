@@ -1,4 +1,4 @@
-<script>
+
   // Full corrected script
   // Ensure that #mobile-timeline is NOT inside any max-width wrapper if you want 100vw effect.
 
@@ -52,4 +52,4 @@
     // Start animation
     requestAnimationFrame(animate);
   });
-</script>
+
