@@ -1,16 +1,15 @@
 // carousel-canvas.js
 
 document.addEventListener('DOMContentLoaded', function() {
-  const VIDEO_COUNT = 7; // Количество видеофайлов: Timeline 1.mp4 до Timeline 7.mp4
-  const SPEED_PX_PER_SEC = 60; // Скорость прокрутки в пикселях в секунду
+  const VIDEO_COUNT = 7;
+  const SPEED_PX_PER_SEC = 60;
 
   const canvas = document.getElementById('video-carousel');
   const ctx = canvas.getContext('2d');
 
-  // Объявляем переменные глобально внутри функции
-  let carousel = []; // Массив объектов с видео и их позициями
-  let totalWidth = 0; // Общая ширина одного набора видео
-  let lastTime = performance.now();
+  let carousel = [];
+  let totalWidth = 0;
+  let lastTime = performance.now(); // Объявляем один раз здесь
 
   // Создание скрытых видеоэлементов
   const videos = [];
@@ -54,10 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Функция инициализации карусели
-  function initializeCarousel() {
+function initializeCarousel() {
     console.log('Инициализация карусели...');
     calculateVisibleVideos();
-    resizeCanvas(); // Устанавливаем размеры после инициализации карусели
+    lastTime = performance.now(); // Переинициализация времени
     requestAnimationFrame(animate);
   }
 
@@ -107,18 +106,19 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Функция изменения размеров Canvas
-  function resizeCanvas() {
+   function resizeCanvas() {
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight * 0.35; // 35% от высоты экрана
+    canvas.height = window.innerHeight * 0.35;
     console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
-
-    // Пересчитываем видимые видео после изменения размеров
     calculateVisibleVideos();
   }
 
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas(); 
+
   // Функция анимации
   function animate(time) {
-    const deltaTime = (time - lastTime) / 1000; // Время с последнего кадра в секундах
+    const deltaTime = (time - lastTime) / 1000;
     lastTime = time;
 
     // Обновляем позиции видео
