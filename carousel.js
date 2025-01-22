@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let totalWidth = 0;
   let lastTime = performance.now(); // Объявляем один раз здесь
 
-  // Создание скрытых видеоэлементов
+
   const videos = [];
   for (let i = 1; i <= VIDEO_COUNT; i++) {
     const video = document.createElement('video');
@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
     video.style.display = 'none'; // Скрываем видеоэлементы
     video.oncanplay = () => {
       console.log(`Видео ${video.src} готово к воспроизведению.`);
+      video.play().catch(err => {
+        console.error(`Ошибка воспроизведения видео ${video.src}:`, err);
+      });
     };
     video.onerror = () => {
       console.error(`Не удалось загрузить видео: ${video.src}`);
@@ -29,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(video);
     videos.push(video);
   }
+
 
   // Ожидание загрузки всех видео
   let videosReady = 0;
