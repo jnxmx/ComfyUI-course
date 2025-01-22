@@ -196,24 +196,23 @@ iframe[data-tally-src] {
   }
   
 }
+/* Container: width = 100% of viewport, height = 50% of viewport height */
 #mobile-timeline {
   width: 100vw;
-  height: 100vw;
+  height: 50vh;
   position: relative;
-  overflow: hidden; 
-  margin: 0; 
-  padding: 0; 
-  /* Если опасаетесь горизонтального скролла, можно явно: */
-  /* overflow-x: hidden; */
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
+/* The "track" flex container that holds all video elements in one row */
 #carousel-track {
   position: absolute;
   top: 0;
   left: 0;
   display: flex;
   flex-wrap: nowrap;
-  flex-direction: row;
   gap: 0;
   margin: 0;
   padding: 0;
@@ -221,13 +220,14 @@ iframe[data-tally-src] {
   transform: translateX(0);
 }
 
+/* Each video occupies the full width (100vw) and half screen height (50vh).
+   object-fit: cover will crop or scale videos to fill that rectangle. */
 #carousel-track video {
-  display: block; 
-  width: 100vw;     /* ровно ширина экрана */
-  height: 100vw;    /* чтобы получился квадрат */
-  object-fit: cover;
-  flex-shrink: 0;   /* не даём сжиматься */
+  display: block;
+  width: 100vw;   
+  height: 50vh;   
+  object-fit: cover; 
+  flex-shrink: 0; 
   margin: 0;
   padding: 0;
 }
-
