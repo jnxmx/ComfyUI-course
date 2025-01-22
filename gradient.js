@@ -51,4 +51,4 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('bg').style.background = gradientStr;
     }
       requestAnimationFrame(animateGradient);
-    }
+    });
