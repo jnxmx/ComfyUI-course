@@ -19,6 +19,7 @@ html, body {
 h1 {
   font-size: 2.7rem;
   margin: 0 0 1.5rem;
+  margin-bottom: -3rem;
 }
 
 h3 {
@@ -26,7 +27,6 @@ h3 {
   font-style: normal;
   font-weight: 600;
   margin: 0 0 1rem;
-  margin-bottom: -3rem;
 }
 
 section {
