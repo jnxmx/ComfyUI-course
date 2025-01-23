@@ -186,28 +186,6 @@ iframe[data-tally-src] {
   
 }
 
-
-/* Карусель видео: ширина 100vw, высота 50vh */
-#mobile-timeline {
-  width: 100vw;
-  height: 35vh; /* Половина высоты экрана */
-  position: relative;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-}
-
-/* Трек карусели: два набора видео для бесконечной прокрутки */
-#carousel-track {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0; /* Убираем зазоры между видео */
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  /* Анимация будет добавлена через JavaScript */
-}
-
 /* Canvas для карусели видео */
 #video-carousel {
   width: 100vw;
