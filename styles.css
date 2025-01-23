@@ -18,12 +18,7 @@ html, body {
 
 h1 {
   font-size: 2.7rem;
-  margin: 0 0 0rem;
-}
-
-#title {
-  font-size: 0.8rem;
-  margin-bottom: 7rem;
+  margin: 0 0 -1rem;
 }
 
 h3 {
@@ -35,6 +30,10 @@ h3 {
 
 section {
   margin-bottom: 3rem;
+}
+
+#title {
+  margin-bottom: 7rem;
 }
 
 p {
