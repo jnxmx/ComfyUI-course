@@ -80,6 +80,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function animate(time) {
     const deltaTime = (time - lastTime) / 1000;
+
+      // Limit FPS to 30 (33.33 ms per frame)
+    if (time - lastTime < 1000 / 30) {
+      requestAnimationFrame(animate);
+      return;
+    }
     lastTime = time;
 
     // Обновляем позиции видео
