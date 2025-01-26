@@ -38,39 +38,40 @@ document.addEventListener('DOMContentLoaded', function () {
     carousel = [];
     totalWidth = 0;
 
-    // Устанавливаем размер каждого видео равным высоте Canvas (квадрат)
-    const videoSize = canvas.height;
+    const videoWidths = videos.map(video => {
+      const aspectRatio = video.videoWidth / video.videoHeight; // Calculate aspect ratio
+      return canvas.height * aspectRatio; // Calculate width based on canvas height
+    });
 
-    // Заполняем видимую область видео
     let requiredWidth = canvas.width;
     let i = 0;
     while (requiredWidth > 0) {
       const video = videos[i % VIDEO_COUNT];
+      const width = videoWidths[i % VIDEO_COUNT];
       carousel.push({
         video: video,
-        width: videoSize,
+        width: width,
         x: totalWidth
       });
-      totalWidth += videoSize;
-      requiredWidth -= videoSize;
+      totalWidth += width;
+      requiredWidth -= width;
       i++;
       if (i > VIDEO_COUNT * 2) break;
     }
 
-    // Добавляем одно дополнительное видео для плавного перехода
     const video = videos[i % VIDEO_COUNT];
+    const width = videoWidths[i % VIDEO_COUNT];
     carousel.push({
       video: video,
-      width: videoSize,
+      width: width,
       x: totalWidth
     });
-    totalWidth += videoSize;
+    totalWidth += width;
   }
 
   function resizeCanvas() {
     const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
-    // Устанавливаем размер Canvas с минимальной высотой 250px
     canvas.width = window.innerWidth;
     canvas.height = Math.max(viewportHeight * 0.35, 250);
 
@@ -81,36 +82,34 @@ document.addEventListener('DOMContentLoaded', function () {
   function animate(time) {
     const deltaTime = (time - lastTime) / 1000;
 
-      // Limit FPS to 30 (33.33 ms per frame)
     if (time - lastTime < 1000 / 30) {
       requestAnimationFrame(animate);
       return;
     }
+
     lastTime = time;
 
-    // Обновляем позиции видео
     carousel.forEach(obj => {
       obj.x -= SPEED_PX_PER_SEC * deltaTime;
     });
 
-    // Перемещаем видео, которые выходят за левый край
     const first = carousel[0];
     if (first.x + first.width <= 0) {
       carousel.shift();
       const last = carousel[carousel.length - 1];
       const nextVideoIndex = (videos.indexOf(last.video) + 1) % VIDEO_COUNT;
       const nextVideo = videos[nextVideoIndex];
+      const aspectRatio = nextVideo.videoWidth / nextVideo.videoHeight;
+      const nextWidth = canvas.height * aspectRatio;
       carousel.push({
         video: nextVideo,
-        width: canvas.height,
+        width: nextWidth,
         x: last.x + last.width
       });
     }
 
-    // Очищаем Canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Рисуем видимые видео
     carousel.forEach(obj => {
       if (obj.x < canvas.width && obj.x + obj.width > 0) {
         if (obj.video.readyState >= 2) {
