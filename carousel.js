@@ -1,18 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const VIDEO_COUNT = 10;
-  const SPEED_PX_PER_SEC = 50;
+  const VIDEO_COUNT = 7;
+  const SPEED_PX_PER_SEC = 60;
 
   const canvas = document.getElementById('video-carousel');
   const ctx = canvas.getContext('2d');
 
-  const loadingOverlay = document.createElement('div');
-  loadingOverlay.id = 'loading-overlay';
-  loadingOverlay.innerHTML = '<span>видео загружаются</span>';
-  document.body.appendChild(loadingOverlay);
-
   let carousel = [];
   let totalWidth = 0;
   let lastTime = performance.now();
+  let isLoading = true; // Add loading state
 
   const videos = [];
   for (let i = 1; i <= VIDEO_COUNT; i++) {
@@ -34,12 +30,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function initializeCarousel() {
+    isLoading = false; // Remove loading state when initialized
     calculateVisibleVideos();
     lastTime = performance.now();
     requestAnimationFrame(animate);
-
-    // Hide the loading overlay
-    loadingOverlay.style.display = 'none';
   }
 
   function calculateVisibleVideos() {
@@ -83,17 +77,26 @@ document.addEventListener('DOMContentLoaded', function () {
     canvas.width = window.innerWidth;
     canvas.height = Math.max(viewportHeight * 0.35, 250);
 
+    console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
     calculateVisibleVideos();
+    if (isLoading) drawLoadingMessage(); // Re-render the loading message
+  }
+
+  function drawLoadingMessage() {
+    ctx.fillStyle = "black"; // Background color
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white"; // Text color
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "20px sans-serif"; // Match body font
+    ctx.fillText("видео загружаются", canvas.width / 2, canvas.height / 2);
   }
 
   function animate(time) {
+    if (isLoading) return; // Stop animation if still loading
+
     const deltaTime = (time - lastTime) / 1000;
-
-    if (time - lastTime < 1000 / 30) {
-      requestAnimationFrame(animate);
-      return;
-    }
-
     lastTime = time;
 
     carousel.forEach(obj => {
@@ -147,4 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
+
+  // Draw the loading message initially
+  drawLoadingMessage();
 });
