@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const VIDEO_COUNT = 7;
-  const SPEED_PX_PER_SEC = 60;
+  const VIDEO_COUNT = 10;
+  const SPEED_PX_PER_SEC = 50;
 
   const canvas = document.getElementById('video-carousel');
   const ctx = canvas.getContext('2d');
