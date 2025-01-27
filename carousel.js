@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ctx.fillStyle = "white"; // Text color
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "20px sans-serif"; // Match body font
+    ctx.font = "10px Inter"; // Match body font
     ctx.fillText("видео загружаются", canvas.width / 2, canvas.height / 2);
   }
 
