@@ -1,9 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
   const VIDEO_COUNT = 10;
-  const SPEED_PX_PER_SEC = 60;
+  const SPEED_PX_PER_SEC = 50;
 
   const canvas = document.getElementById('video-carousel');
   const ctx = canvas.getContext('2d');
+
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.id = 'loading-overlay';
+  loadingOverlay.innerHTML = '<span>видео загружаются</span>';
+  document.body.appendChild(loadingOverlay);
 
   let carousel = [];
   let totalWidth = 0;
@@ -32,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function () {
     calculateVisibleVideos();
     lastTime = performance.now();
     requestAnimationFrame(animate);
+
+    // Hide the loading overlay
+    loadingOverlay.style.display = 'none';
   }
 
   function calculateVisibleVideos() {
@@ -39,8 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
     totalWidth = 0;
 
     const videoWidths = videos.map(video => {
-      const aspectRatio = video.videoWidth / video.videoHeight; // Calculate aspect ratio
-      return canvas.height * aspectRatio; // Calculate width based on canvas height
+      const aspectRatio = video.videoWidth / video.videoHeight;
+      return canvas.height * aspectRatio;
     });
 
     let requiredWidth = canvas.width;
@@ -75,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function () {
     canvas.width = window.innerWidth;
     canvas.height = Math.max(viewportHeight * 0.35, 250);
 
-    console.log(`Canvas resized: ${canvas.width}px x ${canvas.height}px`);
     calculateVisibleVideos();
   }
 
