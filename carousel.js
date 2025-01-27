@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const VIDEO_COUNT = 7;
+  const VIDEO_COUNT = 10;
   const SPEED_PX_PER_SEC = 60;
 
   const canvas = document.getElementById('video-carousel');
