@@ -36,6 +36,34 @@ section {
   margin-bottom: 7rem;
 }
 
+.site-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.waitlist-link {
+  font-weight: 600;
+}
+
+.waitlist-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid #0c4eb9;
+  color: #fff;
+  background: #0c4eb9;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.waitlist-button:hover {
+  color: #0c4eb9;
+  background: transparent;
+  text-decoration: none;
+}
+
 p {
   margin-bottom: 1rem;
   line-height: 1.5rem;
@@ -224,4 +252,27 @@ iframe[data-tally-src] {
 
 #loading-overlay span {
   text-align: center;
+}
+
+.waitlist-page .site-header {
+  justify-content: flex-start;
+}
+
+.waitlist-page #title {
+  margin-bottom: 3rem;
+}
+
+.waitlist-intro {
+  margin-bottom: 2rem;
+}
+
+.waitlist-intro h1 {
+  margin-bottom: 1.5rem;
+}
+
+.waitlist-form iframe {
+  width: 100%;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
 }

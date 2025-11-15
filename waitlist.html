@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Комфи курс — лист ожидания</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="waitlist-page">
+    <div id="bg"></div>
+    <canvas id="video-carousel"></canvas>
+    <div class="content-wrapper">
+        <header class="site-header waitlist-header">
+            <a class="waitlist-link" href="index.html">← Назад к описанию курса</a>
+        </header>
+        <main>
+            <section class="waitlist-intro">
+                <h1>Запись в лист ожидания</h1>
+                <p>В декабре откроется набор на четвёртый поток.</p>
+                <p>Предварительное расписание — 18 занятий один раз в неделю по воскресеньям с января по конец апреля (четыре месяца). В программу будут добавлены модели, актуальные на момент проведения занятий. Предварительная стоимость курса — около 650 €.</p>
+                <p>Если вы хотите предварительно зарегистрироваться и получить напоминание, когда запись на курс откроется, заполните форму ниже.</p>
+                <p>И большое спасибо за интерес к курсу!</p>
+            </section>
+
+            <section class="waitlist-form">
+                <iframe data-tally-src="https://tally.so/embed/2EEABp?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="900" frameborder="0" marginheight="0" marginwidth="0" title="Лист ожидания"></iframe>
+            </section>
+        </main>
+        <footer>
+            <p>© 2025 Иван Якушев <a href="docs/public_offer.pdf">Договор-офферта</a>
+
+<div id="contacts"></div></p>
+        </footer>
+    </div>
+    <script src="carousel.js"></script>
+    <script src="gradient.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var d = document, w = "https://tally.so/widgets/embed.js";
+            var v = function () {
+                if (typeof Tally !== "undefined") {
+                    Tally.loadEmbeds();
+                } else if (!d.querySelector('script[src="' + w + '"]')) {
+                    var s = d.createElement("script");
+                    s.src = w;
+                    s.onload = function () { Tally.loadEmbeds(); };
+                    d.body.appendChild(s);
+                }
+            };
+            v();
+        });
+    </script>
+</body>
+</html>
