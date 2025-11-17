@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colloquium: сон</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="waitlist-page colloquium-page">
+    <div id="bg"></div>
+    <div class="content-wrapper">
+        <main>
+            <section class="waitlist-intro">
+                <h1>СОН</h1>
+                <p>Выберите (вспомните, выдумайте) какой-нибудь из ваших снов. Не важно, случайный или очень важный для вас. Представьте его как хронологическую серию изображений с событиями или образами, которые станут основой короткой анимации.</p>
+            </section>
+
+            <section class="colloquium-steps">
+                <ol>
+                    <li>
+                        <h3>1. Исходное изображение</h3>
+                        <p>Выберите единые пропорции для каждого кадра и подготовьте несколько (2–3) кадров будущего видео. Чтобы удерживать стиль используйте LoRA и постоянную часть промпта. Пробуйте задействовать ControlNet: наброски из пятен можно превращать с помощью Upscaler ControlNet, а для карт глубины и контуров используйте Union ControlNet.</p>
+                        <p><a href="colloquium_json/1.%20Flux%20Krea%20Big%20Workflow.json">Flux Krea Big Workflow → JSON</a></p>
+                    </li>
+                    <li>
+                        <h3>2. Промежуточные кадры через Qwen Edit</h3>
+                        <p>С помощью Qwen Edit сгенерируйте дополнительные кадры, которые будете использовать в качестве контрольных для генерации видео от первого кадра к последнему.</p>
+                        <p><a href="colloquium_json/2.%20QWEN%20Edit%20Plus%20-%20Next%20Scene%20Lora.json">QWEN Edit Plus — Next Scene Lora → JSON</a></p>
+                    </li>
+                    <li>
+                        <h3>3. Обогащённые промпты</h3>
+                        <p>Языковой моделью автоматически добавьте деталей в промпты для переходов между кадрами.</p>
+                        <p><a href="colloquium_json/3.%20Prompt%20Detailer%20Qwen%20VL.json">Prompt Detailer Qwen VL → JSON</a></p>
+                    </li>
+                    <li>
+                        <h3>4. Генерация клипов</h3>
+                        <p>Сгенерируйте несколько клипов для ваших кадров. Либо переходами от первого кадра к последнему, либо просто I2V.</p>
+                        <p><a href="colloquium_json/4.%20Wan%202.2%20I2V%20or%20FLF2V.json">Wan 2.2 I2V or FLF2V → JSON</a></p>
+                    </li>
+                    <li>
+                        <h3>5. Финальная анимация в VACE</h3>
+                        <p>В VACE сшиваем всё в финальную единую анимацию (при необходимости — зацикленную).</p>
+                        <p><a href="colloquium_json/5.%20WAN%202.2%20VACE%20Connect%20Videos.json">WAN 2.2 VACE Connect Videos → JSON</a></p>
+                    </li>
+                </ol>
+            </section>
+
+            <section class="waitlist-intro">
+                <p>При деплое на 4090 стаьте CUDA 12.8 и побольше обычной RAM</p>
+                <p><strong>Результат выгружайте в галерею с подписью #сон.</strong></p>
+                <p>Deadline[gold] — среда<br>Deadline[silver] — воскресенье</p>
+            </section>
+        </main>
+        <footer>
+        </footer>
+    </div>
+    <script src="gradient.js"></script>
+</body>
+</html>
