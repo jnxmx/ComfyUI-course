@@ -276,3 +276,19 @@ iframe[data-tally-src] {
   border-radius: 0.5rem;
   background: transparent;
 }
+
+.final-project-steps ol > li {
+  padding-left: 0;
+}
+
+.final-project-steps ol > li::before {
+  content: none;
+}
+
+.marionette-steps ol > li {
+  padding-left: 0;
+}
+
+.marionette-steps ol > li::before {
+  content: none;
+}

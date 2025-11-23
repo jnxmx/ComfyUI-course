@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marionette</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="waitlist-page colloquium-page">
+    <div id="bg"></div>
+    <div class="content-wrapper">
+        <main>
+            <section class="waitlist-intro">
+                <h1>Marionette</h1>
+            </section>
+
+            <section class="colloquium-steps marionette-steps">
+                <ol>
+                    <li>
+                        <h3>1. Переведите видео в 81-кадровое контрольное видео для depth или dw pose и отделите первый кадр</h3>
+                        <p><a href="marionette_json/0.%20Extract%20First%20Frame%20and%20Preprocess%20Videos.json">Extract First Frame and Preprocess Videos → JSON</a></p>
+                    </li>
+                    <li>
+                        <h3>2. Переведите первый кадр с помощью карты глубины в новую сцену либо с помощью контролеров (например) во flux, либо с помощью qwen edit подавая на вход depth изображение</h3>
+                        <p><a href="marionette_json/1a.%20Flux%20Krea%20Depth%20First%20Frame.json">Flux Krea Depth First Frame → JSON</a></p>
+                        <figure>
+                            <img src="marionette_json/1a.%20Flux%20Krea%20Depth%20First%20Frame.png" alt="" width="100%">
+                        </figure>
+                        <p><a href="marionette_json/1b.%20QWEN%20Edit%20Plus%20-%20Depth%20Prompt.json">QWEN Edit Plus — Depth Prompt → JSON</a></p>
+                        <figure>
+                            <img src="marionette_json/1b.%20QWEN%20Edit%20Plus%20-%20Depth%20Prompt.png" alt="" width="100%">
+                        </figure>
+                    </li>
+                    <li>
+                        <h3>3. Используйте новое изображение как первый кадр и как референс одновременно в vace</h3>
+                        <p><a href="marionette_json/2.%20WAN%202.2%20VACE%20First%20Frame%20+%20Control.json">WAN 2.2 VACE First Frame + Control → JSON</a></p>
+                        <figure>
+                            <video src="marionette_json/2.%20WAN%202.2%20VACE%20First%20Frame%20+%20Control.mp4" muted autoplay loop playsinline controls width="100%"></video>
+                        </figure>
+                    </li>
+                </ol>
+            </section>
+        </main>
+        <footer>
+        </footer>
+    </div>
+    <script src="gradient.js"></script>
+</body>
+</html>
