@@ -206,11 +206,10 @@ iframe[data-tally-src] {
 }
 
 .workflow-archive {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2rem;
-  border-radius: 1.25rem;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(12px);
+  background: transparent;
+  padding: 2rem 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .workflow-status {
@@ -220,19 +219,23 @@ iframe[data-tally-src] {
 
 .workflow-group {
   margin-bottom: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  overflow: hidden;
+  border: none;
+  background: transparent;
+  overflow: visible;
 }
 
+/* Indent nested levels without adding new frames */
+/* Indent nested levels without adding new frames */
 .workflow-group .workflow-group {
   margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  border: none;
+  background: transparent;
 }
 
 .workflow-group summary {
   cursor: pointer;
-  padding: 1rem 1.25rem;
+  padding: 0.35rem 0;
   font-weight: 700;
   font-size: 1rem;
   color: #08337f;
@@ -241,7 +244,7 @@ iframe[data-tally-src] {
 .workflow-group.level-0 summary {
   font-size: 1.4rem;
   padding: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   color: #0c4eb9;
 }
 
@@ -250,23 +253,25 @@ iframe[data-tally-src] {
 }
 
 .workflow-children {
-  padding: 0 1.25rem 1.25rem;
+  padding: 0 0 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
 .workflow-group.level-0 {
-  border: none;
-  background: transparent;
-  padding: 0 0 1rem;
+  padding: 0 0 1.75rem;
 }
 
 .workflow-group.level-0 .workflow-children {
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 1.15rem;
+  border-radius: 1.1rem;
   background: rgba(255, 255, 255, 0.92);
   padding: 1.5rem;
+}
+
+.workflow-group.level-0 .workflow-group {
+  padding-left: 0;
 }
 
 .workflow-list {
