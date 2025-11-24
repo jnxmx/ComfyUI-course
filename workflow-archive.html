@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Archive</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="waitlist-page colloquium-page">
+    <div id="bg"></div>
+    <div class="content-wrapper">
+        <main>
+            <section class="waitlist-intro">
+                <h1>comfy.course workflow archive</h1>
+                <div class="workflow-search">
+                    <input type="search" id="workflow-search-input" placeholder="Search workflows...">
+                </div>
+            </section>
+
+            <section class="workflow-archive" id="workflow-archive">
+                <div class="workflow-status" id="workflow-status">Loading workflows…</div>
+            </section>
+        </main>
+    </div>
+    <script>
+        const repoOwner = 'jnxmx';
+        const repoName = 'comfycourse_json';
+        const repoBranch = 'main';
+        const archiveContainer = document.getElementById('workflow-archive');
+        const statusEl = document.getElementById('workflow-status');
+        const searchInput = document.getElementById('workflow-search-input');
+
+        async function fetchWorkflows() {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/git/trees/${repoBranch}?recursive=1`, {
+                    headers: {
+                        Accept: 'application/vnd.github+json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unable to fetch repository tree');
+                }
+
+                const data = await response.json();
+                const files = data.tree.filter(entry => entry.type === 'blob' && entry.path.endsWith('.json'));
+
+                if (!files.length) {
+                    statusEl.textContent = 'No workflows available yet.';
+                    return;
+                }
+
+                const tree = buildWorkflowTree(files);
+                renderTree(tree);
+                updateGroupVisibility(0);
+                statusEl.remove();
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = 'Failed to load workflows. Please try again later.';
+            }
+        }
+
+        function buildWorkflowTree(files) {
+            const root = { name: 'root', children: {}, files: [] };
+            files.forEach(file => {
+                const parts = file.path.split('/');
+                let current = root;
+                parts.forEach((part, index) => {
+                    const isFile = index === parts.length - 1;
+                    if (isFile) {
+                        if (!current.files) {
+                            current.files = [];
+                        }
+                        current.files.push({
+                            name: part,
+                            path: file.path
+                        });
+                    } else {
+                        if (!current.children[part]) {
+                            current.children[part] = { name: part, children: {}, files: [] };
+                        }
+                        current = current.children[part];
+                    }
+                });
+            });
+            return root;
+        }
+
+        function renderTree(tree) {
+            const fragment = document.createDocumentFragment();
+            const topLevelNames = Object.keys(tree.children).sort(compareNames);
+
+            if (tree.files && tree.files.length) {
+                fragment.appendChild(createFileList(tree.files));
+            }
+
+            topLevelNames.forEach(name => {
+                fragment.appendChild(createGroupElement(tree.children[name], 0));
+            });
+
+            archiveContainer.appendChild(fragment);
+        }
+
+        function createGroupElement(node, depth) {
+            const details = document.createElement('details');
+            details.className = `workflow-group level-${depth}`;
+            details.open = depth === 0;
+
+            const summary = document.createElement('summary');
+            summary.textContent = formatGroupName(node.name, depth);
+            details.appendChild(summary);
+
+            const childrenContainer = document.createElement('div');
+            childrenContainer.className = 'workflow-children';
+            details.appendChild(childrenContainer);
+
+            if (node.children) {
+                const childNames = Object.keys(node.children).sort(compareNames);
+                childNames.forEach(childName => {
+                    childrenContainer.appendChild(createGroupElement(node.children[childName], depth + 1));
+                });
+            }
+
+            if (node.files && node.files.length) {
+                childrenContainer.appendChild(createFileList(node.files));
+            }
+
+            return details;
+        }
+
+        function createFileList(files) {
+            const list = document.createElement('ul');
+            list.className = 'workflow-list';
+
+            files
+                .slice()
+                .sort((a, b) => compareNames(a.name, b.name))
+                .forEach(entry => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'workflow-item';
+                    listItem.dataset.workflowEntry = formatWorkflowName(entry.name).toLowerCase();
+                    listItem.dataset.workflowPath = entry.path.toLowerCase();
+
+                    const title = document.createElement('span');
+                    title.textContent = formatWorkflowName(entry.name);
+
+                    const downloadButton = document.createElement('button');
+                    downloadButton.type = 'button';
+                    downloadButton.textContent = 'Download';
+                    downloadButton.addEventListener('click', () => downloadWorkflow(entry));
+
+                    listItem.appendChild(title);
+                    listItem.appendChild(downloadButton);
+                    list.appendChild(listItem);
+                });
+
+            return list;
+        }
+
+        async function downloadWorkflow(entry) {
+            const rawUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${repoBranch}/${entry.path}`;
+            try {
+                const response = await fetch(rawUrl);
+                if (!response.ok) {
+                    throw new Error('Unable to download workflow');
+                }
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = blobUrl;
+                anchor.download = entry.name;
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+                URL.revokeObjectURL(blobUrl);
+            } catch (error) {
+                alert('Failed to download workflow. Please try again.');
+            }
+        }
+
+        function setupSearch() {
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.trim().toLowerCase();
+                archiveContainer.querySelectorAll('.workflow-item').forEach(item => {
+                    const matches = item.dataset.workflowEntry.includes(query) ||
+                        item.dataset.workflowPath.includes(query);
+                    item.style.display = matches ? '' : 'none';
+                });
+
+                updateGroupVisibility(query.length);
+            });
+        }
+
+        function updateGroupVisibility(queryLength = 0) {
+            const groups = Array.from(archiveContainer.querySelectorAll('.workflow-group'));
+            groups
+                .sort((a, b) => getGroupDepth(b) - getGroupDepth(a))
+                .forEach(group => {
+                    const visibleItem = group.querySelector('.workflow-item:not([style*="display: none"])');
+                    const visibleChildGroup = Array.from(group.querySelectorAll('.workflow-group'))
+                        .some(child => child !== group && child.style.display !== 'none');
+                    const shouldDisplay = (visibleItem || visibleChildGroup);
+                    group.style.display = shouldDisplay ? '' : 'none';
+
+                    if (queryLength > 3) {
+                        if (shouldDisplay) {
+                            group.open = true;
+                        }
+                    } else {
+                        group.open = group.classList.contains('level-0');
+                    }
+                });
+        }
+
+        function getGroupDepth(element) {
+            let depth = 0;
+            let current = element.parentElement;
+            while (current) {
+                if (current.classList && current.classList.contains('workflow-group')) {
+                    depth += 1;
+                }
+                current = current.parentElement;
+            }
+            return depth;
+        }
+
+        function formatGroupName(name, depth) {
+            const decoded = decodeSafe(name);
+            if (depth === 0) {
+                const match = decoded.match(/^(\d{2})_\d{2}_([A-Za-z]+)/);
+                if (match) {
+                    const [, yearFragment, seasonRaw] = match;
+                    const season = capitalize(seasonRaw);
+                    const year = `20${yearFragment}`;
+                    return `${season} ${year}`;
+                }
+            }
+            return prettifySegment(decoded);
+        }
+
+        function formatWorkflowName(name) {
+            const decoded = decodeSafe(name);
+            const noExt = decoded.replace(/\.json$/i, '');
+            const noOrder = noExt.replace(/^[\d]+[a-z]?[\.\-_ ]*\s*/i, '');
+            const cleaned = noOrder.replace(/_/g, ' ').trim();
+            return cleaned || noExt.trim() || decoded;
+        }
+
+        function prettifySegment(value) {
+            const cleaned = value
+                .replace(/^[\d]+[a-z]?[\.\-_ ]*\s*/i, '')
+                .replace(/_/g, ' ')
+                .trim();
+            return cleaned || value.trim() || value;
+        }
+
+        function decodeSafe(value) {
+            try {
+                return decodeURIComponent(value);
+            } catch {
+                return value;
+            }
+        }
+
+        function capitalize(value) {
+            if (!value) return value;
+            return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+        }
+
+        function compareNames(a, b) {
+            return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+        }
+
+        fetchWorkflows();
+        setupSearch();
+    </script>
+    <script src="gradient.js"></script>
+</body>
+</html>

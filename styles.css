@@ -186,6 +186,134 @@ iframe[data-tally-src] {
   border-radius: 0.05em;  
 }
 
+.workflow-search {
+  margin-top: 1.5rem;
+}
+
+.workflow-search input {
+  width: min(480px, 100%);
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.workflow-search input:focus {
+  border-color: #0c4eb9;
+  box-shadow: 0 0 0 2px rgba(12, 78, 185, 0.15);
+}
+
+.workflow-archive {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.workflow-status {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.workflow-group {
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+}
+
+.workflow-group .workflow-group {
+  margin: 0.75rem 0 0;
+}
+
+.workflow-group summary {
+  cursor: pointer;
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #08337f;
+}
+
+.workflow-group.level-0 summary {
+  font-size: 1.4rem;
+  padding: 0;
+  margin-bottom: 0.5rem;
+  color: #0c4eb9;
+}
+
+.workflow-group summary::marker {
+  color: #0c4eb9;
+}
+
+.workflow-children {
+  padding: 0 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.workflow-group.level-0 {
+  border: none;
+  background: transparent;
+  padding: 0 0 1rem;
+}
+
+.workflow-group.level-0 .workflow-children {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 1.15rem;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 1.5rem;
+}
+
+.workflow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.workflow-list > li::before {
+  content: none;
+}
+
+.workflow-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  margin: 0;
+  position: static;
+  border-radius: 0.85rem;
+  background: rgba(12, 78, 185, 0.05);
+}
+
+.workflow-item button {
+  border: none;
+  border-radius: 999px;
+  background: #0c4eb9;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.workflow-item button:hover {
+  background: #08337f;
+  transform: translateY(-1px);
+}
+
+.workflow-item button:active {
+  transform: translateY(0);
+}
+
 @media (max-width: 600px) {
 
   h1 {
@@ -197,7 +325,7 @@ iframe[data-tally-src] {
     -webkit-column-count: 1 !important;
     column-count: 1 !important;
     -webkit-column-gap: 0 !important;
-    column-gap: 0 !important;
+  column-gap: 0 !important;
     font-size: 0.8rem;
     line-height: 0.85rem;
   }
