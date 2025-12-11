@@ -277,7 +277,19 @@
         }
 
         function compareNames(a, b) {
+            const numA = parseLeadingNumber(a);
+            const numB = parseLeadingNumber(b);
+
+            if (numA !== null && numB !== null && numA !== numB) {
+                return numB - numA; // show newer (higher) numbers first
+            }
+
             return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+        }
+
+        function parseLeadingNumber(value) {
+            const match = decodeSafe(value).match(/^(\d{2,})/);
+            return match ? Number(match[1]) : null;
         }
 
         fetchWorkflows();
