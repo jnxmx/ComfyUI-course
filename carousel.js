@@ -118,12 +118,13 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     carousel.forEach(obj => {
       if (obj.x < canvas.width && obj.x + obj.width > 0) {
         if (obj.video.readyState >= 2) {
-          ctx.drawImage(obj.video, obj.x, 0, obj.width, canvas.height);
+          ctx.drawImage(obj.video, obj.x, 0, obj.width + 1, canvas.height);
         }
       }
     });

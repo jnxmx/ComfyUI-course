@@ -1,11 +1,37 @@
+:root {
+  --bg-color: #f4f4f0; /* Warm off-white */
+  --text-color: #111111;
+  --accent-color: #111111;
+  --link-color: #111111;
+  --font-size: 20px;
+}
+
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%; 
-  background-color: #d8cec9;
+  min-height: 100%; 
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Inter', sans-serif;
+  font-size: var(--font-size);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden; 
 }
 
+/* Vignette Effect from yakushev.fr */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  z-index: 1000;
+}
 
 #bg {
   position: fixed;
@@ -14,11 +40,13 @@ html, body {
   width: 100%;
   height: 100%;
   z-index: -1;  
+  background-color: var(--bg-color);
 }
 
 h1 {
-  font-size: 2.7rem;
+  font-size: 2.2rem;
   margin: 0 0 -0.5rem;
+  line-height: 1.1;
 }
 
 h3 {
@@ -50,36 +78,42 @@ section {
 
 .waitlist-button {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  border-radius: 999px;
-  border: 1px solid #0c4eb9;
+  padding: 0.8rem 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--accent-color);
   color: #fff;
-  background: #0c4eb9;
-  transition: background 0.2s ease, color 0.2s ease;
+  background: var(--accent-color);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .waitlist-button:hover {
-  color: #0c4eb9;
+  color: var(--accent-color);
   background: transparent;
   text-decoration: none;
 }
 
 p {
   margin-bottom: 1rem;
-  line-height: 1.5rem;
+  line-height: 1.45;
 }
 
 ul {
-  line-height: 1.5rem;
+  line-height: 1.45;
 }
 
 a {
-  color: #d97725;
-  text-decoration: none;
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.3s ease;
 }
 
 a:hover {
   text-decoration: underline;
+  opacity: 0.7;
 }
 
 ul,
@@ -153,7 +187,7 @@ ol li ul li::before {
 #schedule ol li > ul {
   margin-top: 0.2em;
   padding-top: 0.4rem;
-  border-top: 1px solid #0c4eb9; 
+  border-top: 1px solid var(--accent-color); 
   width: 100%;                  
   box-sizing: border-box;       
 }
@@ -182,8 +216,9 @@ iframe[data-tally-src] {
 
 .highlight {
   background-color: #fff;  
-  padding: 0.077em 0.1em;    
-  border-radius: 0.05em;  
+  padding: 0.1em 0.3rem;    
+  border-radius: 0.2em;  
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .workflow-search {
@@ -206,8 +241,8 @@ iframe[data-tally-src] {
 }
 
 .workflow-search input:focus {
-  border-color: #0c4eb9;
-  box-shadow: 0 0 0 2px rgba(12, 78, 185, 0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
 }
 
 .workflow-archive {
@@ -243,18 +278,18 @@ iframe[data-tally-src] {
   padding: 0.35rem 0;
   font-weight: 700;
   font-size: 1rem;
-  color: #08337f;
+  color: #444;
 }
 
 .workflow-group.level-0 summary {
   font-size: 1.4rem;
   padding: 0;
   margin-bottom: 0.75rem;
-  color: #0c4eb9;
+  color: var(--accent-color);
 }
 
 .workflow-group summary::marker {
-  color: #0c4eb9;
+  color: var(--accent-color);
 }
 
 .workflow-children {
@@ -269,9 +304,9 @@ iframe[data-tally-src] {
 }
 
 .workflow-group.level-0 .workflow-children {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   padding: 1.5rem;
 }
 
@@ -301,22 +336,24 @@ iframe[data-tally-src] {
   margin: 0;
   position: static;
   border-radius: 0.85rem;
-  background: rgba(12, 78, 185, 0.05);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .workflow-item button {
   border: none;
-  border-radius: 999px;
-  background: #0c4eb9;
+  border-radius: 16px;
+  background: var(--accent-color);
   color: #fff;
   font-weight: 600;
-  padding: 0.5rem 1.25rem;
+  padding: 0.6rem 1.5rem;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: all 0.2s ease;
+  font-size: 14px;
 }
 
 .workflow-item button:hover {
-  background: #08337f;
+  background: #000;
   transform: translateY(-1px);
 }
 
@@ -354,10 +391,12 @@ iframe[data-tally-src] {
 
 /* Canvas для карусели видео */
 #video-carousel {
-  width: 100vw;
+  width: calc(100vw + 2px);
+  margin-left: -1px;
   height: 35vh; 
   min-height: 250px;
   display: block;
+  background-color: black;
 }
 
 /* Контейнер основного контента */
@@ -366,9 +405,9 @@ iframe[data-tally-src] {
   margin: 0 auto;
   padding: 2rem;
 
-  color: #0c4eb9;
+  color: var(--text-color);
   text-align: left;
-  font-size: 18px;
+  font-size: var(--font-size);
   font-family: 'Inter', sans-serif;
 }
 
@@ -410,7 +449,7 @@ iframe[data-tally-src] {
   align-items: baseline;
   gap: 0.4rem;
   flex-wrap: wrap;
-  color: #0c4eb9;
+  color: var(--accent-color);
   margin-bottom: 1.25rem;
 }
 
@@ -419,15 +458,15 @@ iframe[data-tally-src] {
   padding: 0;
   border: none;
   background: none;
-  color: #0c4eb9;
+  color: var(--accent-color);
   font-weight: 700;
   font-size: 0.92rem;
   letter-spacing: 0.01em;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .runpod-button:hover {
-  color: #08337f;
+  color: #000;
   text-decoration: underline;
 }
 
@@ -462,4 +501,62 @@ iframe[data-tally-src] {
 
 .marionette-steps ol > li::before {
   content: none;
+}
+
+/* Collapsible Schedule */
+#schedule details {
+  cursor: pointer;
+  width: 100%;
+}
+
+#schedule summary {
+  list-style: none;
+  outline: none;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  transition: opacity 0.2s ease;
+}
+
+#schedule summary::-webkit-details-marker {
+  display: none;
+}
+
+#schedule summary::after {
+  content: ">";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  border-radius: 50%;
+  margin-left: 0.6rem;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+#schedule summary:hover::after {
+  background-color: var(--accent-color);
+  color: #fff;
+}
+
+#schedule details[open] summary::after {
+  transform: rotate(90deg);
+}
+
+#schedule summary:hover {
+  opacity: 0.7;
+}
+
+#schedule details[open] summary {
+  margin-bottom: 1.5rem;
 }
