@@ -560,3 +560,17 @@ iframe[data-tally-src] {
 #schedule details[open] summary {
   margin-bottom: 1.5rem;
 }
+
+/* FAQ */
+.faq-item {
+  margin-bottom: 1.5rem;
+}
+
+.faq-question {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.faq-answer {
+  margin-bottom: 1rem;
+}
