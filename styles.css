@@ -206,12 +206,23 @@ footer {
   font-size: 0.8rem;
 }
 
-iframe[data-tally-src] {
-  margin-left: -9px !important;
+/* Fix for Tally badge appearance */
+a[href*="tally.so"], 
+[class*="tally-badge"] {
+  text-decoration: none !important;
+  opacity: 1 !important;
+  color: inherit !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[class*="tally-badge"] * {
+  all: revert !important;
 }
 
 iframe[data-tally-src] {
-  margin-left: -11 !important;
+  margin-left: 0 !important;
 }
 
 .highlight {
