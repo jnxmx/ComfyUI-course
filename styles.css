@@ -211,14 +211,18 @@ a[href*="tally.so"],
 [class*="tally-badge"] {
   text-decoration: none !important;
   opacity: 1 !important;
-  color: inherit !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: #000 !important;
+  color: #fff !important;
+  border-radius: 4px !important;
+  padding: 4px 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
-[class*="tally-badge"] * {
-  all: revert !important;
+[class*="tally-badge"] svg,
+[class*="tally-badge"] img {
+  fill: #fff !important;
+  margin-right: 4px !important;
 }
 
 iframe[data-tally-src] {
