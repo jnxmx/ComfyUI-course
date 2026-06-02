@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Галерея студенческих работ | ComfyUI</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="gallery-page">
+    <div id="bg"></div>
+    <div class="gallery-container">
+        <header class="gallery-header">
+            <a href="https://yakushev.fr" class="name">ivan yakushev</a>
+            <a class="waitlist-link" href="index.html">← к описанию курса</a>
+        </header>
+
+        <main>
+            <div class="gallery-list">
+                <div class="gallery-item">
+                    <video src="assets/students/galya_dautova.mp4" poster="assets/students/galya_dautova_poster.jpg" controls preload="metadata"></video>
+                    <div class="video-caption">galya dautova</div>
+                </div>
+
+                <div class="gallery-item">
+                    <video src="assets/students/katya_holod.mp4" poster="assets/students/katya_holod_poster.jpg" controls preload="metadata"></video>
+                    <div class="video-caption">katya holod</div>
+                </div>
+
+                <div class="gallery-item">
+                    <video src="assets/students/lee_margo.mp4" poster="assets/students/lee_margo_poster.jpg" controls preload="metadata"></video>
+                    <div class="video-caption">lee margo</div>
+                </div>
+
+                <div class="gallery-item">
+                    <video src="assets/students/nastya_rubel.mp4" poster="assets/students/nastya_rubel_poster.jpg" controls preload="metadata"></video>
+                    <div class="video-caption">nastya rubel</div>
+                </div>
+
+                <div class="gallery-item">
+                    <video src="assets/students/protey_temen.mp4" poster="assets/students/protey_temen_poster.jpg" controls preload="metadata"></video>
+                    <div class="video-caption">protey temen</div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+        </footer>
+    </div>
+
+    <script src="gradient.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cinematic Video Logic
+            const exitCinematic = (video) => {
+                console.log('Exiting cinematic mode');
+                document.documentElement.classList.remove('locked');
+                document.body.classList.remove('locked', 'cinematic-mode');
+                if (video) video.classList.remove('video-playing');
+                else {
+                    document.querySelectorAll('video.video-playing').forEach(v => v.classList.remove('video-playing'));
+                }
+            };
+
+            let lastPlayTime = 0;
+
+            document.addEventListener('play', (e) => {
+                if (e.target.tagName === 'VIDEO') {
+                    const video = e.target;
+                    lastPlayTime = Date.now();
+                    console.log('Video play detected:', video.src);
+                    
+                    // Pause other videos
+                    document.querySelectorAll('video').forEach(v => {
+                        if (v !== video) v.pause();
+                    });
+
+                    // Lock scroll and enter cinematic mode
+                    document.documentElement.classList.add('locked');
+                    document.body.classList.add('locked', 'cinematic-mode');
+                    video.classList.add('video-playing');
+
+                    // Push a history state so back button can exit cinematic mode
+                    history.pushState({ isCinematic: true }, '');
+
+                    // Center video
+                    setTimeout(() => {
+                        video.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
+            }, true);
+
+            let isExitingCinematic = false;
+
+            document.addEventListener('pause', (e) => {
+                if (e.target.tagName === 'VIDEO') {
+                    exitCinematic(e.target);
+                    // If we paused manually and the history state is still there, pop it
+                    if (history.state && history.state.isCinematic) {
+                        isExitingCinematic = true;
+                        history.back();
+                        // Reset flag after a short delay
+                        setTimeout(() => { isExitingCinematic = false; }, 100);
+                    }
+                }
+            }, true);
+
+            document.addEventListener('ended', (e) => {
+                if (e.target.tagName === 'VIDEO') {
+                    exitCinematic(e.target);
+                }
+            }, true);
+
+            // Handle any click/tap in cinematic mode to pause and exit
+            document.addEventListener('click', (e) => {
+                // Prevent immediate pause if the click was the one that started the video
+                if (Date.now() - lastPlayTime < 300) return;
+
+                if (document.body.classList.contains('cinematic-mode')) {
+                    const playingVideo = document.querySelector('video.video-playing');
+                    if (playingVideo) {
+                        playingVideo.pause();
+                    }
+                }
+            });
+
+            // Handle back/forward buttons
+            window.addEventListener('popstate', (e) => {
+                if (isExitingCinematic) return;
+
+                const playingVideo = document.querySelector('video.video-playing');
+                if (playingVideo && document.body.classList.contains('cinematic-mode')) {
+                    playingVideo.pause();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

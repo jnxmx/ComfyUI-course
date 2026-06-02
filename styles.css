@@ -589,3 +589,177 @@ iframe[data-tally-src] {
 .faq-answer {
   margin-bottom: 1rem;
 }
+
+/* --- Students Gallery Page --- */
+.gallery-page {
+  position: relative;
+}
+
+/* Vignette Frame */
+.gallery-page::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Gallery header with mix-blend-mode like portfolio */
+.gallery-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 2.5rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  mix-blend-mode: difference;
+  color: #ffffff;
+  transition: opacity 0.8s ease;
+}
+
+.gallery-header .name {
+  pointer-events: auto;
+  transition: filter 0.6s ease;
+  text-decoration: none;
+  color: #ffffff;
+  white-space: nowrap;
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+.gallery-header .name:hover {
+  filter: blur(6px);
+}
+
+.gallery-header .waitlist-link {
+  color: #ffffff;
+  text-decoration: none;
+  transition: filter 0.6s ease;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.gallery-header .waitlist-link:hover {
+  filter: blur(6px);
+}
+
+/* Container for Gallery */
+.gallery-container {
+  padding: 150px 3rem 2.5rem 3rem;
+  width: 100%;
+  margin: 0;
+  transition: filter 0.6s ease, opacity 0.6s ease;
+}
+
+.gallery-container.transitioning {
+  filter: blur(20px);
+  opacity: 0;
+}
+
+.gallery-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8vh;
+  padding-bottom: calc(150px - 2.5rem);
+}
+
+.gallery-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.gallery-item video {
+  max-width: 100%;
+  max-height: 80vh;
+  width: auto;
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.8s ease, opacity 0.8s ease, filter 0.8s ease;
+}
+
+.video-caption {
+  font-size: 1rem;
+  text-align: center;
+  color: var(--text-color);
+  font-weight: 400;
+  transition: opacity 0.8s ease, filter 0.8s ease;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* Cinematic Mode details */
+html.locked, body.locked {
+  overflow: hidden !important;
+}
+
+body.cinematic-mode {
+  background-color: #000000 !important;
+  transition: background-color 0.8s ease;
+}
+
+body.cinematic-mode #bg {
+  opacity: 0 !important;
+}
+
+body.cinematic-mode .gallery-header,
+body.cinematic-mode .video-caption,
+body.cinematic-mode .gallery-item video:not(.video-playing) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.gallery-item video.video-playing {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .gallery-header {
+    padding: 0;
+    display: block;
+  }
+
+  .gallery-header .name {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    z-index: 100;
+  }
+
+  .gallery-header .waitlist-link {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+  }
+
+  .gallery-container {
+    padding: 0;
+  }
+
+  .gallery-list {
+    padding: 15vh 0 35vh 0;
+    gap: 12vh;
+    width: 100%;
+  }
+
+  .gallery-item video {
+    max-height: 70vh;
+    width: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    margin: 0;
+  }
+}
+
