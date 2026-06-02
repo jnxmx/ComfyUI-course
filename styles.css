@@ -619,4 +619,28 @@ iframe[data-tally-src] {
   font-family: 'Inter', sans-serif;
 }
 
+.instagram-section {
+  margin-top: 5rem;
+  width: 100%;
+}
+
+.instagram-section h3 {
+  margin-bottom: 1.5rem;
+}
+
+.instagram-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  width: 100%;
+}
+
+.instagram-list blockquote {
+  margin: 0 !important;
+  width: 100% !important;
+  min-width: unset !important;
+  max-width: 100% !important;
+}
+
+
 
