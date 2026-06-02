@@ -619,6 +619,10 @@ iframe[data-tally-src] {
   font-family: 'Inter', sans-serif;
 }
 
+.gallery-page .content-wrapper {
+  max-width: 1100px;
+}
+
 .instagram-section {
   margin-top: 5rem;
   width: 100%;
@@ -630,9 +634,21 @@ iframe[data-tally-src] {
 
 .instagram-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: 1fr;
   gap: 2rem;
   width: 100%;
+}
+
+@media (min-width: 650px) {
+  .instagram-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 950px) {
+  .instagram-list {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 .instagram-list blockquote {
@@ -641,6 +657,7 @@ iframe[data-tally-src] {
   min-width: unset !important;
   max-width: 100% !important;
 }
+
 
 
 
