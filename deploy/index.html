@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- MANDATORY: Declare support for both light and dark themes before rendering -->
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <script>
+  {
+    const colorScheme = localStorage.getItem("color-scheme");
+    if (colorScheme === "light" || colorScheme === "dark" || colorScheme === "light dark") {
+      document.querySelector('meta[name="color-scheme"]').content = colorScheme;
+      if (colorScheme === "light" || colorScheme === "dark") {
+        document.documentElement.classList.add("theme-" + colorScheme);
+      }
+    }
+  }
+  </script>
+  <title>course.yakushev.fr/deploy — Comfy.Work CUDA 13.0 RunPod Deployer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand-group">
+        <div class="brand-badge" aria-hidden="true">CW</div>
+        <div>
+          <h1 class="site-title">course.yakushev.fr/deploy</h1>
+          <p class="site-subtitle">100% Client-Side RunPod Deployer &amp; CUDA 13.0 Health Monitor</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="security-pill" title="Your API key never leaves your browser except over direct HTTPS requests to api.runpod.io">
+          <span aria-hidden="true">&#x1F512;</span> Zero-Backend Browser Execution
+        </span>
+        <button type="button" id="theme-toggle" class="btn btn-secondary" aria-label="Switch color theme">
+          <span id="theme-toggle-text">Switch Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-grid">
+    <!-- Section 1: API Secret Vault & Locked Template Configuration -->
+    <section class="card" aria-labelledby="config-heading">
+      <div class="card-header">
+        <h2 id="config-heading">1. RunPod API Secret &amp; Locked Template Settings</h2>
+        <span id="key-status-badge" class="badge badge-neutral" aria-live="polite">No API Key Loaded</span>
+      </div>
+
+      <form id="api-config-form" action="https://api.runpod.io/v2/catalog/gpus" method="POST" novalidate>
+        <div class="config-columns">
+          <!-- API Key Fieldset -->
+          <fieldset class="config-fieldset">
+            <legend>RunPod API Authentication</legend>
+
+            <div class="field">
+              <label for="runpod-api-key">RunPod API Secret Key <span class="required-mark" aria-hidden="true">*</span></label>
+              <!-- MANDATORY: Place format hints above the input so autocomplete popovers or mobile keyboards do not obscure them -->
+              <span id="api-key-hint" class="hint">
+                Format: <code>rpa_...</code> or RunPod API secret (min 20 characters). Sent directly from your browser to <code>https://api.runpod.io/v2</code>.
+              </span>
+              <div class="password-input-row">
+                <input
+                  type="password"
+                  id="runpod-api-key"
+                  name="runpod_api_key"
+                  required
+                  minlength="20"
+                  pattern="[A-Za-z0-9_\-]{20,160}"
+                  autocomplete="current-password"
+                  enterkeyhint="done"
+                  aria-describedby="api-key-hint"
+                  aria-errormessage="api-key-error"
+                  placeholder="rpa_..."
+                >
+                <button
+                  type="button"
+                  id="toggle-api-key"
+                  class="btn btn-icon"
+                  aria-pressed="false"
+                  aria-label="Show API secret key"
+                  aria-describedby="toggle-api-warning"
+                >
+                  <span id="toggle-api-icon" aria-hidden="true">Show</span>
+                </button>
+                <span id="toggle-api-warning" class="visually-hidden">Warning: this will display your RunPod API key on the screen.</span>
+              </div>
+              <div id="api-key-error" class="error-msg" aria-live="polite">
+                <span aria-hidden="true">&#x274C;</span> Please enter a valid RunPod API secret key (at least 20 alphanumeric characters).
+              </div>
+            </div>
+
+            <div class="checkbox-row">
+              <label for="remember-api-key" class="checkbox-control">
+                <input type="checkbox" id="remember-api-key" name="remember_api_key" class="visually-hidden" checked>
+                <span>Remember API key in this browser (<code>localStorage</code>)</span>
+              </label>
+            </div>
+
+            <div class="button-row">
+              <button type="submit" id="connect-btn" class="btn btn-primary">
+                Load GPUs &amp; Connect
+              </button>
+              <button type="button" id="forget-key-btn" class="btn btn-danger-outline">
+                Forget Saved Key
+              </button>
+            </div>
+          </fieldset>
+
+          <!-- Locked Template & Startup Checkboxes Fieldset -->
+          <fieldset class="config-fieldset">
+            <legend>Template &amp; Startup Configuration</legend>
+
+            <div class="locked-specs-grid" aria-label="Locked template specifications">
+              <div class="spec-chip">
+                <span class="spec-label">Template ID</span>
+                <code class="spec-value">casls01eko</code>
+              </div>
+              <div class="spec-chip">
+                <span class="spec-label">Image</span>
+                <code class="spec-value">jnxmx/comfy26:test</code>
+              </div>
+              <div class="spec-chip">
+                <span class="spec-label">Volume Disk</span>
+                <code class="spec-value">200 GB (/workspace)</code>
+              </div>
+              <div class="spec-chip">
+                <span class="spec-label">Container Disk</span>
+                <code class="spec-value">15 GB</code>
+              </div>
+              <div class="spec-chip">
+                <span class="spec-label">CUDA Versions</span>
+                <code class="spec-value">&gt;= 13.0 (13.0–13.4)</code>
+              </div>
+              <div class="spec-chip">
+                <span class="spec-label">Ports</span>
+                <code class="spec-value">7860–7862, 8080, 8188, 8888</code>
+              </div>
+            </div>
+
+            <div class="field-group-options">
+              <label for="opt-new-manager" class="checkbox-control">
+                <input type="checkbox" id="opt-new-manager" name="new_manager" class="visually-hidden" checked>
+                <span><strong>New Manager</strong> (<code>NEW_MANAGER=1</code>)</span>
+              </label>
+
+              <label for="opt-restore-backup" class="checkbox-control">
+                <input type="checkbox" id="opt-restore-backup" name="restore_backup" class="visually-hidden" checked>
+                <span><strong>Restore Backup</strong> (<code>RESTORE_BACKUP=1</code>)</span>
+              </label>
+
+              <label for="opt-auto-redeploy" class="checkbox-control">
+                <input type="checkbox" id="opt-auto-redeploy" name="auto_redeploy" class="visually-hidden" checked>
+                <span><strong>Auto-Terminate &amp; Redeploy</strong> on CUDA driver failure or host CPU overload</span>
+              </label>
+            </div>
+
+            <div class="inline-fields-row">
+              <div class="field compact-field">
+                <label for="pod-name-prefix">Pod Name Prefix</label>
+                <input
+                  type="text"
+                  id="pod-name-prefix"
+                  name="pod_name_prefix"
+                  value="comfy-work"
+                  maxlength="40"
+                  required
+                  pattern="[A-Za-z0-9_\-]{2,40}"
+                >
+              </div>
+              <div class="field compact-field">
+                <label for="max-redeploy-attempts">Max Auto-Retries</label>
+                <input
+                  type="text"
+                  id="max-redeploy-attempts"
+                  name="max_redeploy_attempts"
+                  value="5"
+                  inputmode="numeric"
+                  pattern="[1-9]"
+                  required
+                >
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </form>
+    </section>
+
+    <!-- Section 2: Active Pods on Account -->
+    <section id="existing-pods-section" class="card" aria-labelledby="existing-pods-heading">
+      <div class="card-header">
+        <div>
+          <h2 id="existing-pods-heading">2. Existing Pods on Your RunPod Account</h2>
+          <p class="section-desc">Monitor an already-running pod or terminate unhealthy instances directly from your browser.</p>
+        </div>
+        <button type="button" id="refresh-pods-btn" class="btn btn-secondary">
+          Refresh Active Pods
+        </button>
+      </div>
+      <div id="existing-pods-list" class="pods-strip" aria-live="polite">
+        <p class="empty-state">Enter your RunPod API key and click "Load GPUs &amp; Connect" to inspect running pods.</p>
+      </div>
+    </section>
+
+    <!-- Section 3: Live Pod Deployment & Health Monitor -->
+    <section id="monitor-section" class="card monitor-card" aria-labelledby="monitor-heading" hidden>
+      <div class="card-header">
+        <div>
+          <h2 id="monitor-heading">Live Deployment &amp; Health Monitor</h2>
+          <p id="monitor-subtitle" class="section-desc">Waiting for deployment...</p>
+        </div>
+        <div class="header-actions">
+          <progress id="monitor-spinner" aria-label="Pod deployment and health verification in progress" class="loading-spinner" hidden></progress>
+          <button type="button" id="stop-monitor-btn" class="btn btn-secondary">
+            Pause Monitor
+          </button>
+          <button type="button" id="terminate-current-pod-btn" class="btn btn-danger">
+            Terminate This Pod
+          </button>
+        </div>
+      </div>
+
+      <!-- Alert Banner for CUDA / CPU / Redeploy status -->
+      <div id="monitor-alert" class="alert-banner" role="status" aria-live="polite" hidden></div>
+
+      <!-- 6-Stage Health Pipeline -->
+      <nav aria-label="Deployment stages">
+        <ol id="stage-tracker" class="stage-tracker">
+          <li class="stage-step" data-stage="provision">
+            <span class="stage-indicator" aria-hidden="true">1</span>
+            <div class="stage-body">
+              <strong class="stage-title">Provision &amp; Pull Image</strong>
+              <span class="stage-detail" id="stage-detail-provision">Pending</span>
+            </div>
+          </li>
+          <li class="stage-step" data-stage="container">
+            <span class="stage-indicator" aria-hidden="true">2</span>
+            <div class="stage-body">
+              <strong class="stage-title">Container &amp; Ports</strong>
+              <span class="stage-detail" id="stage-detail-container">Pending</span>
+            </div>
+          </li>
+          <li class="stage-step" data-stage="cuda">
+            <span class="stage-indicator" aria-hidden="true">3</span>
+            <div class="stage-body">
+              <strong class="stage-title">CUDA 13.0 Preflight</strong>
+              <span class="stage-detail" id="stage-detail-cuda">Waiting for completion</span>
+            </div>
+          </li>
+          <li class="stage-step" data-stage="cpu">
+            <span class="stage-indicator" aria-hidden="true">4</span>
+            <div class="stage-body">
+              <strong class="stage-title">Host CPU &amp; Network Check</strong>
+              <span class="stage-detail" id="stage-detail-cpu">Pending</span>
+            </div>
+          </li>
+          <li class="stage-step" data-stage="env">
+            <span class="stage-indicator" aria-hidden="true">5</span>
+            <div class="stage-body">
+              <strong class="stage-title">Backup &amp; Custom Nodes</strong>
+              <span class="stage-detail" id="stage-detail-env">Pending</span>
+            </div>
+          </li>
+          <li class="stage-step" data-stage="ready">
+            <span class="stage-indicator" aria-hidden="true">6</span>
+            <div class="stage-body">
+              <strong class="stage-title">ComfyUI Ready</strong>
+              <span class="stage-detail" id="stage-detail-ready">Pending</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Live Telemetry Metrics Bar -->
+      <div id="telemetry-bar" class="telemetry-grid" aria-label="Live pod hardware metrics">
+        <div class="telemetry-item">
+          <span class="telemetry-label">Pod ID &amp; Status</span>
+          <strong id="metric-pod-id" class="telemetry-value">—</strong>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">GPU &amp; Host CUDA</span>
+          <strong id="metric-gpu-cuda" class="telemetry-value">—</strong>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">Host CPU &amp; RAM Util</span>
+          <strong id="metric-cpu-ram" class="telemetry-value">—</strong>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">Layer Pull / Network Activity</span>
+          <strong id="metric-network" class="telemetry-value">—</strong>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">Uptime &amp; Cost</span>
+          <strong id="metric-uptime" class="telemetry-value">—</strong>
+        </div>
+      </div>
+
+      <!-- Ready Service Links Panel (Revealed as soon as pod is provisioned / ready) -->
+      <div id="ready-links-panel" class="ready-links-panel" hidden>
+        <div class="ready-links-header">
+          <h3>Service Endpoints &amp; Quick Actions</h3>
+          <div class="quick-copy-actions">
+            <button type="button" id="copy-comfy-url-btn" class="btn btn-primary">
+              Copy ComfyUI URL (:7860) for Comfy Desktop
+            </button>
+            <button type="button" id="copy-ssh-cmd-btn" class="btn btn-secondary">
+              Copy SSH Command
+            </button>
+          </div>
+        </div>
+        <div id="service-links-grid" class="service-links-grid"></div>
+      </div>
+
+      <!-- Logs & Attempt History Split View -->
+      <div class="logs-split-grid">
+        <div class="log-panel">
+          <div class="log-panel-header">
+            <h3>Real-Time Pod Logs (System &amp; Container SSE Stream)</h3>
+            <span id="log-stream-status" class="badge badge-neutral">Idle</span>
+          </div>
+          <pre id="pod-log-output" class="terminal-logs" tabindex="0" aria-live="off">Waiting for pod log stream...</pre>
+        </div>
+
+        <div class="log-panel">
+          <div class="log-panel-header">
+            <h3>Deployment &amp; Health Check Timeline</h3>
+            <span id="attempt-counter-badge" class="badge badge-neutral">Attempt 0</span>
+          </div>
+          <ul id="attempt-history-list" class="attempt-history-list" aria-live="polite"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: GPU Priority Catalog, Focus Checkboxes & Filters -->
+    <section class="card" aria-labelledby="catalog-heading">
+      <div class="card-header">
+        <div>
+          <h2 id="catalog-heading">3. Available GPUs on CUDA &gt;= 13.0 (Best to Worst Priority Order)</h2>
+          <p class="section-desc">
+            Sorted strictly by your 11-tier ranking: <strong>Pro 6000 &rarr; RTX 5090 &rarr; RTX 4090 &rarr; L40/S &rarr; RTX 5080 &rarr; Pro 5000 &rarr; 4080 Super &rarr; 6000 Ada &rarr; Pro 4500/SE &rarr; Pro 4000 &rarr; RTX 3090/Ti</strong>.
+          </p>
+        </div>
+        <div class="header-actions">
+          <progress id="catalog-spinner" aria-label="Loading GPU catalog from RunPod" class="loading-spinner" hidden></progress>
+          <button type="button" id="refresh-catalog-btn" class="btn btn-secondary">
+            Refresh Catalog
+          </button>
+          <button type="button" id="deploy-best-focus-btn" class="btn btn-primary">
+            Deploy Best Available in Focus
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Form -->
+      <form id="catalog-filter-form" action="#catalog-heading" method="GET" class="filter-bar">
+        <!-- Cloud Type Filter (3 exclusive options -> visible radio buttons per Selection Control Decision Matrix) -->
+        <fieldset class="filter-fieldset">
+          <legend>Cloud Type</legend>
+          <div class="radio-pill-group">
+            <label for="cloud-both" class="radio-label">
+              <input type="radio" id="cloud-both" name="cloud_filter" value="ALL" checked>
+              <span>Both Clouds</span>
+            </label>
+            <label for="cloud-community" class="radio-label">
+              <input type="radio" id="cloud-community" name="cloud_filter" value="COMMUNITY">
+              <span>Community Only</span>
+            </label>
+            <label for="cloud-secure" class="radio-label">
+              <input type="radio" id="cloud-secure" name="cloud_filter" value="SECURE">
+              <span>Secure Only</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Price Range Filter -->
+        <fieldset class="filter-fieldset price-fieldset">
+          <legend>Price Range Filter ($/hr)</legend>
+          <div class="price-controls">
+            <div class="price-input-pair">
+              <label for="min-price-input">Min $/hr</label>
+              <input
+                type="text"
+                id="min-price-input"
+                name="min_price"
+                value="0.00"
+                inputmode="decimal"
+                pattern="\d+(\.\d{1,2})?"
+              >
+            </div>
+            <div class="price-input-pair">
+              <label for="max-price-slider">Max $/hr (<span id="max-price-readout">$4.50</span>)</label>
+              <input
+                type="range"
+                id="max-price-slider"
+                name="max_price_slider"
+                min="0.20"
+                max="10.00"
+                step="0.05"
+                value="4.50"
+              >
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Availability & Focus Filter Checkboxes -->
+        <fieldset class="filter-fieldset">
+          <legend>Visibility Filters</legend>
+          <div class="checkbox-stack">
+            <label for="filter-available-only" class="checkbox-control">
+              <input type="checkbox" id="filter-available-only" name="available_only" class="visually-hidden" checked>
+              <span>Hide Out-of-Stock (<code>NONE</code>)</span>
+            </label>
+            <label for="filter-focused-only" class="checkbox-control">
+              <input type="checkbox" id="filter-focused-only" name="focused_only" class="visually-hidden">
+              <span>Show Focused Tiers Only</span>
+            </label>
+          </div>
+        </fieldset>
+      </form>
+
+      <!-- Focus Tiers Quick Bar -->
+      <fieldset class="focus-tiers-fieldset">
+        <legend>
+          GPU Tiers in Focus
+          <span class="legend-actions">
+            <button type="button" id="focus-all-btn" class="btn-link">Check All</button>
+            <button type="button" id="focus-top3-btn" class="btn-link">Top 3 Only (Pro 6000 / 5090 / 4090)</button>
+            <button type="button" id="focus-none-btn" class="btn-link">Uncheck All</button>
+          </span>
+        </legend>
+        <div id="focus-tiers-grid" class="focus-tiers-grid"></div>
+      </fieldset>
+
+      <!-- Responsive GPU Table -->
+      <div class="table-wrapper" role="region" aria-labelledby="catalog-heading" tabindex="0">
+        <table id="gpu-catalog-table">
+          <thead>
+            <tr>
+              <th scope="col">Tier &amp; GPU Model</th>
+              <th scope="col">Focus</th>
+              <th scope="col">Cloud</th>
+              <th scope="col">Price ($/hr)</th>
+              <th scope="col">Availability</th>
+              <th scope="col">CUDA &ge; 13.0</th>
+              <th scope="col">Host Specs &amp; Network</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="gpu-catalog-tbody">
+            <tr>
+              <th scope="row">Awaiting Connection</th>
+              <td colspan="7">Enter your RunPod API secret above and click <strong>Load GPUs &amp; Connect</strong> to fetch live Community and Secure GPU availability on CUDA &ge; 13.0.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer container">
+    <p>
+      <strong>course.yakushev.fr/deploy</strong> &mdash; Pure static client-side RunPod controller for template <code>casls01eko</code> (200 GB <code>/workspace</code>, CUDA &ge; 13.0).
+      Your API key is never transmitted to any server other than <code>https://api.runpod.io</code>.
+    </p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
