@@ -503,10 +503,7 @@ async function fetchGpuCatalog(silent = false) {
 
     state.catalogRows = rows;
 
-    // First time init selections: all GPUs better than 5080 inclusive (ranks 1 to 5)
-    if (state.selectedRowIds.size === 0) {
-      initDefaultSelections();
-    }
+    initDefaultSelections();
 
     renderGpuTable();
     updateLiveIndicator();
@@ -537,6 +534,7 @@ function isGpuDesiredByUser(row) {
 }
 
 function initDefaultSelections() {
+  if (state.userSelectionOverrides.size > 0) return;
   const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_ROWS);
   if (saved) {
     try {
@@ -547,7 +545,6 @@ function initDefaultSelections() {
       }
     } catch {}
   }
-  state.userSelectionOverrides = new Map();
 }
 
 function persistSelections() {
