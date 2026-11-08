@@ -725,26 +725,16 @@ function buildPayload(row) {
   const restoreBackup = document.getElementById("opt-restore-backup").checked ? "1" : "0";
   const slug = row.tierKey || "gpu";
 
+  // By passing templateId and NOT overriding ports, disk, mounts, image:
+  // RunPod inherits all template settings intact, including the signed port labels (ComfyUI, Fizgig, Filebrowser)!
   return {
     name: `comfy-work-${slug}`,
     templateId: LOCKED_TEMPLATE.templateId,
-    image: LOCKED_TEMPLATE.image,
     cloud: row.cloud,
     gpu: {
       id: row.gpuId,
-      count: 1,
-      allowedCudaVersions: LOCKED_TEMPLATE.allowedCudaVersions
+      count: 1
     },
-    disk: LOCKED_TEMPLATE.containerDiskGb,
-    mounts: {
-      persistent: {
-        size: LOCKED_TEMPLATE.volumeDiskGb,
-        path: LOCKED_TEMPLATE.volumeMountPath
-      }
-    },
-    ports: LOCKED_TEMPLATE.ports,
-    startJupyter: true,
-    startSsh: true,
     env: {
       CIVITAI_API_KEY: "{{ RUNPOD_SECRET_CIVITAI_API_KEY }}",
       COMFYUI_BACKUP: "{{ RUNPOD_SECRET_COMFYUI_BACKUP }}",
@@ -868,7 +858,7 @@ function attachMonitor(podId, candidate) {
   const fizgigSubtle = document.getElementById("link-fizgig-subtle");
   if (fizgigSubtle) fizgigSubtle.href = fizgigUrl;
   document.getElementById("link-jupyter").href = `https://${podId}-8888.proxy.runpod.net/`;
-  document.getElementById("link-filebrowser").href = `https://${podId}-8080.proxy.runpod.net/`;
+  document.getElementById("link-filebrowser").href = `https://${podId}-7861.proxy.runpod.net/`;
   document.getElementById("link-console").href = `https://console.runpod.io/pods?id=${encodeURIComponent(podId)}`;
 
   document.getElementById("copy-desktop-url-btn").onclick = async () => {
