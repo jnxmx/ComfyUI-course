@@ -1,147 +1,34 @@
 /* ==========================================================================
-   1. Design Tokens & Dark Mode (Modern Web Guidance: dark-mode)
+   Clean, Modern Light Theme
    ========================================================================== */
 :root {
-  --bg-canvas-light: #f8fafc;
-  --bg-canvas-dark: #090d16;
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f9;
 
-  --bg-surface-light: #ffffff;
-  --bg-surface-dark: #121826;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
 
-  --bg-subtle-light: #f1f5f9;
-  --bg-subtle-dark: #1a2234;
+  --border: #e2e8f0;
+  --border-focus: #2563eb;
 
-  --text-primary-light: #0f172a;
-  --text-primary-dark: #f8fafc;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-contrast: #ffffff;
 
-  --text-secondary-light: #64748b;
-  --text-secondary-dark: #94a3b8;
+  --success: #16a34a;
+  --success-bg: #dcfce7;
 
-  --border-light: #e2e8f0;
-  --border-dark: #232d42;
+  --warn: #d97706;
+  --warn-bg: #fef3c7;
 
-  --accent-light: #2563eb;
-  --accent-dark: #3b82f6;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
 
-  --accent-hover-light: #1d4ed8;
-  --accent-hover-dark: #60a5fa;
-
-  --accent-contrast-light: #ffffff;
-  --accent-contrast-dark: #090d16;
-
-  --success-light: #16a34a;
-  --success-dark: #22c55e;
-  --success-bg-light: #dcfce7;
-  --success-bg-dark: #052e16;
-
-  --warn-light: #d97706;
-  --warn-dark: #fbbf24;
-  --warn-bg-light: #fef3c7;
-  --warn-bg-dark: #451a03;
-
-  --danger-light: #dc2626;
-  --danger-dark: #ef4444;
-  --danger-bg-light: #fee2e2;
-  --danger-bg-dark: #450a0a;
-
-  --scrollbar-track-light: #f1f5f9;
-  --scrollbar-track-dark: #090d16;
-  --scrollbar-thumb-light: #cbd5e1;
-  --scrollbar-thumb-dark: #334155;
-
-  /* Default light fallback */
-  --bg-canvas: var(--bg-canvas-light);
-  --bg-surface: var(--bg-surface-light);
-  --bg-subtle: var(--bg-subtle-light);
-  --text-primary: var(--text-primary-light);
-  --text-secondary: var(--text-secondary-light);
-  --border: var(--border-light);
-  --accent: var(--accent-light);
-  --accent-hover: var(--accent-hover-light);
-  --accent-contrast: var(--accent-contrast-light);
-  --success: var(--success-light);
-  --success-bg: var(--success-bg-light);
-  --warn: var(--warn-light);
-  --warn-bg: var(--warn-bg-light);
-  --danger: var(--danger-light);
-  --danger-bg: var(--danger-bg-light);
-  --scrollbar-track: var(--scrollbar-track-light);
-  --scrollbar-thumb: var(--scrollbar-thumb-light);
-
-  @media (prefers-color-scheme: dark) {
-    --bg-canvas: var(--bg-canvas-dark);
-    --bg-surface: var(--bg-surface-dark);
-    --bg-subtle: var(--bg-subtle-dark);
-    --text-primary: var(--text-primary-dark);
-    --text-secondary: var(--text-secondary-dark);
-    --border: var(--border-dark);
-    --accent: var(--accent-dark);
-    --accent-hover: var(--accent-hover-dark);
-    --accent-contrast: var(--accent-contrast-dark);
-    --success: var(--success-dark);
-    --success-bg: var(--success-bg-dark);
-    --warn: var(--warn-dark);
-    --warn-bg: var(--warn-bg-dark);
-    --danger: var(--danger-dark);
-    --danger-bg: var(--danger-bg-dark);
-    --scrollbar-track: var(--scrollbar-track-dark);
-    --scrollbar-thumb: var(--scrollbar-thumb-dark);
-  }
-
-  @supports (color: light-dark(white, black)) {
-    --bg-canvas: light-dark(var(--bg-canvas-light), var(--bg-canvas-dark));
-    --bg-surface: light-dark(var(--bg-surface-light), var(--bg-surface-dark));
-    --bg-subtle: light-dark(var(--bg-subtle-light), var(--bg-subtle-dark));
-    --text-primary: light-dark(var(--text-primary-light), var(--text-primary-dark));
-    --text-secondary: light-dark(var(--text-secondary-light), var(--text-secondary-dark));
-    --border: light-dark(var(--border-light), var(--border-dark));
-    --accent: light-dark(var(--accent-light), var(--accent-dark));
-    --accent-hover: light-dark(var(--accent-hover-light), var(--accent-hover-dark));
-    --accent-contrast: light-dark(var(--accent-contrast-light), var(--accent-contrast-dark));
-    --success: light-dark(var(--success-light), var(--success-dark));
-    --success-bg: light-dark(var(--success-bg-light), var(--success-bg-dark));
-    --warn: light-dark(var(--warn-light), var(--warn-dark));
-    --warn-bg: light-dark(var(--warn-bg-light), var(--warn-bg-dark));
-    --danger: light-dark(var(--danger-light), var(--danger-dark));
-    --danger-bg: light-dark(var(--danger-bg-light), var(--danger-bg-dark));
-    --scrollbar-track: light-dark(var(--scrollbar-track-light), var(--scrollbar-track-dark));
-    --scrollbar-thumb: light-dark(var(--scrollbar-thumb-light), var(--scrollbar-thumb-dark));
-  }
-
-  color-scheme: light dark;
-  accent-color: var(--accent);
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  scrollbar-width: thin;
-}
-
-html.theme-light { color-scheme: light; }
-html.theme-dark { color-scheme: dark; }
-
-pre, code, .terminal-logs {
-  color-scheme: dark;
+  color-scheme: light;
   accent-color: var(--accent);
 }
 
-@supports not (scrollbar-color: auto) {
-  .table-wrapper::-webkit-scrollbar,
-  .terminal-logs::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  .table-wrapper::-webkit-scrollbar-thumb,
-  .terminal-logs::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 4px;
-  }
-  .table-wrapper::-webkit-scrollbar-track,
-  .terminal-logs::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-  }
-}
-
-/* ==========================================================================
-   2. Base Layout & Minimalist Typography
-   ========================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -157,43 +44,9 @@ body {
 }
 
 .app-container {
-  max-width: 900px;
+  max-width: 920px;
   margin: 0 auto;
   padding: 1.5rem 1rem 3rem;
-}
-
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.brand-badge {
-  display: inline-grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 6px;
-  background-color: var(--accent);
-  color: var(--accent-contrast);
-  font-weight: 800;
-  font-size: 0.85rem;
-}
-
-.brand-title {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
 }
 
 .main-flow {
@@ -207,10 +60,11 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1.15rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* ==========================================================================
-   3. 1) RunPod API Secret Key & Active Pods
+   1. API Secret Key & Active Pods
    ========================================================================== */
 .auth-header-row {
   display: flex;
@@ -251,10 +105,10 @@ input[type="password"] {
   width: 100%;
   font-size: 1rem; /* avoids iOS auto-zoom */
   padding: 0.6rem 4.5rem 0.6rem 0.85rem;
-  min-height: 48px;
+  min-height: 46px;
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  background-color: var(--bg-canvas);
+  background-color: var(--bg-surface);
   color: var(--text-primary);
   font-family: inherit;
   transition: border-color 0.15s ease;
@@ -264,14 +118,15 @@ input[type="password"] {
   input[type="text"],
   input[type="password"],
   .btn {
-    min-height: 52px;
+    min-height: 50px;
   }
 }
 
 input:focus-visible,
 button:focus-visible,
+select:focus-visible,
 a:focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--border-focus);
   outline-offset: 2px;
 }
 
@@ -289,7 +144,6 @@ a:focus-visible {
   padding: 0.35rem 0.5rem;
   border-radius: 4px;
 }
-
 .btn-toggle-eye:hover {
   color: var(--text-primary);
 }
@@ -368,7 +222,7 @@ a:focus-visible {
 }
 
 /* ==========================================================================
-   4. 2) Template Name & 3) Three Checkboxes
+   2. Template Name & 3 Options
    ========================================================================== */
 .template-card {
   display: flex;
@@ -406,7 +260,7 @@ a:focus-visible {
   user-select: none;
   font-size: 0.9rem;
   font-weight: 500;
-  min-height: 44px;
+  min-height: 40px;
 }
 
 .checkbox-control input[type="checkbox"] {
@@ -418,22 +272,22 @@ a:focus-visible {
 }
 
 /* ==========================================================================
-   5. 5) GPU Table, Price Slider & Minimal List
+   3. GPU Table, Price Slider & Toolbar
    ========================================================================== */
 .gpu-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
+  gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .price-slider-box {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  min-width: 240px;
+  gap: 0.3rem;
+  min-width: 220px;
   flex: 1;
 }
 
@@ -460,8 +314,40 @@ input[type="range"] {
 .gpu-quick-buttons {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
+}
+
+.select-net-wrapper {
+  display: inline-flex;
+}
+
+.select-net-speed {
+  min-height: 38px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.select-net-speed:focus-visible {
+  border-color: var(--accent);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .table-wrapper {
@@ -502,7 +388,7 @@ input[type="range"] {
 }
 
 #gpu-table tbody tr.row-excluded {
-  opacity: 0.45;
+  opacity: 0.42;
 }
 
 .col-check {
@@ -520,15 +406,26 @@ input[type="range"] {
 .gpu-name-cell {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.gpu-title-text {
   font-weight: 600;
+}
+
+.gpu-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .cloud-pill {
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  padding: 0.15rem 0.4rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
 }
 
@@ -541,6 +438,18 @@ input[type="range"] {
 .cloud-pill.secure {
   background-color: var(--success-bg);
   color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.net-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .price-text {
@@ -563,8 +472,20 @@ input[type="range"] {
   color: var(--text-secondary);
 }
 
+.table-footer-status {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+.live-indicator {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ==========================================================================
-   6. Live Monitor & Deployment
+   4. Live Monitor & Deployment
    ========================================================================== */
 .monitor-card {
   border: 2px solid var(--accent);
@@ -701,7 +622,7 @@ input[type="range"] {
   margin: 0;
   padding: 0.85rem;
   border-radius: 6px;
-  background-color: #0b0f19;
+  background-color: #0f172a;
   color: #e2e8f0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.78rem;
@@ -713,15 +634,15 @@ input[type="range"] {
 }
 
 /* ==========================================================================
-   7. Buttons & Spinners
+   5. Buttons & Spinners
    ========================================================================== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  min-height: 44px;
-  padding: 0.5rem 0.95rem;
+  min-height: 42px;
+  padding: 0.45rem 0.95rem;
   font-size: 0.88rem;
   font-weight: 600;
   border-radius: 8px;
@@ -729,7 +650,7 @@ input[type="range"] {
   cursor: pointer;
   text-decoration: none;
   font-family: inherit;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
 }
 
 .btn:disabled {
@@ -760,16 +681,17 @@ input[type="range"] {
 }
 
 .btn-subtle {
-  background: none;
-  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border);
   color: var(--text-secondary);
-  padding: 0.35rem 0.7rem;
-  min-height: 36px;
-  font-size: 0.82rem;
+  padding: 0.35rem 0.75rem;
+  min-height: 38px;
+  font-size: 0.85rem;
 }
 .btn-subtle:hover {
   background-color: var(--bg-subtle);
   color: var(--text-primary);
+  border-color: #cbd5e1;
 }
 .btn-subtle.active {
   background-color: var(--accent);

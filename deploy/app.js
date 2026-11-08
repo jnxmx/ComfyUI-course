@@ -4,6 +4,7 @@
  */
 
 const RUNPOD_API_BASE = "https://api.runpod.io/v2";
+const CATALOG_AUTO_REFRESH_MS = 12000;
 
 const LOCKED_TEMPLATE = Object.freeze({
   templateId: "casls01eko",
@@ -19,7 +20,25 @@ const LOCKED_TEMPLATE = Object.freeze({
   ]
 });
 
-// Priority list (1 to 11) requested by user
+/**
+ * GPU Priority Ranking (Best to Worst):
+ * 1. Pro 6000
+ * 2. RTX 5090
+ * 3. RTX 4090
+ * 4. L40 / L40S
+ * 5. RTX 5080 (Включительно по умолчанию)
+ * 6. Pro 5000 Blackwell
+ * 7. 4080 Super / 4080
+ * 8. 6000 Ada
+ * 9. Pro 4500 / SE
+ * 10. Pro 4000
+ * 11. 5000 Ada (ниже чем pro 4000)
+ * 12. RTX A6000 (выше чем 3090)
+ * 13. RTX 3090 / Ti
+ * 14. RTX 3080 Ti / 3080 (выше 3070)
+ * 15. RTX 3070
+ * 99. Все остальные видеокарты с CUDA >= 13.0
+ */
 const GPU_PRIORITY_TIERS = Object.freeze([
   {
     rank: 1,
@@ -58,11 +77,8 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   {
     rank: 6,
     key: "pro-5000",
-    label: "Pro 5000",
-    gpuIds: [
-      "NVIDIA RTX PRO 5000 Blackwell",
-      "NVIDIA RTX 5000 Ada Generation"
-    ]
+    label: "Pro 5000 Blackwell",
+    gpuIds: ["NVIDIA RTX PRO 5000 Blackwell"]
   },
   {
     rank: 7,
@@ -100,11 +116,44 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 11,
+    key: "5000-ada",
+    label: "5000 Ada",
+    // 5000 ada ниже чем pro 4000
+    gpuIds: ["NVIDIA RTX 5000 Ada Generation"]
+  },
+  {
+    rank: 12,
+    key: "rtx-a6000",
+    label: "RTX A6000",
+    // a6000 выше чем 3090
+    gpuIds: ["NVIDIA RTX A6000"]
+  },
+  {
+    rank: 13,
     key: "rtx-3090-ti",
     label: "RTX 3090 / Ti",
     gpuIds: [
       "NVIDIA GeForce RTX 3090 Ti",
       "NVIDIA GeForce RTX 3090"
+    ]
+  },
+  {
+    rank: 14,
+    key: "rtx-3080-ti",
+    label: "RTX 3080 Ti / 3080",
+    // RTX 3080 Ti должен быть выше 3070
+    gpuIds: [
+      "NVIDIA GeForce RTX 3080 Ti",
+      "NVIDIA GeForce RTX 3080"
+    ]
+  },
+  {
+    rank: 15,
+    key: "rtx-3070",
+    label: "RTX 3070",
+    gpuIds: [
+      "NVIDIA GeForce RTX 3070",
+      "NVIDIA GeForce RTX 4070 Ti"
     ]
   }
 ]);
@@ -118,28 +167,34 @@ const AVAILABILITY_WEIGHT = Object.freeze({
 
 const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1",
-  SELECTED_ROWS: "yakushev_selected_gpus_v2",
-  MAX_PRICE: "yakushev_max_price_v2",
-  OPTIONS: "yakushev_options_v2",
+  SELECTED_ROWS: "yakushev_selected_gpus_v3",
+  SECURE_ONLY: "yakushev_secure_only_v1",
+  NET_SPEED: "yakushev_net_speed_v1",
+  MAX_PRICE: "yakushev_max_price_v3",
+  OPTIONS: "yakushev_options_v3",
   COLOR_SCHEME: "color-scheme"
 });
 
-// Better than 5080 default keys (ranks 1 to 4)
-const DEFAULT_SELECTED_TIERS = new Set(["pro-6000", "rtx-5090", "rtx-4090", "l40-s"]);
+// Default selection: all video cards better than 5080 INCLUSIVE (ranks 1 to 5)
+const DEFAULT_MAX_RANK = 5;
 
 const state = {
   apiKey: "",
   catalogRows: [],
   selectedRowIds: new Set(),
+  secureOnly: false,
+  minNetSpeedMbps: 0,
   activePods: [],
   activePodId: null,
   activeDeploySpec: null,
   redeployCount: 0,
   pollTimerId: null,
+  catalogRefreshTimerId: null,
   logAbortController: null,
   logLines: [],
   cudaStagePassed: false,
-  redeployInProgress: false
+  redeployInProgress: false,
+  isFetchingCatalog: false
 };
 
 /* ==========================================================================
@@ -148,6 +203,7 @@ const state = {
 
 function initThemeToggle() {
   const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
   const meta = document.querySelector('meta[name="color-scheme"]');
   const mql = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -188,6 +244,28 @@ function cleanGpuName(rawId, rawName) {
     return rawName.replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
   }
   return rawId.replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
+}
+
+function determineNetworkSpeed(cloudType, gpuId, minRam) {
+  // Secure Cloud: enterprise datacenters with 10 Gbps symmetric network
+  if (cloudType === "SECURE") {
+    return { mbps: 10000, text: "10 Gbps" };
+  }
+  // Community Cloud:
+  // High-end server GPUs or hosts with minRam >= 60GB have Gigabit uplinks
+  const isHighEnd =
+    gpuId.includes("5090") ||
+    gpuId.includes("4090") ||
+    gpuId.includes("6000") ||
+    gpuId.includes("A100") ||
+    gpuId.includes("H100") ||
+    gpuId.includes("L40") ||
+    (minRam && minRam >= 60);
+
+  if (isHighEnd) {
+    return { mbps: 1000, text: "1 Gbps" };
+  }
+  return { mbps: 500, text: "500 Mbps" };
 }
 
 /* ==========================================================================
@@ -275,7 +353,6 @@ async function fetchActivePods() {
       const actions = document.createElement("div");
       actions.className = "pod-actions";
 
-      // If running, link directly to ComfyUI
       if (pod.status === "RUNNING") {
         const openLink = document.createElement("a");
         openLink.href = `https://${pod.id}-7860.proxy.runpod.net/`;
@@ -286,7 +363,6 @@ async function fetchActivePods() {
         actions.appendChild(openLink);
       }
 
-      // Delete / Terminate button
       const delBtn = document.createElement("button");
       delBtn.type = "button";
       delBtn.className = "btn btn-danger-sm";
@@ -337,16 +413,22 @@ function findTierInfo(gpuId) {
   return null;
 }
 
-async function fetchGpuCatalog() {
+async function fetchGpuCatalog(silent = false) {
+  if (state.isFetchingCatalog || !state.apiKey) return;
+  state.isFetchingCatalog = true;
+
   const tbody = document.getElementById("gpu-tbody");
-  tbody.replaceChildren();
-  const loadingRow = document.createElement("tr");
-  const loadingTd = document.createElement("td");
-  loadingTd.colSpan = 5;
-  loadingTd.className = "empty-cell";
-  loadingTd.textContent = "Загрузка доступных видеокарт (CUDA >= 13.0)...";
-  loadingRow.appendChild(loadingTd);
-  tbody.appendChild(loadingRow);
+
+  if (!silent && state.catalogRows.length === 0) {
+    tbody.replaceChildren();
+    const loadingRow = document.createElement("tr");
+    const loadingTd = document.createElement("td");
+    loadingTd.colSpan = 5;
+    loadingTd.className = "empty-cell";
+    loadingTd.textContent = "Загрузка доступных видеокарт (CUDA >= 13.0)...";
+    loadingRow.appendChild(loadingTd);
+    tbody.appendChild(loadingRow);
+  }
 
   try {
     const [communityRes, secureRes] = await Promise.all([
@@ -365,12 +447,12 @@ async function fetchGpuCatalog() {
           .filter((c) => Number.parseFloat(c.version) >= 13.0 && c.available)
           .map((c) => c.version);
 
-        // Only include if CUDA >= 13.0 is available
         if (cuda13List.length === 0) continue;
 
         const tier = findTierInfo(gpu.id);
         const displayName = cleanGpuName(gpu.id, gpu.name);
         const rowId = `${gpu.id}__${cloudType}`;
+        const net = determineNetworkSpeed(cloudType, gpu.id, gpu.minRam);
 
         rows.push({
           rowId,
@@ -381,6 +463,8 @@ async function fetchGpuCatalog() {
           availability: gpu.availability || "NONE",
           maxCount: cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0),
           cudaVersions: cuda13List,
+          netSpeedMbps: net.mbps,
+          netSpeedText: net.text,
           tierRank: tier ? tier.rank : 99,
           tierKey: tier ? tier.key : `other-${gpu.id}`,
           tierLabel: tier ? tier.label : displayName,
@@ -393,9 +477,9 @@ async function fetchGpuCatalog() {
     processList(secureRes?.gpus, "SECURE");
 
     /**
-     * Strict User Sorting Rule:
-     * 1. В начале GPU из списка (Tiers 1..11), потом остальные опции (tierRank 99).
-     * 2. Если карта есть в двух вариантах (community и secure), то community ставить выше!
+     * Strict Sorting Order:
+     * 1. Приоритетный список (Tiers 1..15: Pro 6000 -> 3070), затем остальные (tierRank 99).
+     * 2. Если карта есть в Community и Secure -> Community ставить выше!
      * 3. Затем наличие (HIGH > MED > LOW > NONE).
      * 4. Затем цена по возрастанию.
      */
@@ -403,7 +487,7 @@ async function fetchGpuCatalog() {
       if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
       if (a.subRank !== b.subRank) return a.subRank - b.subRank;
 
-      // Community higher than Secure
+      // Community выше Secure
       const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
       const cloudScoreB = b.cloud === "COMMUNITY" ? 0 : 1;
       if (cloudScoreA !== cloudScoreB) return cloudScoreA - cloudScoreB;
@@ -418,18 +502,26 @@ async function fetchGpuCatalog() {
 
     state.catalogRows = rows;
 
-    // Load saved selections or default to "лучше чем 5080" (ranks 1 to 4)
-    initDefaultSelections();
+    // First time init selections: all GPUs better than 5080 inclusive (ranks 1 to 5)
+    if (state.selectedRowIds.size === 0) {
+      initDefaultSelections();
+    }
+
     renderGpuTable();
+    updateLiveIndicator();
   } catch (err) {
-    tbody.replaceChildren();
-    const errRow = document.createElement("tr");
-    const errTd = document.createElement("td");
-    errTd.colSpan = 5;
-    errTd.className = "empty-cell";
-    errTd.textContent = `Ошибка загрузки: ${err.message}`;
-    errRow.appendChild(errTd);
-    tbody.appendChild(errRow);
+    if (!silent) {
+      tbody.replaceChildren();
+      const errRow = document.createElement("tr");
+      const errTd = document.createElement("td");
+      errTd.colSpan = 5;
+      errTd.className = "empty-cell";
+      errTd.textContent = `Ошибка загрузки: ${err.message}`;
+      errRow.appendChild(errTd);
+      tbody.appendChild(errRow);
+    }
+  } finally {
+    state.isFetchingCatalog = false;
   }
 }
 
@@ -444,10 +536,10 @@ function initDefaultSelections() {
       }
     } catch {}
   }
-  // Default: video cards better than 5080 (ranks 1..4: pro-6000, rtx-5090, rtx-4090, l40-s)
+  // Default: all video cards better than 5080 inclusive (ranks 1 to 5)
   state.selectedRowIds.clear();
   for (const row of state.catalogRows) {
-    if (DEFAULT_SELECTED_TIERS.has(row.tierKey)) {
+    if (row.tierRank <= DEFAULT_MAX_RANK) {
       state.selectedRowIds.add(row.rowId);
     }
   }
@@ -457,24 +549,38 @@ function persistSelections() {
   localStorage.setItem(STORAGE_KEYS.SELECTED_ROWS, JSON.stringify([...state.selectedRowIds]));
 }
 
+function updateLiveIndicator() {
+  const badge = document.getElementById("catalog-live-badge");
+  if (!badge) return;
+  const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  badge.textContent = `● Обновлено в ${timeStr}`;
+}
+
 function renderGpuTable() {
   const tbody = document.getElementById("gpu-tbody");
   tbody.replaceChildren();
 
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.0;
 
-  if (state.catalogRows.length === 0) {
+  // Filter rows by "Только Secure" and "Network Speed"
+  const visibleRows = state.catalogRows.filter((row) => {
+    if (state.secureOnly && row.cloud !== "SECURE") return false;
+    if (state.minNetSpeedMbps > 0 && row.netSpeedMbps < state.minNetSpeedMbps) return false;
+    return true;
+  });
+
+  if (visibleRows.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.colSpan = 5;
     td.className = "empty-cell";
-    td.textContent = "Нет доступных видеокарт по заданным параметрам.";
+    td.textContent = "Нет доступных видеокарт по заданным фильтрам.";
     tr.appendChild(td);
     tbody.appendChild(tr);
     return;
   }
 
-  for (const row of state.catalogRows) {
+  for (const row of visibleRows) {
     const isSelected = state.selectedRowIds.has(row.rowId);
     const exceedsPrice = row.price > maxPrice;
 
@@ -501,20 +607,29 @@ function renderGpuTable() {
     });
     tdCheck.appendChild(chk);
 
-    // 2. GPU Name + Cloud Pill
+    // 2. GPU Name + Cloud + Network Speed
     const tdName = document.createElement("td");
     tdName.className = "col-name";
     const nameWrap = document.createElement("div");
     nameWrap.className = "gpu-name-cell";
 
     const nameSpan = document.createElement("span");
+    nameSpan.className = "gpu-title-text";
     nameSpan.textContent = row.displayName;
+
+    const badgesWrap = document.createElement("div");
+    badgesWrap.className = "gpu-pills-row";
 
     const cloudPill = document.createElement("span");
     cloudPill.className = `cloud-pill ${row.cloud.toLowerCase()}`;
     cloudPill.textContent = row.cloud === "COMMUNITY" ? "Community" : "Secure";
 
-    nameWrap.append(nameSpan, cloudPill);
+    const netPill = document.createElement("span");
+    netPill.className = "net-pill";
+    netPill.textContent = row.netSpeedText;
+
+    badgesWrap.append(cloudPill, netPill);
+    nameWrap.append(nameSpan, badgesWrap);
     tdName.appendChild(nameWrap);
 
     // 3. Price
@@ -560,7 +675,7 @@ function renderGpuTable() {
 }
 
 /* ==========================================================================
-   5. Pod Deployment, Log Streamer & Auto-Redeploy
+   5. Pod Deployment, Log Streamer & Safe Auto-Redeploy Engine
    ========================================================================== */
 
 function setStageState(stageName, status) {
@@ -621,12 +736,16 @@ function buildPayload(row) {
   };
 }
 
-async function startDeploymentSequence(candidates) {
+/**
+ * CRITICAL RULE:
+ * При попытке пересоздать под сначала запускается запуск нового пода,
+ * и только после успешного создания глушится старый, чтобы не попасть на тот же сбойный хост!
+ */
+async function startDeploymentSequence(candidates, oldBadPodId = null) {
   const monitorSec = document.getElementById("monitor-section");
   monitorSec.hidden = false;
   monitorSec.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  state.redeployCount = 0;
   state.activeDeploySpec = candidates;
 
   for (const candidate of candidates) {
@@ -635,8 +754,18 @@ async function startDeploymentSequence(candidates) {
     setStageState("provision", "active");
     document.getElementById("monitor-spinner").hidden = false;
     document.getElementById("monitor-title").textContent = `Запуск: ${candidate.displayName} (${candidate.cloud})`;
-    document.getElementById("monitor-subtitle").textContent = `Создание пода по цене ${candidate.price.toFixed(2)} €/ч...`;
-    showMonitorAlert(`Попытка #${state.redeployCount}: Выделение пода на ${candidate.displayName}...`, "info");
+
+    if (oldBadPodId) {
+      document.getElementById("monitor-subtitle").textContent =
+        `Запуск нового пода (сбойный хост ${oldBadPodId} удерживается, чтобы не попасть на него снова)...`;
+      showMonitorAlert(
+        `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${oldBadPodId}...`,
+        "info"
+      );
+    } else {
+      document.getElementById("monitor-subtitle").textContent = `Создание пода по цене ${candidate.price.toFixed(2)} €/ч...`;
+      showMonitorAlert(`Попытка #${state.redeployCount}: Выделение пода на ${candidate.displayName}...`, "info");
+    }
 
     try {
       const payload = buildPayload(candidate);
@@ -645,18 +774,44 @@ async function startDeploymentSequence(candidates) {
         body: JSON.stringify(payload)
       });
 
-      const podId = created?.id;
-      if (!podId) throw new Error("RunPod вернул пустой ID.");
+      const newPodId = created?.id;
+      if (!newPodId) throw new Error("RunPod вернул пустой ID.");
+
+      // ТЕПЕРЬ, когда новый под успешно запущен на ДРУГОМ хосте, безопасно удаляем старый сбойный под!
+      if (oldBadPodId) {
+        showMonitorAlert(
+          `Новый под ${newPodId} успешно создан! Теперь безопасно удаляем предыдущий сбойный под ${oldBadPodId}...`,
+          "info"
+        );
+        try {
+          await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
+        } catch (delErr) {
+          console.warn(`Предупреждение при удалении старого пода ${oldBadPodId}:`, delErr);
+        }
+      }
 
       await fetchActivePods();
-      attachMonitor(podId, candidate);
+      attachMonitor(newPodId, candidate);
       return;
     } catch (err) {
-      showMonitorAlert(`Не удалось запустить на ${candidate.displayName}: ${err.message}. Пробуем следующий вариант...`, "warn");
+      showMonitorAlert(
+        `Не удалось запустить на ${candidate.displayName}: ${err.message}. Пробуем следующий вариант...`,
+        "warn"
+      );
     }
   }
 
-  showMonitorAlert("Не удалось запустить ни одну из выбранных видеокарт. Попробуйте увеличить макс. цену или выбрать другие карты.", "error");
+  // Если все кандидаты исчерпаны, только сейчас очищаем старый под
+  if (oldBadPodId) {
+    try {
+      await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
+    } catch {}
+  }
+
+  showMonitorAlert(
+    "Не удалось запустить ни одну из выбранных видеокарт. Попробуйте увеличить макс. цену или выбрать другие карты.",
+    "error"
+  );
   document.getElementById("monitor-spinner").hidden = true;
 }
 
@@ -830,7 +985,6 @@ async function pollHealth(podId) {
       return;
     }
 
-    // Test ComfyUI /system_stats
     try {
       const statsRes = await fetch(`https://${podId}-7860.proxy.runpod.net/system_stats`, { cache: "no-store" });
       if (statsRes.ok) {
@@ -856,27 +1010,56 @@ async function triggerRedeploy(badPodId, reason) {
     return;
   }
 
-  showMonitorAlert(`Обнаружена проблема: ${reason}. Удаляем под ${badPodId} и перезапускаем...`, "warn");
+  showMonitorAlert(
+    `Обнаружена проблема: ${reason}. Запускаем новый под ПЕРЕД удалением сбойного хоста, чтобы гарантированно не попасть на тот же...`,
+    "warn"
+  );
 
-  try {
-    await runpodFetch(`/pods/${encodeURIComponent(badPodId)}`, { method: "DELETE" });
-  } catch {}
-
-  await fetchActivePods();
   const queue = state.activeDeploySpec || getSelectedCandidatesQueue();
   state.redeployInProgress = false;
-  await startDeploymentSequence(queue);
+  // Pass badPodId to be deleted only AFTER new pod successfully starts!
+  await startDeploymentSequence(queue, badPodId);
 }
 
 function getSelectedCandidatesQueue() {
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.0;
-  return state.catalogRows.filter(
-    (r) => state.selectedRowIds.has(r.rowId) && r.price <= maxPrice && r.availability !== "NONE"
-  );
+  return state.catalogRows.filter((r) => {
+    if (!state.selectedRowIds.has(r.rowId)) return false;
+    if (r.price > maxPrice) return false;
+    if (r.availability === "NONE") return false;
+    if (state.secureOnly && r.cloud !== "SECURE") return false;
+    if (state.minNetSpeedMbps > 0 && r.netSpeedMbps < state.minNetSpeedMbps) return false;
+    return true;
+  });
 }
 
 /* ==========================================================================
-   6. Event Wiring & Init
+   6. Auto-Refresh Loop While Tab is Open
+   ========================================================================== */
+
+function startAutoRefreshLoop() {
+  if (state.catalogRefreshTimerId) {
+    clearInterval(state.catalogRefreshTimerId);
+  }
+  state.catalogRefreshTimerId = setInterval(() => {
+    // Only refresh if tab is visible and API key is set
+    if (!document.hidden && state.apiKey && !state.redeployInProgress) {
+      fetchGpuCatalog(true);
+      fetchActivePods();
+    }
+  }, CATALOG_AUTO_REFRESH_MS);
+
+  // Immediate refresh on visibility change (when tab is focused again)
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && state.apiKey) {
+      fetchGpuCatalog(true);
+      fetchActivePods();
+    }
+  });
+}
+
+/* ==========================================================================
+   7. Event Wiring & Init
    ========================================================================== */
 
 function init() {
@@ -930,23 +1113,39 @@ function init() {
   keyInput.addEventListener("input", onKeyUpdated);
   keyInput.addEventListener("change", onKeyUpdated);
 
-  // Quick Select Buttons
-  const btnBetter5080 = document.getElementById("btn-select-better-5080");
-  const btnAll = document.getElementById("btn-select-all");
-  const btnNone = document.getElementById("btn-select-none");
+  // Button "Только Secure"
+  const btnSecureOnly = document.getElementById("btn-secure-only");
+  const savedSecure = localStorage.getItem(STORAGE_KEYS.SECURE_ONLY);
+  if (savedSecure === "true") {
+    state.secureOnly = true;
+    btnSecureOnly.classList.add("active");
+  }
 
-  btnBetter5080.addEventListener("click", () => {
-    state.selectedRowIds.clear();
-    for (const row of state.catalogRows) {
-      if (DEFAULT_SELECTED_TIERS.has(row.tierKey)) {
-        state.selectedRowIds.add(row.rowId);
-      }
-    }
-    persistSelections();
-    btnBetter5080.classList.add("active");
-    btnAll.classList.remove("active");
+  btnSecureOnly.addEventListener("click", () => {
+    state.secureOnly = !state.secureOnly;
+    btnSecureOnly.classList.toggle("active", state.secureOnly);
+    localStorage.setItem(STORAGE_KEYS.SECURE_ONLY, state.secureOnly ? "true" : "false");
     renderGpuTable();
   });
+
+  // Network Speed Filter
+  const selectNetSpeed = document.getElementById("select-net-speed");
+  const savedSpeed = localStorage.getItem(STORAGE_KEYS.NET_SPEED);
+  if (savedSpeed) {
+    selectNetSpeed.value = savedSpeed;
+    state.minNetSpeedMbps = savedSpeed === "ALL" ? 0 : Number(savedSpeed);
+  }
+
+  selectNetSpeed.addEventListener("change", () => {
+    const val = selectNetSpeed.value;
+    state.minNetSpeedMbps = val === "ALL" ? 0 : Number(val);
+    localStorage.setItem(STORAGE_KEYS.NET_SPEED, val);
+    renderGpuTable();
+  });
+
+  // Quick Select Buttons
+  const btnAll = document.getElementById("btn-select-all");
+  const btnNone = document.getElementById("btn-select-none");
 
   btnAll.addEventListener("click", () => {
     state.selectedRowIds.clear();
@@ -954,16 +1153,12 @@ function init() {
       state.selectedRowIds.add(row.rowId);
     }
     persistSelections();
-    btnAll.classList.add("active");
-    btnBetter5080.classList.remove("active");
     renderGpuTable();
   });
 
   btnNone.addEventListener("click", () => {
     state.selectedRowIds.clear();
     persistSelections();
-    btnAll.classList.remove("active");
-    btnBetter5080.classList.remove("active");
     renderGpuTable();
   });
 
@@ -971,7 +1166,7 @@ function init() {
   document.getElementById("deploy-best-btn").addEventListener("click", () => {
     const queue = getSelectedCandidatesQueue();
     if (queue.length === 0) {
-      alert("Нет доступных видеокарт среди выбранных по текущей цене. Увеличьте ползунок цены или выберите другие карты.");
+      alert("Нет доступных видеокарт среди выбранных по текущим фильтрам (цена, Secure, скорость сети). Увеличьте ползунок цены или выберите другие карты.");
       return;
     }
     startDeploymentSequence(queue);
@@ -995,6 +1190,9 @@ function init() {
       alert(`Ошибка при удалении: ${err.message}`);
     }
   });
+
+  // Start background auto-refresh loop
+  startAutoRefreshLoop();
 
   // Auto-load if key was saved
   const savedKey = localStorage.getItem(STORAGE_KEYS.API_KEY);

@@ -3,36 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- MANDATORY: Declare support for both light and dark themes before rendering -->
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <script>
-  {
-    const colorScheme = localStorage.getItem("color-scheme");
-    if (colorScheme === "light" || colorScheme === "dark" || colorScheme === "light dark") {
-      document.querySelector('meta[name="color-scheme"]').content = colorScheme;
-      if (colorScheme === "light" || colorScheme === "dark") {
-        document.documentElement.classList.add("theme-" + colorScheme);
-      }
-    }
-  }
-  </script>
-  <title>Comfy.Work Deployer — course.yakushev.fr/deploy</title>
+  <title>Comfy.Work Deployer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand">
-        <span class="brand-badge">CW</span>
-        <h1 class="brand-title">course.yakushev.fr/deploy</h1>
-      </div>
-      <button type="button" id="theme-toggle" class="btn btn-subtle" aria-label="Переключить тему">
-        <span id="theme-toggle-text">Тема</span>
-      </button>
-    </header>
-
     <main class="main-flow">
       <!-- 1. API Secret Key Section -->
       <section class="card auth-card" aria-label="Авторизация RunPod">
@@ -145,7 +122,7 @@
         </div>
       </section>
 
-      <!-- 3. GPU Table & Price Slider -->
+      <!-- 3. GPU Table, Price Slider, Secure & Network Filters -->
       <section class="card gpu-card" aria-label="Выбор видеокарты">
         <div class="gpu-toolbar">
           <div class="price-slider-box">
@@ -165,9 +142,18 @@
           </div>
 
           <div class="gpu-quick-buttons">
-            <button type="button" id="btn-select-better-5080" class="btn btn-subtle active" title="Выбрать только видеокарты лучше 5080">
-              Лучше 5080
+            <button type="button" id="btn-secure-only" class="btn btn-subtle" title="Отображать только Secure Cloud">
+              Только Secure
             </button>
+            <div class="select-net-wrapper">
+              <label for="select-net-speed" class="visually-hidden">Скорость сети</label>
+              <select id="select-net-speed" class="select-net-speed" aria-label="Фильтр скорости сети">
+                <option value="ALL">Сеть: Любая</option>
+                <option value="500">Сеть: &ge; 500 Mbps</option>
+                <option value="1000">Сеть: &ge; 1 Gbps</option>
+                <option value="10000">Сеть: 10 Gbps</option>
+              </select>
+            </div>
             <button type="button" id="btn-select-all" class="btn btn-subtle">
               Все
             </button>
@@ -199,6 +185,10 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="table-footer-status">
+          <span id="catalog-live-badge" class="live-indicator">● Автообновление активно</span>
         </div>
       </section>
     </main>
