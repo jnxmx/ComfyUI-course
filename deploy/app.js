@@ -181,7 +181,8 @@ const DEFAULT_MAX_RANK = 5;
 const state = {
   apiKey: "",
   catalogRows: [],
-  selectedRowIds: new Set(),
+  userSelectionOverrides: new Map(),
+  defaultSelectedAll: false,
   secureOnly: false,
   minNetSpeedMbps: 0,
   activePods: [],
@@ -525,28 +526,31 @@ async function fetchGpuCatalog(silent = false) {
   }
 }
 
+function isGpuDesiredByUser(row) {
+  if (state.userSelectionOverrides.has(row.rowId)) {
+    return state.userSelectionOverrides.get(row.rowId);
+  }
+  if (state.defaultSelectedAll) {
+    return true;
+  }
+  return row.tierRank <= DEFAULT_MAX_RANK;
+}
+
 function initDefaultSelections() {
   const saved = localStorage.getItem(STORAGE_KEYS.SELECTED_ROWS);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        state.selectedRowIds = new Set(parsed);
+      if (Array.isArray(parsed)) {
+        state.userSelectionOverrides = new Map(parsed);
         return;
       }
     } catch {}
   }
-  // Default: all video cards better than 5080 inclusive (ranks 1 to 5)
-  state.selectedRowIds.clear();
-  for (const row of state.catalogRows) {
-    if (row.tierRank <= DEFAULT_MAX_RANK) {
-      state.selectedRowIds.add(row.rowId);
-    }
-  }
 }
 
 function persistSelections() {
-  localStorage.setItem(STORAGE_KEYS.SELECTED_ROWS, JSON.stringify([...state.selectedRowIds]));
+  localStorage.setItem(STORAGE_KEYS.SELECTED_ROWS, JSON.stringify([...state.userSelectionOverrides.entries()]));
 }
 
 function updateLiveIndicator() {
@@ -580,13 +584,58 @@ function renderGpuTable() {
     return;
   }
 
+  /**
+   * SORTING:
+   * 1. Видеокарты в пределах фильтра цены (price <= maxPrice) идут СВЕРХУ (0).
+   *    Видеокарты, превышающие цену (price > maxPrice), улетают ВНИЗ (1)!
+   * 2. Приоритетный ранг (1..15, затем 99)
+   * 3. Sub-rank
+   * 4. Community выше Secure
+   * 5. Наличие (HIGH > MED > LOW > NONE)
+   * 6. Цена по возрастанию
+   */
+  visibleRows.sort((a, b) => {
+    const aExceeds = a.price > maxPrice ? 1 : 0;
+    const bExceeds = b.price > maxPrice ? 1 : 0;
+    if (aExceeds !== bExceeds) return aExceeds - bExceeds;
+
+    if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
+    if (a.subRank !== b.subRank) return a.subRank - b.subRank;
+
+    const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
+    const cloudScoreB = b.cloud === "COMMUNITY" ? 0 : 1;
+    if (cloudScoreA !== cloudScoreB) return cloudScoreA - cloudScoreB;
+
+    const availDiff = (AVAILABILITY_WEIGHT[b.availability] || 0) - (AVAILABILITY_WEIGHT[a.availability] || 0);
+    if (availDiff !== 0) return availDiff;
+
+    return a.price - b.price;
+  });
+
+  let addedDivider = false;
+
   for (const row of visibleRows) {
-    const isSelected = state.selectedRowIds.has(row.rowId);
     const exceedsPrice = row.price > maxPrice;
+    const isDesired = isGpuDesiredByUser(row);
+
+    // ВАЖНО: Видеокарты, превышающие фильтр цены, НЕ имеют включенных галочек ("без галочек")!
+    const isChecked = !exceedsPrice && isDesired;
+
+    // Разделитель перед видеокартами, которые улетели вниз из-за превышения цены
+    if (exceedsPrice && !addedDivider) {
+      addedDivider = true;
+      const divTr = document.createElement("tr");
+      divTr.className = "table-divider-row";
+      const divTd = document.createElement("td");
+      divTd.colSpan = 5;
+      divTd.textContent = `Дороже фильтра цены (> ${maxPrice.toFixed(2)} €/ч)`;
+      divTr.appendChild(divTd);
+      tbody.appendChild(divTr);
+    }
 
     const tr = document.createElement("tr");
-    if (!isSelected || exceedsPrice) {
-      tr.classList.add("row-excluded");
+    if (exceedsPrice) {
+      tr.classList.add("row-exceeds-price");
     }
 
     // 1. Checkbox
@@ -594,14 +643,11 @@ function renderGpuTable() {
     tdCheck.className = "col-check";
     const chk = document.createElement("input");
     chk.type = "checkbox";
-    chk.checked = isSelected;
+    chk.checked = isChecked;
+    chk.disabled = exceedsPrice; // Карты выше лимита цены отключены для выбора
     chk.setAttribute("aria-label", `Выбрать ${row.displayName} (${row.cloud})`);
     chk.addEventListener("change", () => {
-      if (chk.checked) {
-        state.selectedRowIds.add(row.rowId);
-      } else {
-        state.selectedRowIds.delete(row.rowId);
-      }
+      state.userSelectionOverrides.set(row.rowId, chk.checked);
       persistSelections();
       renderGpuTable();
     });
@@ -663,7 +709,7 @@ function renderGpuTable() {
     deployBtn.type = "button";
     deployBtn.className = "btn btn-subtle";
     deployBtn.textContent = "Запустить";
-    deployBtn.disabled = row.availability === "NONE";
+    deployBtn.disabled = row.availability === "NONE" || exceedsPrice;
     deployBtn.addEventListener("click", () => {
       startDeploymentSequence([row]);
     });
@@ -1024,8 +1070,8 @@ async function triggerRedeploy(badPodId, reason) {
 function getSelectedCandidatesQueue() {
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.0;
   return state.catalogRows.filter((r) => {
-    if (!state.selectedRowIds.has(r.rowId)) return false;
     if (r.price > maxPrice) return false;
+    if (!isGpuDesiredByUser(r)) return false;
     if (r.availability === "NONE") return false;
     if (state.secureOnly && r.cloud !== "SECURE") return false;
     if (state.minNetSpeedMbps > 0 && r.netSpeedMbps < state.minNetSpeedMbps) return false;
@@ -1148,16 +1194,21 @@ function init() {
   const btnNone = document.getElementById("btn-select-none");
 
   btnAll.addEventListener("click", () => {
-    state.selectedRowIds.clear();
+    state.defaultSelectedAll = true;
+    state.userSelectionOverrides.clear();
     for (const row of state.catalogRows) {
-      state.selectedRowIds.add(row.rowId);
+      state.userSelectionOverrides.set(row.rowId, true);
     }
     persistSelections();
     renderGpuTable();
   });
 
   btnNone.addEventListener("click", () => {
-    state.selectedRowIds.clear();
+    state.defaultSelectedAll = false;
+    state.userSelectionOverrides.clear();
+    for (const row of state.catalogRows) {
+      state.userSelectionOverrides.set(row.rowId, false);
+    }
     persistSelections();
     renderGpuTable();
   });

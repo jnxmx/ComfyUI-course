@@ -387,8 +387,23 @@ input[type="range"] {
   background-color: var(--bg-subtle);
 }
 
-#gpu-table tbody tr.row-excluded {
-  opacity: 0.42;
+.table-divider-row td {
+  background-color: var(--bg-subtle);
+  padding: 0.55rem 0.85rem !important;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-top: 2px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
+}
+
+tr.row-exceeds-price {
+  background-color: #fafbfc;
+}
+tr.row-exceeds-price td {
+  color: #64748b;
 }
 
 .col-check {
