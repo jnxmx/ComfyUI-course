@@ -725,15 +725,21 @@ function buildPayload(row) {
   const restoreBackup = document.getElementById("opt-restore-backup").checked ? "1" : "0";
   const slug = row.tierKey || "gpu";
 
-  // By passing templateId and NOT overriding ports, disk, mounts, image:
-  // RunPod inherits all template settings intact, including the signed port labels (ComfyUI, Fizgig, Filebrowser)!
   return {
     name: `comfy-work-${slug}`,
     templateId: LOCKED_TEMPLATE.templateId,
     cloud: row.cloud,
     gpu: {
       id: row.gpuId,
-      count: 1
+      count: 1,
+      allowedCudaVersions: LOCKED_TEMPLATE.allowedCudaVersions
+    },
+    disk: LOCKED_TEMPLATE.containerDiskGb,
+    mounts: {
+      persistent: {
+        size: LOCKED_TEMPLATE.volumeDiskGb,
+        path: LOCKED_TEMPLATE.volumeMountPath
+      }
     },
     env: {
       CIVITAI_API_KEY: "{{ RUNPOD_SECRET_CIVITAI_API_KEY }}",
