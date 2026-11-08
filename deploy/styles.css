@@ -681,6 +681,15 @@ tr.row-exceeds-price td {
   background-color: var(--accent-hover);
 }
 
+.btn-fizgig {
+  background-color: #7c3aed;
+  color: #ffffff;
+  border-color: #6d28d9;
+}
+.btn-fizgig:hover:not(:disabled) {
+  background-color: #6d28d9;
+}
+
 .btn-large {
   font-size: 0.95rem;
   padding: 0.65rem 1.25rem;

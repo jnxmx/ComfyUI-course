@@ -169,7 +169,6 @@ const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1",
   SELECTED_ROWS: "yakushev_selected_gpus_v3",
   SECURE_ONLY: "yakushev_secure_only_v1",
-  NET_SPEED: "yakushev_net_speed_v1",
   MAX_PRICE: "yakushev_max_price_v3",
   OPTIONS: "yakushev_options_v3",
   COLOR_SCHEME: "color-scheme"
@@ -184,7 +183,6 @@ const state = {
   userSelectionOverrides: new Map(),
   defaultSelectedAll: false,
   secureOnly: false,
-  minNetSpeedMbps: 0,
   activePods: [],
   activePodId: null,
   activeDeploySpec: null,
@@ -245,28 +243,6 @@ function cleanGpuName(rawId, rawName) {
     return rawName.replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
   }
   return rawId.replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
-}
-
-function determineNetworkSpeed(cloudType, gpuId, minRam) {
-  // Secure Cloud: enterprise datacenters with 10 Gbps symmetric network
-  if (cloudType === "SECURE") {
-    return { mbps: 10000, text: "10 Gbps" };
-  }
-  // Community Cloud:
-  // High-end server GPUs or hosts with minRam >= 60GB have Gigabit uplinks
-  const isHighEnd =
-    gpuId.includes("5090") ||
-    gpuId.includes("4090") ||
-    gpuId.includes("6000") ||
-    gpuId.includes("A100") ||
-    gpuId.includes("H100") ||
-    gpuId.includes("L40") ||
-    (minRam && minRam >= 60);
-
-  if (isHighEnd) {
-    return { mbps: 1000, text: "1 Gbps" };
-  }
-  return { mbps: 500, text: "500 Mbps" };
 }
 
 /* ==========================================================================
@@ -362,6 +338,14 @@ async function fetchActivePods() {
         openLink.className = "btn btn-subtle";
         openLink.textContent = "ComfyUI :7860 ↗";
         actions.appendChild(openLink);
+
+        const openFizgig = document.createElement("a");
+        openFizgig.href = `https://${pod.id}-7862.proxy.runpod.net/`;
+        openFizgig.target = "_blank";
+        openFizgig.rel = "noopener noreferrer";
+        openFizgig.className = "btn btn-subtle";
+        openFizgig.textContent = "Fizgig :7862 ↗";
+        actions.appendChild(openFizgig);
       }
 
       const delBtn = document.createElement("button");
@@ -453,7 +437,6 @@ async function fetchGpuCatalog(silent = false) {
         const tier = findTierInfo(gpu.id);
         const displayName = cleanGpuName(gpu.id, gpu.name);
         const rowId = `${gpu.id}__${cloudType}`;
-        const net = determineNetworkSpeed(cloudType, gpu.id, gpu.minRam);
 
         rows.push({
           rowId,
@@ -464,8 +447,6 @@ async function fetchGpuCatalog(silent = false) {
           availability: gpu.availability || "NONE",
           maxCount: cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0),
           cudaVersions: cuda13List,
-          netSpeedMbps: net.mbps,
-          netSpeedText: net.text,
           tierRank: tier ? tier.rank : 99,
           tierKey: tier ? tier.key : `other-${gpu.id}`,
           tierLabel: tier ? tier.label : displayName,
@@ -564,10 +545,9 @@ function renderGpuTable() {
 
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.0;
 
-  // Filter rows by "Только Secure" and "Network Speed"
+  // Filter rows by "Только Secure"
   const visibleRows = state.catalogRows.filter((row) => {
     if (state.secureOnly && row.cloud !== "SECURE") return false;
-    if (state.minNetSpeedMbps > 0 && row.netSpeedMbps < state.minNetSpeedMbps) return false;
     return true;
   });
 
@@ -651,7 +631,7 @@ function renderGpuTable() {
     });
     tdCheck.appendChild(chk);
 
-    // 2. GPU Name + Cloud + Network Speed
+    // 2. GPU Name + Cloud
     const tdName = document.createElement("td");
     tdName.className = "col-name";
     const nameWrap = document.createElement("div");
@@ -668,11 +648,7 @@ function renderGpuTable() {
     cloudPill.className = `cloud-pill ${row.cloud.toLowerCase()}`;
     cloudPill.textContent = row.cloud === "COMMUNITY" ? "Community" : "Secure";
 
-    const netPill = document.createElement("span");
-    netPill.className = "net-pill";
-    netPill.textContent = row.netSpeedText;
-
-    badgesWrap.append(cloudPill, netPill);
+    badgesWrap.append(cloudPill);
     nameWrap.append(nameSpan, badgesWrap);
     tdName.appendChild(nameWrap);
 
@@ -885,7 +861,12 @@ function attachMonitor(podId, candidate) {
 
   // Bind links
   const comfyUrl = `https://${podId}-7860.proxy.runpod.net/`;
+  const fizgigUrl = `https://${podId}-7862.proxy.runpod.net/`;
   document.getElementById("open-comfy-link").href = comfyUrl;
+  const openFizgig = document.getElementById("open-fizgig-link");
+  if (openFizgig) openFizgig.href = fizgigUrl;
+  const fizgigSubtle = document.getElementById("link-fizgig-subtle");
+  if (fizgigSubtle) fizgigSubtle.href = fizgigUrl;
   document.getElementById("link-jupyter").href = `https://${podId}-8888.proxy.runpod.net/`;
   document.getElementById("link-filebrowser").href = `https://${podId}-8080.proxy.runpod.net/`;
   document.getElementById("link-console").href = `https://console.runpod.io/pods?id=${encodeURIComponent(podId)}`;
@@ -901,7 +882,7 @@ function attachMonitor(podId, candidate) {
   pollHealth(podId);
   state.pollTimerId = setInterval(() => {
     if (state.activePodId === podId) pollHealth(podId);
-  }, 4000);
+  }, 2000);
 }
 
 async function startLogStream(podId) {
@@ -982,32 +963,53 @@ function handleLog(podId, entry) {
     }
 
     // Detect CPU overload
-    if (line.includes("CPU Overload Detected") || line.includes("cpu_confirm")) {
+    if (line.includes("CPU Overload Detected") || line.includes("cpu_confirm") || line.includes("[fatal][cpu]")) {
+      setStageState("cuda", "error");
       triggerRedeploy(podId, "Критическая перегрузка CPU хоста");
       return;
     }
 
-    // Successful CUDA completion
-    const isPastCuda =
-      line.includes("STAGE: Creating environment") ||
-      line.includes("STAGE: Restoring") ||
-      line.includes("STAGE: Updating") ||
-      line.includes("Starting ComfyUI") ||
+    // Fast CUDA & CPU completion detection — triggered right when preflight probe passes!
+    const isCudaPassed =
+      line.includes("[cuda] preflight passed") ||
+      line.includes("STAGE: Checking workspace volume") ||
+      line.includes("[volume] persistent volume disk mounted") ||
+      line.includes("[fizgig placeholder] started") ||
+      line.includes("STAGE: Ensuring ComfyUI Manager") ||
+      line.includes("STAGE: Installing sageattention") ||
+      line.includes("STAGE: Updating ComfyUI and custom nodes") ||
+      line.includes("STAGE: Starting ComfyUI") ||
       line.includes("To see the GUI go to:");
 
-    if (isPastCuda && !state.cudaStagePassed) {
+    if (isCudaPassed && !state.cudaStagePassed) {
       state.cudaStagePassed = true;
       setStageState("cuda", "done");
       document.getElementById("ready-links-box").hidden = false;
-      document.getElementById("monitor-subtitle").textContent = "CUDA 13.0 проверена успешно. Запуск интерфейса...";
+      document.getElementById("monitor-subtitle").textContent = "✓ Проверки CUDA 13.0 и CPU пройдены успешно! Инициализация...";
+      showMonitorAlert("Проверки CUDA 13.0 и CPU пройдены успешно. Запуск компонентов...", "info");
+    }
+
+    // Dynamic detailed progress updates so UI never looks frozen
+    if (state.cudaStagePassed) {
+      if (line.includes("[fizgig]") || line.includes("Fizgig")) {
+        document.getElementById("monitor-subtitle").textContent = "✓ Проверки пройдены. Настройка Fizgig Studio...";
+      } else if (line.includes("STAGE: Ensuring ComfyUI Manager") || line.includes("comfyui-manager")) {
+        document.getElementById("monitor-subtitle").textContent = "✓ Проверки пройдены. Подготовка ComfyUI Manager...";
+      } else if (line.includes("STAGE: Installing sageattention") || line.includes("sageattention")) {
+        document.getElementById("monitor-subtitle").textContent = "✓ Проверки пройдены. Установка оптимизаций SageAttention...";
+      } else if (line.includes("STAGE: Updating ComfyUI and custom nodes") || line.includes("Updating:")) {
+        document.getElementById("monitor-subtitle").textContent = "✓ Проверки пройдены. Обновление ComfyUI и кастомных нод...";
+      } else if (line.includes("STAGE: Restoring") || line.includes("[restore]")) {
+        document.getElementById("monitor-subtitle").textContent = "✓ Проверки пройдены. Восстановление бэкапа нод...";
+      }
     }
 
     if (line.includes("Starting ComfyUI") || line.includes("To see the GUI go to:") || line.includes("ComfyUI is ready")) {
       setStageState("ready", "done");
       document.getElementById("monitor-spinner").hidden = true;
       document.getElementById("ready-links-box").hidden = false;
-      document.getElementById("monitor-subtitle").textContent = "ComfyUI готов к работе!";
-      showMonitorAlert("ComfyUI успешно запущен и готов к работе!", "success");
+      document.getElementById("monitor-subtitle").textContent = "ComfyUI и Fizgig готовы к работе!";
+      showMonitorAlert("ComfyUI и Fizgig успешно запущены и готовы к работе!", "success");
     }
   }
 }
@@ -1022,6 +1024,14 @@ async function pollHealth(podId) {
       setStageState("provision", "done");
       setStageState("container", "done");
       document.getElementById("ready-links-box").hidden = false;
+
+      // If container has been running > 15s without fatal GPU error, CUDA preflight is completed
+      if (pod.runtime.uptimeInSeconds > 15 && !state.cudaStagePassed) {
+        state.cudaStagePassed = true;
+        setStageState("cuda", "done");
+        document.getElementById("ready-links-box").hidden = false;
+        document.getElementById("monitor-subtitle").textContent = "✓ Проверки CUDA 13.0 и CPU пройдены успешно! Запуск сервисов...";
+      }
     }
 
     if (pod.status === "ERROR" || pod.status === "EXITED") {
@@ -1037,7 +1047,7 @@ async function pollHealth(podId) {
         setStageState("ready", "done");
         document.getElementById("monitor-spinner").hidden = true;
         document.getElementById("ready-links-box").hidden = false;
-        document.getElementById("monitor-subtitle").textContent = "ComfyUI доступен на порту 7860!";
+        document.getElementById("monitor-subtitle").textContent = "ComfyUI и Fizgig доступны и готовы к работе!";
       }
     } catch {}
   } catch {}
@@ -1072,7 +1082,6 @@ function getSelectedCandidatesQueue() {
     if (!isGpuDesiredByUser(r)) return false;
     if (r.availability === "NONE") return false;
     if (state.secureOnly && r.cloud !== "SECURE") return false;
-    if (state.minNetSpeedMbps > 0 && r.netSpeedMbps < state.minNetSpeedMbps) return false;
     return true;
   });
 }
@@ -1169,21 +1178,6 @@ function init() {
     state.secureOnly = !state.secureOnly;
     btnSecureOnly.classList.toggle("active", state.secureOnly);
     localStorage.setItem(STORAGE_KEYS.SECURE_ONLY, state.secureOnly ? "true" : "false");
-    renderGpuTable();
-  });
-
-  // Network Speed Filter
-  const selectNetSpeed = document.getElementById("select-net-speed");
-  const savedSpeed = localStorage.getItem(STORAGE_KEYS.NET_SPEED);
-  if (savedSpeed) {
-    selectNetSpeed.value = savedSpeed;
-    state.minNetSpeedMbps = savedSpeed === "ALL" ? 0 : Number(savedSpeed);
-  }
-
-  selectNetSpeed.addEventListener("change", () => {
-    const val = selectNetSpeed.value;
-    state.minNetSpeedMbps = val === "ALL" ? 0 : Number(val);
-    localStorage.setItem(STORAGE_KEYS.NET_SPEED, val);
     renderGpuTable();
   });
 

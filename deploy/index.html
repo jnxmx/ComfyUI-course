@@ -9,7 +9,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Comfy.Work Deployer</title>
-  <link rel="stylesheet" href="styles.css?v=20261108_06">
+  <link rel="stylesheet" href="styles.css?v=20261108_07">
 </head>
 <body>
   <div class="app-container">
@@ -75,8 +75,8 @@
         <div class="stage-pills">
           <div class="stage-pill" data-stage="provision">1. Подготовка хоста</div>
           <div class="stage-pill" data-stage="container">2. Контейнер</div>
-          <div class="stage-pill" data-stage="cuda">3. Проверка CUDA 13.0</div>
-          <div class="stage-pill" data-stage="ready">4. ComfyUI Готов</div>
+          <div class="stage-pill" data-stage="cuda">3. Проверка CUDA и CPU</div>
+          <div class="stage-pill" data-stage="ready">4. ComfyUI & Fizgig Готовы</div>
         </div>
 
         <!-- Action Links (when ready or running) -->
@@ -85,11 +85,15 @@
             <a id="open-comfy-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">
               Открыть ComfyUI (:7860) ↗
             </a>
+            <a id="open-fizgig-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large btn-fizgig">
+              Открыть Fizgig (:7862) ↗
+            </a>
             <button type="button" id="copy-desktop-url-btn" class="btn btn-secondary">
               Копировать ссылку для Comfy Desktop
             </button>
           </div>
           <div class="secondary-links">
+            <a id="link-fizgig-subtle" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">Fizgig (:7862)</a>
             <a id="link-jupyter" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">JupyterLab (:8888)</a>
             <a id="link-filebrowser" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">Файловый менеджер (:8080)</a>
             <a id="link-console" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">Консоль RunPod ↗</a>
@@ -148,15 +152,6 @@
             <button type="button" id="btn-secure-only" class="btn btn-subtle" title="Отображать только Secure Cloud">
               Только Secure
             </button>
-            <div class="select-net-wrapper">
-              <label for="select-net-speed" class="visually-hidden">Скорость сети</label>
-              <select id="select-net-speed" class="select-net-speed" aria-label="Фильтр скорости сети">
-                <option value="ALL">Сеть: Любая</option>
-                <option value="500">Сеть: &ge; 500 Mbps</option>
-                <option value="1000">Сеть: &ge; 1 Gbps</option>
-                <option value="10000">Сеть: 10 Gbps</option>
-              </select>
-            </div>
             <button type="button" id="btn-select-all" class="btn btn-subtle">
               Все
             </button>
@@ -201,6 +196,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261108_06"></script>
+  <script type="module" src="app.js?v=20261108_07"></script>
 </body>
 </html>
