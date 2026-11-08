@@ -543,7 +543,7 @@ function renderGpuTable() {
   const tbody = document.getElementById("gpu-tbody");
   tbody.replaceChildren();
 
-  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.0;
+  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
 
   // Filter rows by "Только Secure"
   const visibleRows = state.catalogRows.filter((row) => {
@@ -1076,7 +1076,7 @@ async function triggerRedeploy(badPodId, reason) {
 }
 
 function getSelectedCandidatesQueue() {
-  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.0;
+  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
   return state.catalogRows.filter((r) => {
     if (r.price > maxPrice) return false;
     if (!isGpuDesiredByUser(r)) return false;
