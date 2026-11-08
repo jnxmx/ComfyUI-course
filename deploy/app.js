@@ -541,12 +541,13 @@ function initDefaultSelections() {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && (parsed.length === 0 || (Array.isArray(parsed[0]) && parsed[0].length === 2))) {
         state.userSelectionOverrides = new Map(parsed);
         return;
       }
     } catch {}
   }
+  state.userSelectionOverrides = new Map();
 }
 
 function persistSelections() {
