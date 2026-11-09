@@ -214,6 +214,10 @@ a:focus-visible {
   background-color: var(--warn-bg);
   color: var(--warn);
 }
+.badge-error {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+}
 
 .pod-actions {
   display: flex;

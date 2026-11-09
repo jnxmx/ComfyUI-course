@@ -783,29 +783,32 @@ function updateLiveIndicator() {
 function getOrCreatePodController(podId, initData = {}) {
   let ctrl = state.podControllers.get(podId);
   if (!ctrl) {
-    const isRunning = initData.status === "RUNNING";
     ctrl = {
       podId,
       displayName: initData.displayName || "comfy-work",
       gpuName: initData.gpuName || "GPU",
       cloud: initData.cloud || "COMMUNITY",
       price: initData.price || 0,
-      isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : isRunning,
+      isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : false,
       status: initData.status || "STARTING",
       stages: {
         provision: "done",
         container: "done",
-        cuda: isRunning ? "done" : "active",
-        ready: isRunning ? "done" : "pending"
+        cuda: "active",
+        ready: "pending"
       },
-      subtitle: isRunning ? "ComfyUI и Fizgig готовы к работе!" : "Подготовка контейнера и проверка CUDA...",
+      subtitle: "Инициализация и проверка CUDA 13.0...",
       alert: null,
       logLines: [],
       logAbortController: null,
-      cudaStagePassed: isRunning,
+      cudaStagePassed: false,
       pollTimerId: null
     };
     state.podControllers.set(podId, ctrl);
+
+    // Start background health polling immediately
+    ctrl.pollTimerId = setInterval(() => pollHealthForPod(ctrl), 2500);
+    pollHealthForPod(ctrl);
   }
   return ctrl;
 }
@@ -854,7 +857,6 @@ async function fetchActivePods() {
     }
 
     for (const pod of pods) {
-      const isRunning = pod.status === "RUNNING";
       const gpuName = pod.gpu?.id ? cleanGpuName(pod.gpu.id, pod.gpu.displayName) : "GPU";
       let ctrl = state.podControllers.get(pod.id);
 
@@ -864,21 +866,15 @@ async function fetchActivePods() {
           gpuName,
           cloud: pod.cloud || "COMMUNITY",
           status: pod.status,
-          isExpanded: !isRunning // if starting, expand; if already running, keep compact until clicked
+          isExpanded: false
         });
       } else {
         ctrl.status = pod.status;
         ctrl.displayName = pod.name || ctrl.displayName;
         ctrl.gpuName = gpuName;
         ctrl.cloud = pod.cloud || ctrl.cloud;
-        if (isRunning && !ctrl.cudaStagePassed) {
-          ctrl.cudaStagePassed = true;
-          ctrl.stages.cuda = "done";
-          ctrl.stages.ready = "done";
-          ctrl.subtitle = "ComfyUI и Fizgig готовы к работе!";
-        }
+        ctrl.pod = pod;
       }
-      ctrl.pod = pod;
     }
 
     renderPodsList();
@@ -963,6 +959,7 @@ function createPodCardElement(ctrl) {
   openComfyBtn.rel = "noopener noreferrer";
   openComfyBtn.className = "btn btn-subtle-sm btn-quick-comfy";
   openComfyBtn.textContent = "ComfyUI :7860 ↗";
+  openComfyBtn.addEventListener("click", (e) => e.stopPropagation());
 
   const openFizgigBtn = document.createElement("a");
   openFizgigBtn.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
@@ -970,6 +967,7 @@ function createPodCardElement(ctrl) {
   openFizgigBtn.rel = "noopener noreferrer";
   openFizgigBtn.className = "btn btn-subtle-sm btn-quick-fizgig";
   openFizgigBtn.textContent = "Fizgig :7862 ↗";
+  openFizgigBtn.addEventListener("click", (e) => e.stopPropagation());
 
   const deleteBtn = document.createElement("button");
   deleteBtn.type = "button";
@@ -1127,30 +1125,45 @@ function createPodCardElement(ctrl) {
 }
 
 function updatePodCardElement(ctrl, cardEl) {
-  const isRunning = ctrl.status === "RUNNING";
+  const isComfyReady = ctrl.stages.ready === "done";
+  const isCudaPassed = ctrl.stages.cuda === "done";
+  const isError = ctrl.status === "ERROR" || ctrl.status === "EXITED" || ctrl.stages.cuda === "error";
+
   cardEl.classList.toggle("is-expanded", ctrl.isExpanded);
-  cardEl.classList.toggle("pod-running", isRunning);
-  cardEl.classList.toggle("pod-deploying", !isRunning);
+  cardEl.classList.toggle("pod-running", isComfyReady);
+  cardEl.classList.toggle("pod-deploying", !isComfyReady && !isError);
+  cardEl.classList.toggle("pod-error", isError);
 
   // Status badge
   const statusBadge = cardEl.querySelector(".pod-status-badge");
   if (statusBadge) {
-    statusBadge.className = isRunning ? "badge badge-success pod-status-badge" : "badge badge-warn pod-status-badge";
-    statusBadge.textContent = ctrl.status || "STARTING";
+    if (isError) {
+      statusBadge.className = "badge badge-error pod-status-badge";
+      statusBadge.textContent = "СБОЙ";
+    } else if (isComfyReady) {
+      statusBadge.className = "badge badge-success pod-status-badge";
+      statusBadge.textContent = "ГОТОВ";
+    } else if (isCudaPassed) {
+      statusBadge.className = "badge badge-warn pod-status-badge";
+      statusBadge.textContent = "ЗАПУСК COMFYUI";
+    } else {
+      statusBadge.className = "badge badge-warn pod-status-badge";
+      statusBadge.textContent = "ПРОВЕРКА CUDA";
+    }
   }
 
   // Quick action buttons
   const quickComfy = cardEl.querySelector(".btn-quick-comfy");
   const quickFizgig = cardEl.querySelector(".btn-quick-fizgig");
-  if (quickComfy) quickComfy.style.display = isRunning ? "" : "none";
-  if (quickFizgig) quickFizgig.style.display = isRunning ? "" : "none";
+  if (quickComfy) quickComfy.style.display = isComfyReady ? "" : "none";
+  if (quickFizgig) quickFizgig.style.display = isComfyReady ? "" : "none";
 
   // Subtitle & spinner
   const sub = cardEl.querySelector(".pod-card-subtitle");
   if (sub) sub.textContent = ctrl.subtitle;
 
   const spinner = cardEl.querySelector(".pod-card-spinner");
-  if (spinner) spinner.hidden = ctrl.stages.ready === "done";
+  if (spinner) spinner.hidden = isComfyReady;
 
   // Alert
   const alertBox = cardEl.querySelector(".pod-card-alert");
@@ -1175,7 +1188,7 @@ function updatePodCardElement(ctrl, cardEl) {
   // Ready links box
   const readyBox = cardEl.querySelector(".pod-card-links");
   if (readyBox) {
-    readyBox.hidden = ctrl.stages.ready !== "done" && ctrl.stages.cuda !== "done";
+    readyBox.hidden = !isComfyReady && !isCudaPassed;
   }
 
   // Logs
@@ -1198,8 +1211,14 @@ function togglePodExpanded(ctrl, cardEl) {
       ctrl.pollTimerId = setInterval(() => pollHealthForPod(ctrl), 2500);
     }
   } else {
-    stopPodController(ctrl);
+    // When collapsing, abort SSE logs stream to save network bandwidth,
+    // but keep pollHealthForPod running so status remains live and accurate!
+    if (ctrl.logAbortController) {
+      ctrl.logAbortController.abort();
+      ctrl.logAbortController = null;
+    }
   }
+  updatePodCardElement(ctrl, cardEl);
 }
 
 async function startLogStreamForPod(ctrl) {
@@ -1506,9 +1525,16 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
           status: "STARTING",
           isExpanded: true
         });
+        ctrl.isExpanded = true;
 
         await fetchActivePods();
-        togglePodExpanded(ctrl, document.querySelector(`.pod-card[data-pod-id="${newPodId}"]`));
+        startLogStreamForPod(ctrl);
+
+        const newCard = document.querySelector(`.pod-card[data-pod-id="${newPodId}"]`);
+        if (newCard) {
+          updatePodCardElement(ctrl, newCard);
+          newCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         return;
       } catch (err) {
         lastErrorMessage = err.message || "";
