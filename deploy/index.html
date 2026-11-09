@@ -9,7 +9,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Comfy.Work Deployer</title>
-  <link rel="stylesheet" href="styles.css?v=20261109_01">
+  <link rel="stylesheet" href="styles.css?v=20261109_02">
 </head>
 <body>
   <div class="app-container">
@@ -41,78 +41,94 @@
             Забыть ключ
           </button>
         </div>
+
+        <!-- Account Info Panel (Balance & Secrets Status) -->
+        <div id="account-info-panel" class="account-info-panel" hidden>
+          <div class="account-info-row">
+            <div class="account-metric-box">
+              <span class="metric-label">Баланс:</span>
+              <strong id="account-balance-val" class="metric-val">$0.00</strong>
+              <a href="https://console.runpod.io/user/billing" target="_blank" rel="noopener noreferrer" class="link-billing" title="Пополнить баланс в RunPod">
+                Пополнить ↗
+              </a>
+            </div>
+            <div class="account-secrets-box">
+              <span id="status-hf-token" class="secret-pill secret-missing" title="Токен Hugging Face">
+                HF_TOKEN: <span class="secret-state">не найден</span>
+              </span>
+              <span id="status-civitai-token" class="secret-pill secret-missing" title="Ключ Civitai API">
+                CIVITAI_API_KEY: <span class="secret-state">не найден</span>
+              </span>
+              <span id="status-backup" class="secret-pill secret-missing" title="Значение бэкапа ComfyUI">
+                COMFYUI_BACKUP: <span class="secret-state">не настроен</span>
+              </span>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <!-- Active Pods (appears directly after API key if pods exist) -->
-      <section id="active-pods-section" class="card active-pods-card" hidden aria-label="Активные поды">
+      <!-- Unified Pods & Deployment Section (all pods expand into full deploy view) -->
+      <section id="pods-section" class="card pods-card" hidden aria-label="Поды и мониторинг">
         <div class="section-head">
-          <h2 class="section-title">Активные поды</h2>
+          <div class="pods-head-title-row">
+            <h2 class="section-title">Активные поды</h2>
+            <span id="pods-count-badge" class="badge badge-subtle">0</span>
+          </div>
           <button type="button" id="refresh-pods-btn" class="btn btn-subtle" title="Обновить список подов">
             Обновить
           </button>
         </div>
-        <div id="active-pods-list" class="active-pods-list" aria-live="polite"></div>
-      </section>
 
-      <!-- Live Deployment & Health Monitor (appears during active deployment) -->
-      <section id="monitor-section" class="card monitor-card" hidden aria-label="Мониторинг пода">
-        <div class="monitor-header">
-          <div>
-            <h2 id="monitor-title" class="section-title">Запуск пода</h2>
-            <p id="monitor-subtitle" class="monitor-sub">Подготовка хоста...</p>
+        <!-- Pending Deployment Card (shows when auto-retrying or allocating machine before pod creation) -->
+        <div id="pending-deploy-card" class="pending-deploy-card" hidden>
+          <div class="pending-deploy-header">
+            <div class="pending-deploy-info">
+              <strong id="pending-deploy-title" class="pending-title">Запуск пода...</strong>
+              <span id="pending-deploy-subtitle" class="pending-sub">Выделение машины на RunPod...</span>
+            </div>
+            <div class="pending-deploy-actions">
+              <progress class="loading-spinner" aria-label="Поиск машины"></progress>
+              <button type="button" id="cancel-pending-deploy-btn" class="btn btn-danger-sm">
+                Остановить попытки
+              </button>
+            </div>
           </div>
-          <div class="monitor-header-actions">
-            <progress id="monitor-spinner" class="loading-spinner" aria-label="Процесс запуска"></progress>
-            <button type="button" id="terminate-monitored-btn" class="btn btn-danger-sm">
-              Удалить под
-            </button>
-          </div>
+          <div id="pending-deploy-alert" class="monitor-alert" hidden></div>
         </div>
 
-        <div id="monitor-alert" class="monitor-alert" hidden></div>
-
-        <!-- 4 Key Stages -->
-        <div class="stage-pills">
-          <div class="stage-pill" data-stage="provision">1. Подготовка хоста</div>
-          <div class="stage-pill" data-stage="container">2. Контейнер</div>
-          <div class="stage-pill" data-stage="cuda">3. Проверка CUDA и CPU</div>
-          <div class="stage-pill" data-stage="ready">4. ComfyUI & Fizgig Готовы</div>
-        </div>
-
-        <!-- Action Links (when ready or running) -->
-        <div id="ready-links-box" class="ready-links-box" hidden>
-          <div class="ready-actions">
-            <a id="open-comfy-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">
-              Открыть ComfyUI (:7860) ↗
-            </a>
-            <a id="open-fizgig-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large btn-fizgig">
-              Открыть Fizgig (:7862) ↗
-            </a>
-            <button type="button" id="copy-desktop-url-btn" class="btn btn-secondary">
-              Копировать ссылку для Comfy Desktop
-            </button>
-          </div>
-          <div class="secondary-links">
-            <a id="link-fizgig-subtle" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">Fizgig (:7862)</a>
-            <a id="link-jupyter" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">JupyterLab (:8888)</a>
-            <a id="link-filebrowser" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">Файловый менеджер (:7861)</a>
-            <a id="link-console" href="#" target="_blank" rel="noopener noreferrer" class="link-subtle">Консоль RunPod ↗</a>
-          </div>
-        </div>
-
-        <!-- Collapsible SSE Logs -->
-        <details class="logs-details">
-          <summary>Логи пода (в реальном времени)</summary>
-          <pre id="pod-log-output" class="terminal-logs" tabindex="0"></pre>
-        </details>
+        <!-- Pod Cards Container -->
+        <div id="pods-list" class="pods-list" aria-live="polite"></div>
       </section>
 
       <!-- 2. Template & 3 Options -->
       <section class="card template-card" aria-label="Настройки темплейта">
-        <div class="template-name-row">
-          <span class="template-tag">Темплейт:</span>
-          <strong class="template-name">comfy.work CUDA 13.0 with New Manager</strong>
+        <div class="template-header-row">
+          <div class="template-name-row">
+            <span class="template-tag">Темплейт:</span>
+            <strong id="template-display-name" class="template-name">comfy.work CUDA 13.0 with New Manager</strong>
+            <code id="template-id-badge" class="template-id-badge">casls01eko</code>
+            <button type="button" id="edit-template-btn" class="btn-icon" title="Изменить темплейт (ID или ссылка с RunPod)" aria-label="Изменить темплейт">
+              ✏️
+            </button>
+          </div>
         </div>
+
+        <!-- Inline Template Editor Form -->
+        <div id="template-edit-form" class="template-edit-form" hidden>
+          <div class="template-edit-row">
+            <input
+              type="text"
+              id="custom-template-input"
+              placeholder="Вставьте ссылку на темплейт с RunPod или его код-номер (например casls01eko)"
+              spellcheck="false"
+            >
+            <button type="button" id="save-template-btn" class="btn btn-primary-sm">Применить</button>
+            <button type="button" id="reset-template-btn" class="btn btn-secondary-sm">По умолчанию</button>
+            <button type="button" id="cancel-template-btn" class="btn btn-subtle-sm">Отмена</button>
+          </div>
+          <div id="template-edit-msg" class="template-edit-msg" hidden></div>
+        </div>
+
         <div class="options-group">
           <label class="checkbox-control" for="opt-new-manager">
             <input type="checkbox" id="opt-new-manager" checked>
@@ -196,6 +212,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261109_01"></script>
+  <script type="module" src="app.js?v=20261109_02"></script>
 </body>
 </html>
