@@ -618,7 +618,7 @@ function renderGpuTable() {
 
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
 
-  let displayRows = state.catalogRows;
+  let displayRows = [...state.catalogRows];
   if (state.secureOnly) {
     displayRows = displayRows.filter((r) => r.cloud === "SECURE");
   }
@@ -634,10 +634,56 @@ function renderGpuTable() {
     return;
   }
 
+  /**
+   * СОРТИРОВКА:
+   * 1. Карты в пределах фильтра цены (price <= maxPrice) идут СВЕРХУ (0).
+   *    Карты дороже фильтра цены (price > maxPrice) отбрасываются ВНИЗ (1)!
+   * 2. Приоритетный ранг (1..15, затем 99)
+   * 3. Sub-rank
+   * 4. Community выше Secure (0 vs 1)
+   * 5. Наличие (HIGH > MED > LOW > NONE)
+   * 6. Цена по возрастанию
+   */
+  displayRows.sort((a, b) => {
+    const aExceeds = a.price > maxPrice ? 1 : 0;
+    const bExceeds = b.price > maxPrice ? 1 : 0;
+    if (aExceeds !== bExceeds) return aExceeds - bExceeds;
+
+    if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
+    if (a.subRank !== b.subRank) return a.subRank - b.subRank;
+
+    const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
+    const cloudScoreB = b.cloud === "COMMUNITY" ? 0 : 1;
+    if (cloudScoreA !== cloudScoreB) return cloudScoreA - cloudScoreB;
+
+    const availDiff = (AVAILABILITY_WEIGHT[b.availability] || 0) - (AVAILABILITY_WEIGHT[a.availability] || 0);
+    if (availDiff !== 0) return availDiff;
+
+    return a.price - b.price;
+  });
+
+  let addedPriceDivider = false;
   let inOtherSection = false;
+  let inOtherOverpricedSection = false;
 
   for (const row of displayRows) {
-    if (row.tierRank === 99 && !inOtherSection) {
+    const exceedsPrice = row.price > maxPrice;
+    const isDesired = isGpuDesiredByUser(row);
+
+    // Разделитель перед видеокартами, которые улетели вниз из-за превышения цены
+    if (exceedsPrice && !addedPriceDivider) {
+      addedPriceDivider = true;
+      const divTr = document.createElement("tr");
+      divTr.className = "table-divider-row table-divider-price";
+      const divTd = document.createElement("td");
+      divTd.colSpan = 5;
+      divTd.textContent = `Дороже фильтра цены (> ${maxPrice.toFixed(2)} €/ч)`;
+      divTr.appendChild(divTd);
+      tbody.appendChild(divTr);
+    }
+
+    // Разделитель "Другие видеокарты" в пределах цены
+    if (!exceedsPrice && row.tierRank === 99 && !inOtherSection) {
       inOtherSection = true;
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
@@ -648,18 +694,37 @@ function renderGpuTable() {
       tbody.appendChild(divTr);
     }
 
+    // Разделитель "Другие видеокарты" в блоке дороже цены
+    if (exceedsPrice && row.tierRank === 99 && !inOtherOverpricedSection) {
+      inOtherOverpricedSection = true;
+      const divTr = document.createElement("tr");
+      divTr.className = "table-divider-row";
+      const divTd = document.createElement("td");
+      divTd.colSpan = 5;
+      divTd.textContent = "Другие видеокарты (> лимита цены, CUDA ≥ 13.0)";
+      divTr.appendChild(divTd);
+      tbody.appendChild(divTr);
+    }
+
     const tr = document.createElement("tr");
     tr.dataset.rowId = row.rowId;
 
-    const exceedsPrice = row.price > maxPrice;
-    if (exceedsPrice) tr.classList.add("row-exceeds-price");
+    if (exceedsPrice) {
+      tr.classList.add("row-exceeds-price");
+    }
 
-    // Checkbox
+    // Checkbox:
+    // Видеокарты, превышающие цену, не имеют включенных галочек и заблокированы для выбора
+    const isChecked = !exceedsPrice && isDesired;
     const tdCheck = document.createElement("td");
     tdCheck.className = "col-check";
     const chk = document.createElement("input");
     chk.type = "checkbox";
-    chk.checked = isGpuDesiredByUser(row);
+    chk.checked = isChecked;
+    chk.disabled = exceedsPrice;
+    if (exceedsPrice) {
+      chk.title = `Превышает лимит ${maxPrice.toFixed(2)} €/ч. Увеличьте ползунок цены, чтобы выбрать.`;
+    }
     chk.addEventListener("change", () => {
       state.userSelectionOverrides.set(row.rowId, chk.checked);
       persistSelections();
@@ -716,6 +781,12 @@ function renderGpuTable() {
     launchBtn.type = "button";
     launchBtn.className = "btn btn-subtle-sm";
     launchBtn.textContent = "Запустить";
+    launchBtn.disabled = row.availability === "NONE" || exceedsPrice;
+    if (exceedsPrice) {
+      launchBtn.title = `Превышает лимит ${maxPrice.toFixed(2)} €/ч`;
+    } else if (row.availability === "NONE") {
+      launchBtn.title = "Нет в наличии";
+    }
     launchBtn.addEventListener("click", () => {
       startDeploymentSequence([row]);
     });
@@ -1641,12 +1712,24 @@ async function init() {
   // Price Slider
   const slider = document.getElementById("max-price-slider");
   const priceVal = document.getElementById("max-price-val");
+
+  const savedPrice = localStorage.getItem(STORAGE_KEYS.MAX_PRICE);
+  if (savedPrice && !isNaN(Number.parseFloat(savedPrice))) {
+    slider.value = savedPrice;
+    priceVal.textContent = `${Number.parseFloat(savedPrice).toFixed(2)} €/ч`;
+  } else {
+    slider.value = "1.20";
+    priceVal.textContent = "1.20 €/ч";
+  }
+
   const onPriceChange = () => {
     const val = Number.parseFloat(slider.value).toFixed(2);
     priceVal.textContent = `${val} €/ч`;
+    localStorage.setItem(STORAGE_KEYS.MAX_PRICE, val);
     renderGpuTable();
   };
   slider.addEventListener("input", onPriceChange);
+  slider.addEventListener("change", onPriceChange);
 
   // Key Visibility Toggle
   const keyInput = document.getElementById("runpod-api-key");

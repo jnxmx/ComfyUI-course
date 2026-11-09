@@ -403,11 +403,38 @@ input[type="range"] {
   border-bottom: 1.5px solid var(--border);
 }
 
+.table-divider-price td {
+  background-color: #fef2f2 !important;
+  color: #991b1b !important;
+  border-top: 2px solid #fecaca !important;
+  border-bottom: 2px solid #fecaca !important;
+}
+
+[data-theme="dark"] .table-divider-price td {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
 tr.row-exceeds-price {
   background-color: #fafbfc;
+  opacity: 0.65;
 }
 tr.row-exceeds-price td {
   color: #64748b;
+}
+
+[data-theme="dark"] tr.row-exceeds-price {
+  background-color: rgba(15, 23, 42, 0.4);
+  opacity: 0.55;
+}
+[data-theme="dark"] tr.row-exceeds-price td {
+  color: #94a3b8;
+}
+
+tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
 }
 
 .col-check {
