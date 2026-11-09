@@ -720,6 +720,26 @@ function showMonitorAlert(msg, level = "info") {
   alertBox.textContent = msg;
 }
 
+function showRetryAlertWithStopBtn(msg, onStop, level = "warn") {
+  const alertBox = document.getElementById("monitor-alert");
+  alertBox.hidden = false;
+  alertBox.className = `monitor-alert alert-${level} alert-with-action`;
+  alertBox.replaceChildren();
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = msg;
+
+  const stopBtn = document.createElement("button");
+  stopBtn.type = "button";
+  stopBtn.className = "btn btn-danger-sm";
+  stopBtn.textContent = "Остановить попытки";
+  stopBtn.addEventListener("click", () => {
+    if (typeof onStop === "function") onStop();
+  });
+
+  alertBox.append(textSpan, stopBtn);
+}
+
 function buildPayload(row) {
   const newManager = document.getElementById("opt-new-manager").checked ? "1" : "0";
   const restoreBackup = document.getElementById("opt-restore-backup").checked ? "1" : "0";
@@ -764,74 +784,148 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
 
   state.activeDeploySpec = candidates;
 
-  for (const candidate of candidates) {
-    state.redeployCount += 1;
-    resetStages();
-    setStageState("provision", "active");
-    document.getElementById("monitor-spinner").hidden = false;
-    document.getElementById("monitor-title").textContent = `Запуск: ${candidate.displayName} (${candidate.cloud})`;
+  const sessionId = Symbol("deploy-session");
+  state.currentDeploySessionId = sessionId;
 
-    if (oldBadPodId) {
-      document.getElementById("monitor-subtitle").textContent =
-        `Запуск нового пода (сбойный хост ${oldBadPodId} удерживается, чтобы не попасть на него снова)...`;
-      showMonitorAlert(
-        `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${oldBadPodId}...`,
-        "info"
-      );
-    } else {
-      document.getElementById("monitor-subtitle").textContent = `Создание пода по цене ${candidate.price.toFixed(2)} €/ч...`;
-      showMonitorAlert(`Попытка #${state.redeployCount}: Выделение пода на ${candidate.displayName}...`, "info");
+  const isSingleCandidate = candidates.length === 1;
+
+  while (state.currentDeploySessionId === sessionId) {
+    let currentCandidates = candidates;
+    if (!isSingleCandidate) {
+      const refreshedQueue = getSelectedCandidatesQueue();
+      if (refreshedQueue.length > 0) {
+        currentCandidates = refreshedQueue;
+      }
     }
 
-    try {
-      const payload = buildPayload(candidate);
-      const created = await runpodFetch("/pods", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
+    let lastErrorMessage = "";
+    let isFatalAuthOrBilling = false;
 
-      const newPodId = created?.id;
-      if (!newPodId) throw new Error("RunPod вернул пустой ID.");
+    for (const candidate of currentCandidates) {
+      if (state.currentDeploySessionId !== sessionId) return;
 
-      // ТЕПЕРЬ, когда новый под успешно запущен на ДРУГОМ хосте, безопасно удаляем старый сбойный под!
+      state.redeployCount += 1;
+      resetStages();
+      setStageState("provision", "active");
+      document.getElementById("monitor-spinner").hidden = false;
+      document.getElementById("monitor-title").textContent = `Запуск: ${candidate.displayName} (${candidate.cloud})`;
+
       if (oldBadPodId) {
+        document.getElementById("monitor-subtitle").textContent =
+          `Запуск нового пода (сбойный хост ${oldBadPodId} удерживается, чтобы не попасть на него снова)...`;
         showMonitorAlert(
-          `Новый под ${newPodId} успешно создан! Теперь безопасно удаляем предыдущий сбойный под ${oldBadPodId}...`,
+          `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${oldBadPodId}...`,
           "info"
         );
-        try {
-          await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
-        } catch (delErr) {
-          console.warn(`Предупреждение при удалении старого пода ${oldBadPodId}:`, delErr);
-        }
+      } else {
+        document.getElementById("monitor-subtitle").textContent = `Создание пода по цене ${candidate.price.toFixed(2)} €/ч...`;
+        showMonitorAlert(`Попытка #${state.redeployCount}: Выделение пода на ${candidate.displayName}...`, "info");
       }
 
-      await fetchActivePods();
-      attachMonitor(newPodId, candidate);
+      try {
+        const payload = buildPayload(candidate);
+        const created = await runpodFetch("/pods", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        const newPodId = created?.id;
+        if (!newPodId) throw new Error("RunPod вернул пустой ID.");
+
+        // ТЕПЕРЬ, когда новый под успешно запущен на ДРУГОМ хосте, безопасно удаляем старый сбойный под!
+        if (oldBadPodId) {
+          showMonitorAlert(
+            `Новый под ${newPodId} успешно создан! Теперь безопасно удаляем предыдущий сбойный под ${oldBadPodId}...`,
+            "info"
+          );
+          try {
+            await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
+          } catch (delErr) {
+            console.warn(`Предупреждение при удалении старого пода ${oldBadPodId}:`, delErr);
+          }
+        }
+
+        await fetchActivePods();
+        attachMonitor(newPodId, candidate);
+        return;
+      } catch (err) {
+        lastErrorMessage = err.message || "";
+        const lowerErr = lastErrorMessage.toLowerCase();
+        if (
+          lastErrorMessage.includes("401") ||
+          lastErrorMessage.includes("402") ||
+          lastErrorMessage.includes("403") ||
+          lowerErr.includes("unauthorized") ||
+          lowerErr.includes("payment") ||
+          lowerErr.includes("balance")
+        ) {
+          isFatalAuthOrBilling = true;
+          break;
+        }
+
+        showMonitorAlert(
+          `Попытка #${state.redeployCount} (${candidate.displayName}): ${err.message}.`,
+          "warn"
+        );
+        // Небольшая пауза между запросами разных карт
+        await new Promise((r) => setTimeout(r, 600));
+      }
+    }
+
+    if (state.currentDeploySessionId !== sessionId) return;
+
+    if (isFatalAuthOrBilling) {
+      showMonitorAlert(`Критическая ошибка: ${lastErrorMessage}`, "error");
+      document.getElementById("monitor-spinner").hidden = true;
       return;
-    } catch (err) {
+    }
+
+    const autoRedeploy = document.getElementById("opt-auto-redeploy").checked;
+    if (!autoRedeploy) {
+      if (oldBadPodId) {
+        try {
+          await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
+        } catch {}
+      }
       showMonitorAlert(
-        `Не удалось запустить на ${candidate.displayName}: ${err.message}. Пробуем следующий вариант...`,
+        `Все выбранные видеокарты сейчас недоступны: ${lastErrorMessage || "на RunPod нет свободных машин"}. Повторные попытки отключены чекбоксом.`,
+        "error"
+      );
+      document.getElementById("monitor-spinner").hidden = true;
+      return;
+    }
+
+    // Повторять попытки включено: показываем таймер обратного отсчёта и повторяем попытку
+    document.getElementById("monitor-spinner").hidden = false;
+    const targetLabel = isSingleCandidate
+      ? currentCandidates[0].displayName
+      : "Все выбранные видеокарты";
+
+    for (let sec = 5; sec > 0; sec--) {
+      if (state.currentDeploySessionId !== sessionId) return;
+      showRetryAlertWithStopBtn(
+        `${targetLabel} сейчас заняты на RunPod. Повторная попытка #${state.redeployCount + 1} через ${sec} сек...`,
+        () => {
+          state.currentDeploySessionId = null;
+          showMonitorAlert("Попытки запуска остановлены пользователем.", "info");
+          document.getElementById("monitor-spinner").hidden = true;
+        },
         "warn"
       );
+      await new Promise((r) => setTimeout(r, 1000));
     }
-  }
 
-  // Если все кандидаты исчерпаны, только сейчас очищаем старый под
-  if (oldBadPodId) {
+    if (state.currentDeploySessionId !== sessionId) return;
+
+    // В фоне обновляем каталог, чтобы поймать только что освободившиеся машины
     try {
-      await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
+      await fetchGpuCatalog(true);
     } catch {}
   }
-
-  showMonitorAlert(
-    "Не удалось запустить ни одну из выбранных видеокарт. Попробуйте увеличить макс. цену или выбрать другие карты.",
-    "error"
-  );
-  document.getElementById("monitor-spinner").hidden = true;
 }
 
 function stopMonitor() {
+  state.currentDeploySessionId = null;
   if (state.pollTimerId) {
     clearInterval(state.pollTimerId);
     state.pollTimerId = null;
