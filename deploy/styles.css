@@ -782,7 +782,7 @@ progress.loading-spinner:indeterminate {
 }
 
 /* ==========================================================================
-   Account Info Panel (Balance & Secrets)
+   Account Info Panel (Secrets Status)
    ========================================================================== */
 .account-info-panel {
   margin-top: 0.85rem;
@@ -798,34 +798,17 @@ progress.loading-spinner:indeterminate {
   flex-wrap: wrap;
 }
 
-.account-metric-box {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.45rem;
-  font-size: 0.9rem;
+.account-secrets-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.metric-label {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.metric-val {
-  font-weight: 800;
-  color: var(--success);
-  font-variant-numeric: tabular-nums;
-  font-size: 1.05rem;
-}
-
-.link-billing {
-  font-size: 0.8rem;
-  color: var(--accent);
-  text-decoration: none;
+.account-secrets-label {
+  font-size: 0.85rem;
   font-weight: 600;
-  margin-left: 0.2rem;
-}
-.link-billing:hover {
-  text-decoration: underline;
+  color: var(--text-secondary);
 }
 
 .account-secrets-box {

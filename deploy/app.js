@@ -186,7 +186,6 @@ const state = {
   podControllers: new Map(), // Map<podId, PodController>
   currentTemplate: { ...DEFAULT_TEMPLATE },
   accountSecrets: [],
-  accountBalance: null,
   currentDeploySessionId: null,
   redeployCount: 0,
   redeployInProgress: false,
@@ -282,10 +281,7 @@ async function fetchAccountInfo() {
   const panel = document.getElementById("account-info-panel");
   if (panel) panel.hidden = false;
 
-  // 1. Live Balance
-  fetchAccountBalance();
-
-  // 2. Account Secrets
+  // Account Secrets
   try {
     const res = await runpodFetch("/account/secrets");
     state.accountSecrets = Array.isArray(res?.secrets) ? res.secrets : [];
@@ -294,45 +290,8 @@ async function fetchAccountInfo() {
     state.accountSecrets = [];
   }
 
-  // 3. Update badges
+  // Update secret status badges
   updateAccountBadges();
-}
-
-async function fetchAccountBalance() {
-  const balanceEl = document.getElementById("account-balance-val");
-  if (!balanceEl) return;
-
-  try {
-    const res = await fetch(`https://api.runpod.io/graphql?api_key=${encodeURIComponent(state.apiKey)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: "query { myself { clientBalance } }" })
-    });
-    if (res.ok) {
-      const json = await res.json();
-      const val = json?.data?.myself?.clientBalance;
-      if (typeof val === "number") {
-        state.accountBalance = val;
-        balanceEl.textContent = `$${val.toFixed(2)}`;
-        balanceEl.title = `Баланс: $${val.toFixed(4)}`;
-        return;
-      }
-    }
-  } catch {}
-
-  // Fallback: Check today's spend via REST v2
-  try {
-    const bill = await runpodFetch("/billing?lastN=1&bucketSize=day");
-    const todaySpend = bill?.metadata?.totals?.totalAmount;
-    if (typeof todaySpend === "number") {
-      balanceEl.textContent = `— (расход: $${todaySpend.toFixed(2)})`;
-      balanceEl.title = "Прямой баланс скрыт политикой CORS браузера. Нажмите 'Пополнить ↗', чтобы открыть баланс в консоли RunPod.";
-      return;
-    }
-  } catch {}
-
-  balanceEl.textContent = "—";
-  balanceEl.title = "Баланс доступен в консоли RunPod (нажмите 'Пополнить ↗')";
 }
 
 function updateAccountBadges() {
@@ -352,9 +311,11 @@ function updateAccountBadges() {
     if (isHfConfigured) {
       hfEl.className = "secret-pill secret-ok";
       hfEl.innerHTML = `HF_TOKEN: <span class="secret-state">настроен ✓</span>`;
+      hfEl.title = "HF_TOKEN подключён (в секретах RunPod или переменных шаблона)";
     } else {
       hfEl.className = "secret-pill secret-missing";
       hfEl.innerHTML = `HF_TOKEN: <span class="secret-state">не найден ✗</span>`;
+      hfEl.title = "HF_TOKEN не найден в секретах RunPod";
     }
   }
 
@@ -367,31 +328,28 @@ function updateAccountBadges() {
     if (isCivitaiConfigured) {
       civitaiEl.className = "secret-pill secret-ok";
       civitaiEl.innerHTML = `CIVITAI_API_KEY: <span class="secret-state">настроен ✓</span>`;
+      civitaiEl.title = "CIVITAI_API_KEY подключён (в секретах RunPod или переменных шаблона)";
     } else {
       civitaiEl.className = "secret-pill secret-missing";
       civitaiEl.innerHTML = `CIVITAI_API_KEY: <span class="secret-state">не найден ✗</span>`;
+      civitaiEl.title = "CIVITAI_API_KEY не найден в секретах RunPod";
     }
   }
 
-  // COMFYUI_BACKUP — user asked: "и значение COMFYUI_BACKUP в явном виде если оно настроено."
+  // COMFYUI_BACKUP — user asked: "COMFYUI_BACKUP тоже пусть показывает галочку если подключён вместо попытки показать содержимое"
+  const hasBackupSecret = secretNames.includes("COMFYUI_BACKUP");
+  const rawEnvBackup = templateEnv.COMFYUI_BACKUP;
+  const isBackupConfigured = hasBackupSecret || Boolean(rawEnvBackup && rawEnvBackup !== "");
+
   if (backupEl) {
-    let backupVal = "";
-    const rawEnvBackup = templateEnv.COMFYUI_BACKUP;
-    const hasBackupSecret = secretNames.includes("COMFYUI_BACKUP");
-
-    if (rawEnvBackup && !rawEnvBackup.includes("RUNPOD_SECRET")) {
-      backupVal = rawEnvBackup; // Explicit literal value in template
-    } else if (hasBackupSecret) {
-      backupVal = "{{ RUNPOD_SECRET_COMFYUI_BACKUP }}";
-    }
-
-    if (backupVal) {
-      backupEl.className = "secret-pill secret-ok secret-explicit";
-      backupEl.textContent = `COMFYUI_BACKUP: ${backupVal}`;
-      backupEl.title = `Значение COMFYUI_BACKUP: ${backupVal}`;
+    if (isBackupConfigured) {
+      backupEl.className = "secret-pill secret-ok";
+      backupEl.innerHTML = `COMFYUI_BACKUP: <span class="secret-state">настроен ✓</span>`;
+      backupEl.title = "COMFYUI_BACKUP подключён (в секретах RunPod или переменных шаблона)";
     } else {
       backupEl.className = "secret-pill secret-missing";
-      backupEl.textContent = "COMFYUI_BACKUP: не настроен ✗";
+      backupEl.innerHTML = `COMFYUI_BACKUP: <span class="secret-state">не найден ✗</span>`;
+      backupEl.title = "COMFYUI_BACKUP не найден в секретах RunPod";
     }
   }
 }
@@ -1661,7 +1619,6 @@ function startAutoRefreshLoop() {
     if (!document.hidden && state.apiKey && !state.redeployInProgress) {
       fetchGpuCatalog(true);
       fetchActivePods();
-      fetchAccountBalance();
     }
   }, CATALOG_AUTO_REFRESH_MS);
 
@@ -1669,7 +1626,6 @@ function startAutoRefreshLoop() {
     if (!document.hidden && state.apiKey) {
       fetchGpuCatalog(true);
       fetchActivePods();
-      fetchAccountBalance();
     }
   });
 }

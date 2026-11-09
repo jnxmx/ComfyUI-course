@@ -9,7 +9,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Comfy.Work Deployer</title>
-  <link rel="stylesheet" href="styles.css?v=20261109_03">
+  <link rel="stylesheet" href="styles.css?v=20261109_04">
 </head>
 <body>
   <div class="app-container">
@@ -42,27 +42,26 @@
           </button>
         </div>
 
-        <!-- Account Info Panel (Balance & Secrets Status) -->
+        <!-- Account Info Panel (Secrets Status) -->
         <div id="account-info-panel" class="account-info-panel" hidden>
           <div class="account-info-row">
-            <div class="account-metric-box">
-              <span class="metric-label">Баланс:</span>
-              <strong id="account-balance-val" class="metric-val">$0.00</strong>
-              <a href="https://console.runpod.io/user/billing" target="_blank" rel="noopener noreferrer" class="link-billing" title="Пополнить баланс в RunPod">
-                Пополнить ↗
-              </a>
+            <div class="account-secrets-wrap">
+              <span class="account-secrets-label">Секреты RunPod:</span>
+              <div class="account-secrets-box">
+                <span id="status-hf-token" class="secret-pill secret-missing" title="Токен Hugging Face">
+                  HF_TOKEN: <span class="secret-state">не найден ✗</span>
+                </span>
+                <span id="status-civitai-token" class="secret-pill secret-missing" title="Ключ Civitai API">
+                  CIVITAI_API_KEY: <span class="secret-state">не найден ✗</span>
+                </span>
+                <span id="status-backup" class="secret-pill secret-missing" title="Бэкап ComfyUI">
+                  COMFYUI_BACKUP: <span class="secret-state">не найден ✗</span>
+                </span>
+              </div>
             </div>
-            <div class="account-secrets-box">
-              <span id="status-hf-token" class="secret-pill secret-missing" title="Токен Hugging Face">
-                HF_TOKEN: <span class="secret-state">не найден</span>
-              </span>
-              <span id="status-civitai-token" class="secret-pill secret-missing" title="Ключ Civitai API">
-                CIVITAI_API_KEY: <span class="secret-state">не найден</span>
-              </span>
-              <span id="status-backup" class="secret-pill secret-missing" title="Значение бэкапа ComfyUI">
-                COMFYUI_BACKUP: <span class="secret-state">не настроен</span>
-              </span>
-            </div>
+            <a href="https://console.runpod.io/user/secrets" target="_blank" rel="noopener noreferrer" class="link-subtle" title="Управление секретами в консоли RunPod">
+              Настроить секреты ↗
+            </a>
           </div>
         </div>
       </section>
@@ -212,6 +211,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261109_03"></script>
+  <script type="module" src="app.js?v=20261109_04"></script>
 </body>
 </html>
