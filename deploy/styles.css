@@ -253,6 +253,7 @@ a:focus-visible {
 .options-group {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 1.25rem;
 }
 
@@ -265,6 +266,44 @@ a:focus-visible {
   font-size: 0.9rem;
   font-weight: 500;
   min-height: 40px;
+}
+
+.shutdown-control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+.shutdown-input-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.shutdown-minutes-input {
+  width: 52px;
+  padding: 0.25rem 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  box-sizing: border-box;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+.shutdown-minutes-input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--bg-subtle);
+}
+
+.shutdown-unit {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 .checkbox-control input[type="checkbox"] {
@@ -644,8 +683,23 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 
 .secondary-links {
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ports-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
   flex-wrap: wrap;
+}
+
+.ports-group-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
 }
 
 .link-subtle {
@@ -656,6 +710,13 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 .link-subtle:hover {
   text-decoration: underline;
+}
+
+.link-subtle.link-disabled {
+  opacity: 0.5;
+  cursor: default;
+  text-decoration: none;
+  pointer-events: none;
 }
 
 .pod-foreign-box {

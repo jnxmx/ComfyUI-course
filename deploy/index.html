@@ -9,7 +9,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Comfy.Work Deployer</title>
-  <link rel="stylesheet" href="styles.css?v=20261110_02">
+  <link rel="stylesheet" href="styles.css?v=20261110_03">
 </head>
 <body>
   <div class="app-container">
@@ -141,6 +141,24 @@
             <input type="checkbox" id="opt-auto-redeploy" checked>
             <span>Повторять попытки при ошибках</span>
           </label>
+          <div class="shutdown-control-group">
+            <label class="checkbox-control" for="opt-shutdown-timer">
+              <input type="checkbox" id="opt-shutdown-timer" checked>
+              <span>Автоматическое удаление пода при отсутствии активности:</span>
+            </label>
+            <div class="shutdown-input-wrapper">
+              <input
+                type="number"
+                id="opt-shutdown-minutes"
+                min="1"
+                max="1440"
+                value="30"
+                class="shutdown-minutes-input"
+                aria-label="Минут неактивности до автоматического удаления пода"
+              >
+              <span class="shutdown-unit">минут</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -211,6 +229,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261110_02"></script>
+  <script type="module" src="app.js?v=20261110_03"></script>
 </body>
 </html>

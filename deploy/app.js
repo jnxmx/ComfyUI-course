@@ -16,8 +16,7 @@ const DEFAULT_TEMPLATE = Object.freeze({
   allowedCudaVersions: ["13.0", "13.1", "13.2", "13.3", "13.4"],
   ports: [
     "7860/http", "7861/http", "7862/http",
-    "8188/tcp", "8080/tcp", "8888/tcp",
-    "8188/udp", "8080/udp", "8888/udp"
+    "8188/tcp", "8080/tcp", "8888/tcp"
   ]
 });
 
@@ -168,7 +167,7 @@ const STORAGE_KEYS = Object.freeze({
   SELECTED_ROWS: "yakushev_selected_gpus_v3",
   SECURE_ONLY: "yakushev_secure_only_v1",
   MAX_PRICE: "yakushev_max_price_v3",
-  OPTIONS: "yakushev_options_v3",
+  OPTIONS: "yakushev_options_v4",
   COLOR_SCHEME: "color-scheme",
   CUSTOM_TEMPLATE_ID: "yakushev_custom_template_id_v2",
   OUR_POD_IDS: "yakushev_our_pod_ids_v1"
@@ -242,6 +241,77 @@ function cleanGpuName(rawId, rawName) {
     return rawName.replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
   }
   return (rawId || "").replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
+}
+
+function saveOptions() {
+  const newManager = document.getElementById("opt-new-manager")?.checked ?? true;
+  const restoreBackup = document.getElementById("opt-restore-backup")?.checked ?? true;
+  const autoRedeploy = document.getElementById("opt-auto-redeploy")?.checked ?? true;
+  const shutdownTimer = document.getElementById("opt-shutdown-timer")?.checked ?? true;
+  const rawMinutes = parseInt(document.getElementById("opt-shutdown-minutes")?.value, 10);
+  const shutdownMinutes = Number.isFinite(rawMinutes) && rawMinutes > 0 ? rawMinutes : 30;
+
+  const data = {
+    newManager,
+    restoreBackup,
+    autoRedeploy,
+    shutdownTimer,
+    shutdownMinutes
+  };
+  try {
+    localStorage.setItem(STORAGE_KEYS.OPTIONS, JSON.stringify(data));
+  } catch {}
+}
+
+function loadOptions() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.OPTIONS);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.newManager !== undefined) {
+        const el = document.getElementById("opt-new-manager");
+        if (el) el.checked = !!parsed.newManager;
+      }
+      if (parsed.restoreBackup !== undefined) {
+        const el = document.getElementById("opt-restore-backup");
+        if (el) el.checked = !!parsed.restoreBackup;
+      }
+      if (parsed.autoRedeploy !== undefined) {
+        const el = document.getElementById("opt-auto-redeploy");
+        if (el) el.checked = !!parsed.autoRedeploy;
+      }
+      if (parsed.shutdownTimer !== undefined) {
+        const el = document.getElementById("opt-shutdown-timer");
+        if (el) el.checked = !!parsed.shutdownTimer;
+      }
+      if (parsed.shutdownMinutes !== undefined) {
+        const el = document.getElementById("opt-shutdown-minutes");
+        if (el && Number.isFinite(parsed.shutdownMinutes) && parsed.shutdownMinutes > 0) {
+          el.value = String(parsed.shutdownMinutes);
+        }
+      }
+    }
+  } catch {}
+
+  const timerEl = document.getElementById("opt-shutdown-timer");
+  const minEl = document.getElementById("opt-shutdown-minutes");
+  if (timerEl && minEl) {
+    minEl.disabled = !timerEl.checked;
+  }
+}
+
+function getPodTcpPort(pod, internalPort) {
+  const ports = pod?.runtime?.ports;
+  if (!Array.isArray(ports)) return null;
+  const p = ports.find(pt => pt.privatePort === internalPort && (pt.type === "tcp" || pt.type === "http"));
+  if (p && p.ip && p.publicPort) {
+    return {
+      ip: p.ip,
+      port: p.publicPort,
+      url: `http://${p.ip}:${p.publicPort}`
+    };
+  }
+  return null;
 }
 
 /* ==========================================================================
@@ -1164,15 +1234,22 @@ function createPodCardElement(ctrl) {
     mainComfyLink.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
     mainComfyLink.target = "_blank";
     mainComfyLink.rel = "noopener noreferrer";
-    mainComfyLink.className = "btn btn-primary btn-large";
-    mainComfyLink.textContent = "Открыть ComfyUI (:7860) ↗";
+    mainComfyLink.className = "btn btn-primary btn-large btn-link-comfy";
+    mainComfyLink.textContent = "ComfyUI (:7860) ↗";
 
     const mainFizgigLink = document.createElement("a");
     mainFizgigLink.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
     mainFizgigLink.target = "_blank";
     mainFizgigLink.rel = "noopener noreferrer";
-    mainFizgigLink.className = "btn btn-primary btn-large btn-fizgig";
-    mainFizgigLink.textContent = "Открыть Fizgig (:7862) ↗";
+    mainFizgigLink.className = "btn btn-primary btn-large btn-fizgig btn-link-fizgig";
+    mainFizgigLink.textContent = "Fizgig — LoRA & Fine-tune Studio (:7862) ↗";
+
+    const mainFileBrowserLink = document.createElement("a");
+    mainFileBrowserLink.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
+    mainFileBrowserLink.target = "_blank";
+    mainFileBrowserLink.rel = "noopener noreferrer";
+    mainFileBrowserLink.className = "btn btn-secondary btn-link-filebrowser";
+    mainFileBrowserLink.textContent = "FileBrowser (:7861) ↗";
 
     const copyDesktopBtn = document.createElement("button");
     copyDesktopBtn.type = "button";
@@ -1186,31 +1263,65 @@ function createPodCardElement(ctrl) {
       }, 2000);
     });
 
-    mainActions.append(mainComfyLink, mainFizgigLink, copyDesktopBtn);
+    mainActions.append(mainComfyLink, mainFizgigLink, mainFileBrowserLink, copyDesktopBtn);
 
     const secLinks = document.createElement("div");
     secLinks.className = "secondary-links";
 
-    const fizgigSub = document.createElement("a");
-    fizgigSub.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
-    fizgigSub.target = "_blank";
-    fizgigSub.rel = "noopener noreferrer";
-    fizgigSub.className = "link-subtle";
-    fizgigSub.textContent = "Fizgig (:7862)";
+    // HTTP links: 7860 (ComfyUI), 7861 (FileBrowser), 7862 (Fizgig — LoRA & Fine-tune Studio)
+    const httpRow = document.createElement("div");
+    httpRow.className = "ports-row";
+    const httpTitle = document.createElement("span");
+    httpTitle.className = "ports-group-title";
+    httpTitle.textContent = "HTTP:";
 
-    const jupyterLink = document.createElement("a");
-    jupyterLink.href = `https://${ctrl.podId}-8888.proxy.runpod.net/`;
-    jupyterLink.target = "_blank";
-    jupyterLink.rel = "noopener noreferrer";
-    jupyterLink.className = "link-subtle";
-    jupyterLink.textContent = "JupyterLab (:8888)";
+    const httpComfy = document.createElement("a");
+    httpComfy.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
+    httpComfy.target = "_blank";
+    httpComfy.rel = "noopener noreferrer";
+    httpComfy.className = "link-subtle";
+    httpComfy.textContent = "ComfyUI (:7860)";
 
-    const filebrowserLink = document.createElement("a");
-    filebrowserLink.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
-    filebrowserLink.target = "_blank";
-    filebrowserLink.rel = "noopener noreferrer";
-    filebrowserLink.className = "link-subtle";
-    filebrowserLink.textContent = "Файловый менеджер (:7861)";
+    const httpFilebrowser = document.createElement("a");
+    httpFilebrowser.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
+    httpFilebrowser.target = "_blank";
+    httpFilebrowser.rel = "noopener noreferrer";
+    httpFilebrowser.className = "link-subtle";
+    httpFilebrowser.textContent = "FileBrowser (:7861)";
+
+    const httpFizgig = document.createElement("a");
+    httpFizgig.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
+    httpFizgig.target = "_blank";
+    httpFizgig.rel = "noopener noreferrer";
+    httpFizgig.className = "link-subtle";
+    httpFizgig.textContent = "Fizgig — LoRA & Fine-tune Studio (:7862)";
+
+    httpRow.append(httpTitle, httpComfy, httpFilebrowser, httpFizgig);
+
+    // TCP links: 8188 (ComfyUI), 8080 (FileBrowser), 8888 (JupyterLab)
+    const tcpRow = document.createElement("div");
+    tcpRow.className = "ports-row";
+    const tcpTitle = document.createElement("span");
+    tcpTitle.className = "ports-group-title";
+    tcpTitle.textContent = "TCP:";
+
+    const tcpComfy = document.createElement("a");
+    tcpComfy.target = "_blank";
+    tcpComfy.rel = "noopener noreferrer";
+    tcpComfy.className = "link-subtle link-tcp-8188 link-disabled";
+    tcpComfy.textContent = "ComfyUI (:8188)";
+
+    const tcpFilebrowser = document.createElement("a");
+    tcpFilebrowser.target = "_blank";
+    tcpFilebrowser.rel = "noopener noreferrer";
+    tcpFilebrowser.className = "link-subtle link-tcp-8080 link-disabled";
+    tcpFilebrowser.textContent = "FileBrowser (:8080)";
+
+    const tcpJupyter = document.createElement("a");
+    tcpJupyter.target = "_blank";
+    tcpJupyter.rel = "noopener noreferrer";
+    tcpJupyter.className = "link-subtle link-tcp-8888 link-disabled";
+    tcpJupyter.textContent = "JupyterLab (:8888)";
 
     const consoleLink = document.createElement("a");
     consoleLink.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
@@ -1219,7 +1330,9 @@ function createPodCardElement(ctrl) {
     consoleLink.className = "link-subtle";
     consoleLink.textContent = "Консоль RunPod ↗";
 
-    secLinks.append(fizgigSub, jupyterLink, filebrowserLink, consoleLink);
+    tcpRow.append(tcpTitle, tcpComfy, tcpFilebrowser, tcpJupyter, consoleLink);
+
+    secLinks.append(httpRow, tcpRow);
     readyBox.append(mainActions, secLinks);
 
     body.append(metaRow, alertBox, stagePills, readyBox, logDetails);
@@ -1328,6 +1441,50 @@ function updatePodCardElement(ctrl, cardEl) {
   const readyBox = cardEl.querySelector(".pod-card-links");
   if (readyBox) {
     readyBox.hidden = !isComfyReady && !isCudaPassed;
+  }
+
+  // Update TCP port links dynamically when runtime ports become available
+  const tcp8188 = getPodTcpPort(ctrl.pod, 8188);
+  const tcp8080 = getPodTcpPort(ctrl.pod, 8080);
+  const tcp8888 = getPodTcpPort(ctrl.pod, 8888);
+
+  const tcpComfyEl = cardEl.querySelector(".link-tcp-8188");
+  if (tcpComfyEl) {
+    if (tcp8188) {
+      tcpComfyEl.href = tcp8188.url;
+      tcpComfyEl.textContent = `ComfyUI TCP (:8188 ➔ ${tcp8188.ip}:${tcp8188.port})`;
+      tcpComfyEl.classList.remove("link-disabled");
+    } else {
+      tcpComfyEl.removeAttribute("href");
+      tcpComfyEl.textContent = "ComfyUI (:8188)";
+      tcpComfyEl.classList.add("link-disabled");
+    }
+  }
+
+  const tcpFbEl = cardEl.querySelector(".link-tcp-8080");
+  if (tcpFbEl) {
+    if (tcp8080) {
+      tcpFbEl.href = tcp8080.url;
+      tcpFbEl.textContent = `FileBrowser TCP (:8080 ➔ ${tcp8080.ip}:${tcp8080.port})`;
+      tcpFbEl.classList.remove("link-disabled");
+    } else {
+      tcpFbEl.removeAttribute("href");
+      tcpFbEl.textContent = "FileBrowser (:8080)";
+      tcpFbEl.classList.add("link-disabled");
+    }
+  }
+
+  const tcpJupEl = cardEl.querySelector(".link-tcp-8888");
+  if (tcpJupEl) {
+    if (tcp8888) {
+      tcpJupEl.href = tcp8888.url;
+      tcpJupEl.textContent = `JupyterLab TCP (:8888 ➔ ${tcp8888.ip}:${tcp8888.port})`;
+      tcpJupEl.classList.remove("link-disabled");
+    } else {
+      tcpJupEl.removeAttribute("href");
+      tcpJupEl.textContent = "JupyterLab (:8888)";
+      tcpJupEl.classList.add("link-disabled");
+    }
   }
 
   // Logs
@@ -1586,10 +1743,28 @@ async function pollHealthForPod(ctrl) {
 }
 
 function buildPayload(candidate) {
-  const newManager = document.getElementById("opt-new-manager").checked ? "1" : "0";
-  const restoreBackup = document.getElementById("opt-restore-backup").checked ? "1" : "0";
+  const newManager = document.getElementById("opt-new-manager")?.checked ? "1" : "0";
+  const restoreBackup = document.getElementById("opt-restore-backup")?.checked ? "1" : "0";
+  const timerEnabled = document.getElementById("opt-shutdown-timer") ? document.getElementById("opt-shutdown-timer").checked : true;
+  const rawMinutes = document.getElementById("opt-shutdown-minutes") ? parseInt(document.getElementById("opt-shutdown-minutes").value, 10) : 30;
+  const minutes = Number.isFinite(rawMinutes) && rawMinutes > 0 ? rawMinutes : 30;
   const slug = candidate.tierKey || "gpu";
   const tpl = state.currentTemplate;
+
+  const env = {
+    CIVITAI_API_KEY: "{{ RUNPOD_SECRET_CIVITAI_API_KEY }}",
+    COMFYUI_BACKUP: "{{ RUNPOD_SECRET_COMFYUI_BACKUP }}",
+    HF_TOKEN: "{{ RUNPOD_SECRET_HF_TOKEN }}",
+    NEW_MANAGER: newManager,
+    RESTORE_BACKUP: restoreBackup,
+    STUDENT_MODE: "0"
+  };
+
+  if (timerEnabled) {
+    env.RUNPOD_SHUTDOWN_MINUTES = String(minutes);
+  } else {
+    env.DISABLE_SHUTDOWN_TIMER = "1";
+  }
 
   return {
     name: `comfy-work-${slug}`,
@@ -1607,14 +1782,11 @@ function buildPayload(candidate) {
         path: tpl.volumeMountPath || "/workspace"
       }
     },
-    env: {
-      CIVITAI_API_KEY: "{{ RUNPOD_SECRET_CIVITAI_API_KEY }}",
-      COMFYUI_BACKUP: "{{ RUNPOD_SECRET_COMFYUI_BACKUP }}",
-      HF_TOKEN: "{{ RUNPOD_SECRET_HF_TOKEN }}",
-      NEW_MANAGER: newManager,
-      RESTORE_BACKUP: restoreBackup,
-      STUDENT_MODE: "0"
-    }
+    ports: tpl.ports || [
+      "7860/http", "7861/http", "7862/http",
+      "8188/tcp", "8080/tcp", "8888/tcp"
+    ],
+    env
   };
 }
 
@@ -1948,6 +2120,28 @@ async function init() {
     localStorage.setItem(STORAGE_KEYS.SECURE_ONLY, state.secureOnly ? "true" : "false");
     renderGpuTable();
   });
+
+  // Load and bind options (ComfyUI Manager, Backup, Auto-redeploy, Shutdown timer)
+  loadOptions();
+
+  const bindOpt = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("change", saveOptions);
+  };
+  bindOpt("opt-new-manager");
+  bindOpt("opt-restore-backup");
+  bindOpt("opt-auto-redeploy");
+
+  const shutdownTimerEl = document.getElementById("opt-shutdown-timer");
+  const shutdownMinutesEl = document.getElementById("opt-shutdown-minutes");
+  if (shutdownTimerEl && shutdownMinutesEl) {
+    shutdownTimerEl.addEventListener("change", () => {
+      shutdownMinutesEl.disabled = !shutdownTimerEl.checked;
+      saveOptions();
+    });
+    shutdownMinutesEl.addEventListener("input", saveOptions);
+    shutdownMinutesEl.addEventListener("change", saveOptions);
+  }
 
   // Quick Select Buttons
   const btnAll = document.getElementById("btn-select-all");
