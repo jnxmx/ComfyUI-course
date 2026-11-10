@@ -658,6 +658,13 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   text-decoration: underline;
 }
 
+.pod-foreign-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
 .logs-details {
   border-top: 1px solid var(--border);
   padding-top: 0.75rem;

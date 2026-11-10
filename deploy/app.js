@@ -170,7 +170,8 @@ const STORAGE_KEYS = Object.freeze({
   MAX_PRICE: "yakushev_max_price_v3",
   OPTIONS: "yakushev_options_v3",
   COLOR_SCHEME: "color-scheme",
-  CUSTOM_TEMPLATE_ID: "yakushev_custom_template_id_v2"
+  CUSTOM_TEMPLATE_ID: "yakushev_custom_template_id_v2",
+  OUR_POD_IDS: "yakushev_our_pod_ids_v1"
 });
 
 // Default selection: all video cards better than 5080 INCLUSIVE (ranks 1 to 5)
@@ -186,6 +187,7 @@ const state = {
   podControllers: new Map(), // Map<podId, PodController>
   currentTemplate: { ...DEFAULT_TEMPLATE },
   accountSecrets: [],
+  ourPodIds: new Set(),
   currentDeploySessionId: null,
   redeployCount: 0,
   redeployInProgress: false,
@@ -809,16 +811,57 @@ function updateLiveIndicator() {
    5. Unified Multi-Pod Dashboard & Expandable Cards
    ========================================================================== */
 
+function initOurPodIds() {
+  const saved = localStorage.getItem(STORAGE_KEYS.OUR_POD_IDS);
+  if (saved) {
+    try {
+      const arr = JSON.parse(saved);
+      if (Array.isArray(arr)) {
+        state.ourPodIds = new Set(arr);
+      }
+    } catch {}
+  }
+}
+
+function markPodAsOurs(podId) {
+  if (!podId) return;
+  state.ourPodIds.add(podId);
+  try {
+    localStorage.setItem(STORAGE_KEYS.OUR_POD_IDS, JSON.stringify([...state.ourPodIds]));
+  } catch {}
+}
+
+function unmarkPodAsOurs(podId) {
+  if (!podId) return;
+  state.ourPodIds.delete(podId);
+  try {
+    localStorage.setItem(STORAGE_KEYS.OUR_POD_IDS, JSON.stringify([...state.ourPodIds]));
+  } catch {}
+}
+
+function isPodCreatedByUs(pod) {
+  if (!pod) return false;
+  const id = pod.id || pod.podId;
+  if (id && state.ourPodIds.has(id)) return true;
+
+  const name = String(pod.name || "").trim().toLowerCase();
+  if (name.startsWith("comfy-work-")) return true;
+
+  return false;
+}
+
 function getOrCreatePodController(podId, initData = {}) {
   let ctrl = state.podControllers.get(podId);
   if (!ctrl) {
+    const isOur = initData.isOurPod !== undefined ? initData.isOurPod : isPodCreatedByUs(initData.pod || initData);
     ctrl = {
       podId,
-      displayName: initData.displayName || "comfy-work",
+      displayName: initData.displayName || (isOur ? "comfy-work" : "runpod"),
       gpuName: initData.gpuName || "GPU",
       cloud: initData.cloud || "COMMUNITY",
       price: initData.price || 0,
-      isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : false,
+      isOurPod: isOur,
+      isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : true,
       status: initData.status || "STARTING",
       stages: {
         provision: "done",
@@ -826,7 +869,7 @@ function getOrCreatePodController(podId, initData = {}) {
         cuda: "active",
         ready: "pending"
       },
-      subtitle: "Инициализация и проверка CUDA 13.0...",
+      subtitle: isOur ? "Инициализация и проверка CUDA 13.0..." : "",
       alert: null,
       logLines: [],
       logAbortController: null,
@@ -838,6 +881,10 @@ function getOrCreatePodController(podId, initData = {}) {
     // Start background health polling immediately
     ctrl.pollTimerId = setInterval(() => pollHealthForPod(ctrl), 2500);
     pollHealthForPod(ctrl);
+
+    if (ctrl.isExpanded) {
+      startLogStreamForPod(ctrl);
+    }
   }
   return ctrl;
 }
@@ -888,14 +935,17 @@ async function fetchActivePods() {
     for (const pod of pods) {
       const gpuName = pod.gpu?.id ? cleanGpuName(pod.gpu.id, pod.gpu.displayName) : "GPU";
       let ctrl = state.podControllers.get(pod.id);
+      const isOur = isPodCreatedByUs(pod);
 
       if (!ctrl) {
         ctrl = getOrCreatePodController(pod.id, {
-          displayName: pod.name || "comfy-work",
+          displayName: pod.name || (isOur ? "comfy-work" : "runpod"),
           gpuName,
           cloud: pod.cloud || "COMMUNITY",
           status: pod.status,
-          isExpanded: false
+          pod,
+          isOurPod: isOur,
+          isExpanded: true
         });
       } else {
         ctrl.status = pod.status;
@@ -903,6 +953,12 @@ async function fetchActivePods() {
         ctrl.gpuName = gpuName;
         ctrl.cloud = pod.cloud || ctrl.cloud;
         ctrl.pod = pod;
+        ctrl.isOurPod = isOur;
+      }
+
+      // Logs visible by default for all pods: start SSE stream if expanded
+      if (ctrl.isExpanded && !ctrl.logAbortController) {
+        startLogStreamForPod(ctrl);
       }
     }
 
@@ -947,6 +1003,8 @@ function createPodCardElement(ctrl) {
   const card = document.createElement("div");
   card.className = "pod-card";
   card.dataset.podId = ctrl.podId;
+  if (ctrl.isExpanded) card.classList.add("is-expanded");
+  if (!ctrl.isOurPod) card.classList.add("pod-card-foreign");
 
   // Header (clickable row)
   const header = document.createElement("div");
@@ -982,22 +1040,6 @@ function createPodCardElement(ctrl) {
   const quickActions = document.createElement("div");
   quickActions.className = "pod-card-quick-actions";
 
-  const openComfyBtn = document.createElement("a");
-  openComfyBtn.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
-  openComfyBtn.target = "_blank";
-  openComfyBtn.rel = "noopener noreferrer";
-  openComfyBtn.className = "btn btn-subtle-sm btn-quick-comfy";
-  openComfyBtn.textContent = "ComfyUI :7860 ↗";
-  openComfyBtn.addEventListener("click", (e) => e.stopPropagation());
-
-  const openFizgigBtn = document.createElement("a");
-  openFizgigBtn.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
-  openFizgigBtn.target = "_blank";
-  openFizgigBtn.rel = "noopener noreferrer";
-  openFizgigBtn.className = "btn btn-subtle-sm btn-quick-fizgig";
-  openFizgigBtn.textContent = "Fizgig :7862 ↗";
-  openFizgigBtn.addEventListener("click", (e) => e.stopPropagation());
-
   const deleteBtn = document.createElement("button");
   deleteBtn.type = "button";
   deleteBtn.className = "btn btn-danger-sm";
@@ -1008,6 +1050,7 @@ function createPodCardElement(ctrl) {
     deleteBtn.disabled = true;
     deleteBtn.textContent = "Удаление...";
     stopPodController(ctrl);
+    unmarkPodAsOurs(ctrl.podId);
     try {
       await runpodFetch(`/pods/${encodeURIComponent(ctrl.podId)}`, { method: "DELETE" });
       state.podControllers.delete(ctrl.podId);
@@ -1019,7 +1062,37 @@ function createPodCardElement(ctrl) {
     }
   });
 
-  quickActions.append(openComfyBtn, openFizgigBtn, deleteBtn);
+  if (ctrl.isOurPod) {
+    const openComfyBtn = document.createElement("a");
+    openComfyBtn.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
+    openComfyBtn.target = "_blank";
+    openComfyBtn.rel = "noopener noreferrer";
+    openComfyBtn.className = "btn btn-subtle-sm btn-quick-comfy";
+    openComfyBtn.textContent = "ComfyUI :7860 ↗";
+    openComfyBtn.addEventListener("click", (e) => e.stopPropagation());
+
+    const openFizgigBtn = document.createElement("a");
+    openFizgigBtn.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
+    openFizgigBtn.target = "_blank";
+    openFizgigBtn.rel = "noopener noreferrer";
+    openFizgigBtn.className = "btn btn-subtle-sm btn-quick-fizgig";
+    openFizgigBtn.textContent = "Fizgig :7862 ↗";
+    openFizgigBtn.addEventListener("click", (e) => e.stopPropagation());
+
+    quickActions.append(openComfyBtn, openFizgigBtn, deleteBtn);
+  } else {
+    // Foreign pod: "только ссылку на консоль и логи"
+    const openConsoleBtn = document.createElement("a");
+    openConsoleBtn.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
+    openConsoleBtn.target = "_blank";
+    openConsoleBtn.rel = "noopener noreferrer";
+    openConsoleBtn.className = "btn btn-subtle-sm btn-quick-console";
+    openConsoleBtn.textContent = "Консоль RunPod ↗";
+    openConsoleBtn.addEventListener("click", (e) => e.stopPropagation());
+
+    quickActions.append(openConsoleBtn, deleteBtn);
+  }
+
   header.append(summary, quickActions);
 
   // Toggle expansion when header is clicked
@@ -1031,134 +1104,171 @@ function createPodCardElement(ctrl) {
   const body = document.createElement("div");
   body.className = "pod-card-body";
 
-  const metaRow = document.createElement("div");
-  metaRow.className = "pod-monitor-meta";
-
-  const sub = document.createElement("p");
-  sub.className = "monitor-sub pod-card-subtitle";
-  sub.textContent = ctrl.subtitle;
-
-  const spinner = document.createElement("progress");
-  spinner.className = "loading-spinner pod-card-spinner";
-  spinner.setAttribute("aria-label", "Загрузка");
-
-  metaRow.append(sub, spinner);
-
-  const alertBox = document.createElement("div");
-  alertBox.className = "monitor-alert pod-card-alert";
-  alertBox.hidden = true;
-
-  // 4 Stage pills
-  const stagePills = document.createElement("div");
-  stagePills.className = "stage-pills";
-
-  const stages = [
-    { key: "provision", label: "1. Подготовка хоста" },
-    { key: "container", label: "2. Контейнер" },
-    { key: "cuda", label: "3. Проверка CUDA и CPU" },
-    { key: "ready", label: "4. ComfyUI & Fizgig Готовы" }
-  ];
-
-  for (const st of stages) {
-    const pill = document.createElement("div");
-    pill.className = "stage-pill";
-    pill.dataset.stage = st.key;
-    pill.textContent = st.label;
-    stagePills.appendChild(pill);
-  }
-
-  // Action links box
-  const readyBox = document.createElement("div");
-  readyBox.className = "ready-links-box pod-card-links";
-
-  const mainActions = document.createElement("div");
-  mainActions.className = "ready-actions";
-
-  const mainComfyLink = document.createElement("a");
-  mainComfyLink.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
-  mainComfyLink.target = "_blank";
-  mainComfyLink.rel = "noopener noreferrer";
-  mainComfyLink.className = "btn btn-primary btn-large";
-  mainComfyLink.textContent = "Открыть ComfyUI (:7860) ↗";
-
-  const mainFizgigLink = document.createElement("a");
-  mainFizgigLink.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
-  mainFizgigLink.target = "_blank";
-  mainFizgigLink.rel = "noopener noreferrer";
-  mainFizgigLink.className = "btn btn-primary btn-large btn-fizgig";
-  mainFizgigLink.textContent = "Открыть Fizgig (:7862) ↗";
-
-  const copyDesktopBtn = document.createElement("button");
-  copyDesktopBtn.type = "button";
-  copyDesktopBtn.className = "btn btn-secondary";
-  copyDesktopBtn.textContent = "Копировать ссылку для Comfy Desktop";
-  copyDesktopBtn.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(`https://${ctrl.podId}-7860.proxy.runpod.net`);
-    copyDesktopBtn.textContent = "Ссылка скопирована!";
-    setTimeout(() => {
-      copyDesktopBtn.textContent = "Копировать ссылку для Comfy Desktop";
-    }, 2000);
-  });
-
-  mainActions.append(mainComfyLink, mainFizgigLink, copyDesktopBtn);
-
-  const secLinks = document.createElement("div");
-  secLinks.className = "secondary-links";
-
-  const fizgigSub = document.createElement("a");
-  fizgigSub.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
-  fizgigSub.target = "_blank";
-  fizgigSub.rel = "noopener noreferrer";
-  fizgigSub.className = "link-subtle";
-  fizgigSub.textContent = "Fizgig (:7862)";
-
-  const jupyterLink = document.createElement("a");
-  jupyterLink.href = `https://${ctrl.podId}-8888.proxy.runpod.net/`;
-  jupyterLink.target = "_blank";
-  jupyterLink.rel = "noopener noreferrer";
-  jupyterLink.className = "link-subtle";
-  jupyterLink.textContent = "JupyterLab (:8888)";
-
-  const filebrowserLink = document.createElement("a");
-  filebrowserLink.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
-  filebrowserLink.target = "_blank";
-  filebrowserLink.rel = "noopener noreferrer";
-  filebrowserLink.className = "link-subtle";
-  filebrowserLink.textContent = "Файловый менеджер (:7861)";
-
-  const consoleLink = document.createElement("a");
-  consoleLink.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
-  consoleLink.target = "_blank";
-  consoleLink.rel = "noopener noreferrer";
-  consoleLink.className = "link-subtle";
-  consoleLink.textContent = "Консоль RunPod ↗";
-
-  secLinks.append(fizgigSub, jupyterLink, filebrowserLink, consoleLink);
-  readyBox.append(mainActions, secLinks);
-
-  // Terminal Logs
+  // Terminal Logs: open by default for all pods ("логи по умолчанию видны у всех подов")
   const logDetails = document.createElement("details");
   logDetails.className = "logs-details";
+  logDetails.open = true;
   const logSummary = document.createElement("summary");
   logSummary.textContent = "Логи пода (в реальном времени)";
   const logPre = document.createElement("pre");
   logPre.className = "terminal-logs";
   logPre.tabIndex = 0;
   logPre.textContent = `Подключение к логам пода ${ctrl.podId}...\n`;
-
   logDetails.append(logSummary, logPre);
-  body.append(metaRow, alertBox, stagePills, readyBox, logDetails);
+
+  if (ctrl.isOurPod) {
+    const metaRow = document.createElement("div");
+    metaRow.className = "pod-monitor-meta";
+
+    const sub = document.createElement("p");
+    sub.className = "monitor-sub pod-card-subtitle";
+    sub.textContent = ctrl.subtitle;
+
+    const spinner = document.createElement("progress");
+    spinner.className = "loading-spinner pod-card-spinner";
+    spinner.setAttribute("aria-label", "Загрузка");
+
+    metaRow.append(sub, spinner);
+
+    const alertBox = document.createElement("div");
+    alertBox.className = "monitor-alert pod-card-alert";
+    alertBox.hidden = true;
+
+    // 4 Stage pills
+    const stagePills = document.createElement("div");
+    stagePills.className = "stage-pills";
+
+    const stages = [
+      { key: "provision", label: "1. Подготовка хоста" },
+      { key: "container", label: "2. Контейнер" },
+      { key: "cuda", label: "3. Проверка CUDA и CPU" },
+      { key: "ready", label: "4. ComfyUI & Fizgig Готовы" }
+    ];
+
+    for (const st of stages) {
+      const pill = document.createElement("div");
+      pill.className = "stage-pill";
+      pill.dataset.stage = st.key;
+      pill.textContent = st.label;
+      stagePills.appendChild(pill);
+    }
+
+    // Action links box
+    const readyBox = document.createElement("div");
+    readyBox.className = "ready-links-box pod-card-links";
+
+    const mainActions = document.createElement("div");
+    mainActions.className = "ready-actions";
+
+    const mainComfyLink = document.createElement("a");
+    mainComfyLink.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
+    mainComfyLink.target = "_blank";
+    mainComfyLink.rel = "noopener noreferrer";
+    mainComfyLink.className = "btn btn-primary btn-large";
+    mainComfyLink.textContent = "Открыть ComfyUI (:7860) ↗";
+
+    const mainFizgigLink = document.createElement("a");
+    mainFizgigLink.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
+    mainFizgigLink.target = "_blank";
+    mainFizgigLink.rel = "noopener noreferrer";
+    mainFizgigLink.className = "btn btn-primary btn-large btn-fizgig";
+    mainFizgigLink.textContent = "Открыть Fizgig (:7862) ↗";
+
+    const copyDesktopBtn = document.createElement("button");
+    copyDesktopBtn.type = "button";
+    copyDesktopBtn.className = "btn btn-secondary";
+    copyDesktopBtn.textContent = "Копировать ссылку для Comfy Desktop";
+    copyDesktopBtn.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(`https://${ctrl.podId}-7860.proxy.runpod.net`);
+      copyDesktopBtn.textContent = "Ссылка скопирована!";
+      setTimeout(() => {
+        copyDesktopBtn.textContent = "Копировать ссылку для Comfy Desktop";
+      }, 2000);
+    });
+
+    mainActions.append(mainComfyLink, mainFizgigLink, copyDesktopBtn);
+
+    const secLinks = document.createElement("div");
+    secLinks.className = "secondary-links";
+
+    const fizgigSub = document.createElement("a");
+    fizgigSub.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
+    fizgigSub.target = "_blank";
+    fizgigSub.rel = "noopener noreferrer";
+    fizgigSub.className = "link-subtle";
+    fizgigSub.textContent = "Fizgig (:7862)";
+
+    const jupyterLink = document.createElement("a");
+    jupyterLink.href = `https://${ctrl.podId}-8888.proxy.runpod.net/`;
+    jupyterLink.target = "_blank";
+    jupyterLink.rel = "noopener noreferrer";
+    jupyterLink.className = "link-subtle";
+    jupyterLink.textContent = "JupyterLab (:8888)";
+
+    const filebrowserLink = document.createElement("a");
+    filebrowserLink.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
+    filebrowserLink.target = "_blank";
+    filebrowserLink.rel = "noopener noreferrer";
+    filebrowserLink.className = "link-subtle";
+    filebrowserLink.textContent = "Файловый менеджер (:7861)";
+
+    const consoleLink = document.createElement("a");
+    consoleLink.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
+    consoleLink.target = "_blank";
+    consoleLink.rel = "noopener noreferrer";
+    consoleLink.className = "link-subtle";
+    consoleLink.textContent = "Консоль RunPod ↗";
+
+    secLinks.append(fizgigSub, jupyterLink, filebrowserLink, consoleLink);
+    readyBox.append(mainActions, secLinks);
+
+    body.append(metaRow, alertBox, stagePills, readyBox, logDetails);
+  } else {
+    // Foreign pod: no ComfyUI/Fizgig links, no stage pills.
+    // "только ссылку на консоль и логи"
+    const foreignBox = document.createElement("div");
+    foreignBox.className = "ready-links-box pod-card-links pod-foreign-box";
+
+    const consoleMainLink = document.createElement("a");
+    consoleMainLink.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
+    consoleMainLink.target = "_blank";
+    consoleMainLink.rel = "noopener noreferrer";
+    consoleMainLink.className = "btn btn-secondary";
+    consoleMainLink.textContent = "Открыть под в консоли RunPod ↗";
+
+    foreignBox.appendChild(consoleMainLink);
+    body.append(foreignBox, logDetails);
+  }
 
   card.append(header, body);
   return card;
 }
 
 function updatePodCardElement(ctrl, cardEl) {
+  cardEl.classList.toggle("is-expanded", ctrl.isExpanded);
+
+  if (!ctrl.isOurPod) {
+    cardEl.classList.remove("pod-running", "pod-deploying", "pod-error");
+
+    const statusBadge = cardEl.querySelector(".pod-status-badge");
+    if (statusBadge) {
+      const isErr = ctrl.status === "ERROR" || ctrl.status === "EXITED";
+      const isRunning = ctrl.status === "RUNNING";
+      statusBadge.className = `badge ${isErr ? "badge-error" : isRunning ? "badge-subtle" : "badge-warn"} pod-status-badge`;
+      statusBadge.textContent = ctrl.status || "UNKNOWN";
+    }
+
+    const logPre = cardEl.querySelector(".terminal-logs");
+    if (logPre && ctrl.logLines.length > 0) {
+      logPre.textContent = ctrl.logLines.join("\n");
+    }
+    return;
+  }
+
   const isComfyReady = ctrl.stages.ready === "done";
   const isCudaPassed = ctrl.stages.cuda === "done";
   const isError = ctrl.status === "ERROR" || ctrl.status === "EXITED" || ctrl.stages.cuda === "error";
 
-  cardEl.classList.toggle("is-expanded", ctrl.isExpanded);
   cardEl.classList.toggle("pod-running", isComfyReady);
   cardEl.classList.toggle("pod-deploying", !isComfyReady && !isError);
   cardEl.classList.toggle("pod-error", isError);
@@ -1315,6 +1425,9 @@ function handlePodLog(ctrl, entry) {
     }
   }
 
+  // If this pod was not created through our interface, only show logs and console link
+  if (!ctrl.isOurPod) return;
+
   const lowerLine = line.toLowerCase();
 
   // Detect fatal CUDA / GPU error (checked for ANY log source: system, container, docker daemon)
@@ -1417,6 +1530,13 @@ async function pollHealthForPod(ctrl) {
 
     ctrl.pod = pod;
     ctrl.status = pod.status;
+
+    // For foreign pods, only update status & card (no Comfy health checks or redeploys)
+    if (!ctrl.isOurPod) {
+      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+      if (card) updatePodCardElement(ctrl, card);
+      return;
+    }
 
     // Check status or error fields for container/GPU errors
     const podErrStr = String(pod.error || pod.lastStatusChange || "").toLowerCase();
@@ -1572,7 +1692,10 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
         const newPodId = created?.id;
         if (!newPodId) throw new Error("RunPod вернул пустой ID.");
 
+        markPodAsOurs(newPodId);
+
         if (oldBadPodId) {
+          unmarkPodAsOurs(oldBadPodId);
           try {
             await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
           } catch (delErr) {
@@ -1590,9 +1713,11 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
           cloud: candidate.cloud,
           price: candidate.price,
           status: "STARTING",
+          isOurPod: true,
           isExpanded: true
         });
         ctrl.isExpanded = true;
+        ctrl.isOurPod = true;
 
         await fetchActivePods();
         startLogStreamForPod(ctrl);
@@ -1746,6 +1871,7 @@ function startAutoRefreshLoop() {
 async function init() {
   initThemeToggle();
   initTemplateControls();
+  initOurPodIds();
 
   // Price Slider
   const slider = document.getElementById("max-price-slider");
