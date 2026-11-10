@@ -1281,7 +1281,9 @@ async function startLogStreamForPod(ctrl) {
         try {
           const entry = JSON.parse(jsonPart);
           handlePodLog(ctrl, entry);
-        } catch {}
+        } catch {
+          handlePodLog(ctrl, { line: jsonPart, source: "system" });
+        }
       }
     }
   } catch (err) {
@@ -1313,6 +1315,48 @@ function handlePodLog(ctrl, entry) {
     }
   }
 
+  const lowerLine = line.toLowerCase();
+
+  // Detect fatal CUDA / GPU error (checked for ANY log source: system, container, docker daemon)
+  const isNotEnoughGpu =
+    lowerLine.includes("not enough gpus free") ||
+    (lowerLine.includes("error creating container") && lowerLine.includes("gpu"));
+
+  const isCudaFatal =
+    line.includes("[fatal][gpu]") ||
+    line.includes("host_gpu_driver_corrupt") ||
+    line.includes("CUDA runtime initialization failed") ||
+    line.includes("torch.cuda.is_available() returned False") ||
+    line.includes("Error 803:") ||
+    line.includes("Error 804:") ||
+    isNotEnoughGpu;
+
+  if (isCudaFatal) {
+    ctrl.stages.cuda = "error";
+    if (isNotEnoughGpu) {
+      ctrl.stages.container = "error";
+      ctrl.subtitle = "✗ Ошибка хоста: not enough GPUs free (CUDA недоступна)";
+    } else {
+      ctrl.subtitle = "✗ Сбой драйвера CUDA на хосте";
+    }
+    if (card) updatePodCardElement(ctrl, card);
+
+    const reason = isNotEnoughGpu
+      ? "Сбой GPU на хосте (not enough GPUs free)"
+      : "Сбой драйвера CUDA на хосте";
+    triggerRedeploy(ctrl.podId, reason);
+    return;
+  }
+
+  // Detect CPU overload (checked for ANY log source)
+  if (line.includes("CPU Overload Detected") || line.includes("cpu_confirm") || line.includes("[fatal][cpu]")) {
+    ctrl.stages.cuda = "error";
+    ctrl.subtitle = "✗ Критическая перегрузка CPU хоста";
+    if (card) updatePodCardElement(ctrl, card);
+    triggerRedeploy(ctrl.podId, "Критическая перегрузка CPU хоста");
+    return;
+  }
+
   if (source === "container") {
     ctrl.stages.provision = "done";
     ctrl.stages.container = "done";
@@ -1320,27 +1364,6 @@ function handlePodLog(ctrl, entry) {
     if (line.includes("Checking CUDA initialization") || line.includes("[cuda][warn] preflight")) {
       ctrl.stages.cuda = "active";
       ctrl.subtitle = "Инициализация и проверка CUDA 13.0...";
-    }
-
-    // Detect fatal CUDA / GPU error
-    const isCudaFatal =
-      line.includes("[fatal][gpu]") ||
-      line.includes("host_gpu_driver_corrupt") ||
-      line.includes("CUDA runtime initialization failed") ||
-      line.includes("torch.cuda.is_available() returned False") ||
-      line.includes("Error 803:") || line.includes("Error 804:");
-
-    if (isCudaFatal) {
-      ctrl.stages.cuda = "error";
-      triggerRedeploy(ctrl.podId, "Сбой драйвера CUDA на хосте");
-      return;
-    }
-
-    // Detect CPU overload
-    if (line.includes("CPU Overload Detected") || line.includes("cpu_confirm") || line.includes("[fatal][cpu]")) {
-      ctrl.stages.cuda = "error";
-      triggerRedeploy(ctrl.podId, "Критическая перегрузка CPU хоста");
-      return;
     }
 
     // Fast CUDA & CPU completion detection
@@ -1355,7 +1378,7 @@ function handlePodLog(ctrl, entry) {
       line.includes("STAGE: Starting ComfyUI") ||
       line.includes("To see the GUI go to:");
 
-    if (isCudaPassed && !ctrl.cudaStagePassed) {
+    if (isCudaPassed && !ctrl.cudaStagePassed && ctrl.stages.cuda !== "error") {
       ctrl.cudaStagePassed = true;
       ctrl.stages.cuda = "done";
       ctrl.subtitle = "✓ Проверки CUDA 13.0 и CPU пройдены успешно! Инициализация...";
@@ -1395,11 +1418,26 @@ async function pollHealthForPod(ctrl) {
     ctrl.pod = pod;
     ctrl.status = pod.status;
 
+    // Check status or error fields for container/GPU errors
+    const podErrStr = String(pod.error || pod.lastStatusChange || "").toLowerCase();
+    if (
+      podErrStr.includes("not enough gpus free") ||
+      (podErrStr.includes("error creating container") && podErrStr.includes("gpu"))
+    ) {
+      ctrl.stages.cuda = "error";
+      ctrl.stages.container = "error";
+      ctrl.subtitle = "✗ Ошибка хоста: not enough GPUs free (CUDA недоступна)";
+      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+      if (card) updatePodCardElement(ctrl, card);
+      triggerRedeploy(ctrl.podId, "Сбой GPU на хосте (not enough GPUs free)");
+      return;
+    }
+
     if (pod.runtime) {
       ctrl.stages.provision = "done";
       ctrl.stages.container = "done";
 
-      if (pod.runtime.uptimeInSeconds > 15 && !ctrl.cudaStagePassed) {
+      if (pod.runtime.uptimeInSeconds > 15 && !ctrl.cudaStagePassed && ctrl.stages.cuda !== "error") {
         ctrl.cudaStagePassed = true;
         ctrl.stages.cuda = "done";
         ctrl.subtitle = "✓ Проверки CUDA 13.0 и CPU пройдены успешно! Запуск сервисов...";
@@ -1413,7 +1451,7 @@ async function pollHealthForPod(ctrl) {
 
     try {
       const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, { cache: "no-store" });
-      if (statsRes.ok) {
+      if (statsRes.ok && ctrl.stages.cuda !== "error") {
         ctrl.cudaStagePassed = true;
         ctrl.stages.cuda = "done";
         ctrl.stages.ready = "done";
