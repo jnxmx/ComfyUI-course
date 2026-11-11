@@ -1766,9 +1766,8 @@ function buildPayload(candidate) {
     env.DISABLE_SHUTDOWN_TIMER = "1";
   }
 
-  return {
+  const payload = {
     name: `comfy-work-${slug}`,
-    templateId: tpl.templateId,
     cloud: candidate.cloud,
     gpu: {
       id: candidate.gpuId,
@@ -1782,12 +1781,29 @@ function buildPayload(candidate) {
         path: tpl.volumeMountPath || "/workspace"
       }
     },
-    ports: tpl.ports || [
-      "7860/http", "7861/http", "7862/http",
-      "8188/tcp", "8080/tcp", "8888/tcp"
-    ],
     env
   };
+
+  if (tpl.templateId) {
+    payload.templateId = tpl.templateId;
+    // ВАЖНО: При использовании templateId ни в коем случае НЕ передаём поле `ports`!
+    // В REST v2 RunPod любое поле из тела запроса замещает аналогичное поле темплейта.
+    // Если передать `ports: [...]`, RunPod стирает названия портов (portsConfig) из темплейта,
+    // и в консоли RunPod порты отображаются как безымянные "HTTP Service" / ":8188".
+    // Когда `ports` опущен в теле запроса, RunPod наследует и порты, и их подписи (ComfyUI, FileBrowser, Fizgig, JupyterLab) напрямую из темплейта.
+  } else {
+    if (tpl.image) payload.image = tpl.image;
+    if (tpl.ports && tpl.ports.length) {
+      payload.ports = tpl.ports;
+    } else {
+      payload.ports = [
+        "7860/http", "7861/http", "7862/http",
+        "8188/tcp", "8080/tcp", "8888/tcp"
+      ];
+    }
+  }
+
+  return payload;
 }
 
 /**
