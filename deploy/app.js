@@ -191,6 +191,9 @@ const state = {
   redeployCount: 0,
   redeployInProgress: false,
   isFetchingCatalog: false,
+  catalogFetchPromise: null,
+  catalogFetchStartedAt: 0,
+  catalogLastFetchedAt: 0,
   catalogRefreshTimerId: null
 };
 
@@ -322,16 +325,39 @@ async function runpodFetch(path, options = {}) {
   if (!state.apiKey) {
     throw new Error("Не указан RunPod API Secret Key.");
   }
-  const headers = new Headers(options.headers || {});
+  const { timeoutMs: customTimeoutMs, ...fetchOptions } = options;
+  const headers = new Headers(fetchOptions.headers || {});
   headers.set("Authorization", `Bearer ${state.apiKey}`);
-  if (options.body && !headers.has("Content-Type")) {
+  if (fetchOptions.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${RUNPOD_API_BASE}${path}`, {
-    ...options,
-    headers
-  });
+  const timeoutMs = customTimeoutMs ?? (String(fetchOptions.method || "GET").toUpperCase() === "POST" ? 25000 : 12000);
+  const controller = new AbortController();
+  const externalSignal = fetchOptions.signal;
+  if (externalSignal?.aborted) {
+    controller.abort(externalSignal.reason);
+  } else if (externalSignal) {
+    externalSignal.addEventListener("abort", () => controller.abort(externalSignal.reason), { once: true });
+  }
+  const timerId = setTimeout(() => controller.abort(new Error("Request timeout")), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(`${RUNPOD_API_BASE}${path}`, {
+      cache: "no-store",
+      ...fetchOptions,
+      headers,
+      signal: controller.signal
+    });
+  } catch (err) {
+    if (controller.signal.aborted && !externalSignal?.aborted) {
+      throw new Error(`Таймаут запроса к RunPod API (${Math.round(timeoutMs / 1000)} сек)`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timerId);
+  }
 
   if (!response.ok) {
     let detail = `HTTP ${response.status}`;
@@ -562,8 +588,14 @@ function findTierInfo(gpuId) {
 }
 
 async function fetchGpuCatalog(silent = false) {
-  if (state.isFetchingCatalog || !state.apiKey) return;
+  if (!state.apiKey) return;
+
+  if (state.catalogFetchPromise && Date.now() - state.catalogFetchStartedAt < 14000) {
+    return state.catalogFetchPromise;
+  }
+
   state.isFetchingCatalog = true;
+  state.catalogFetchStartedAt = Date.now();
 
   const tbody = document.getElementById("gpu-tbody");
 
@@ -578,81 +610,90 @@ async function fetchGpuCatalog(silent = false) {
     tbody.appendChild(loadingRow);
   }
 
-  try {
-    const [communityRes, secureRes] = await Promise.all([
-      runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=COMMUNITY&minCudaVersion=13.0"),
-      runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=SECURE&minCudaVersion=13.0")
-    ]);
+  const fetchTask = (async () => {
+    try {
+      const [communityRes, secureRes] = await Promise.all([
+        runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=COMMUNITY&minCudaVersion=13.0"),
+        runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=SECURE&minCudaVersion=13.0")
+      ]);
 
-    const rows = [];
-    const processList = (gpus, cloudType) => {
-      if (!Array.isArray(gpus)) return;
-      for (const gpu of gpus) {
-        const price = cloudType === "COMMUNITY" ? gpu.price?.community : gpu.price?.secure;
-        if (price === null || price === undefined || price <= 0) continue;
+      const rows = [];
+      const processList = (gpus, cloudType) => {
+        if (!Array.isArray(gpus)) return;
+        for (const gpu of gpus) {
+          const price = cloudType === "COMMUNITY" ? gpu.price?.community : gpu.price?.secure;
+          if (price === null || price === undefined || price <= 0) continue;
 
-        const cuda13List = (gpu.cudaVersions || [])
-          .filter((c) => Number.parseFloat(c.version) >= 13.0 && c.available)
-          .map((c) => c.version);
+          const cuda13List = (gpu.cudaVersions || [])
+            .filter((c) => Number.parseFloat(c.version) >= 13.0 && c.available)
+            .map((c) => c.version);
 
-        if (cuda13List.length === 0) continue;
+          if (cuda13List.length === 0) continue;
 
-        const tier = findTierInfo(gpu.id);
-        const displayName = cleanGpuName(gpu.id, gpu.name);
-        const rowId = `${gpu.id}__${cloudType}`;
+          const tier = findTierInfo(gpu.id);
+          const displayName = cleanGpuName(gpu.id, gpu.name);
+          const rowId = `${gpu.id}__${cloudType}`;
 
-        rows.push({
-          rowId,
-          gpuId: gpu.id,
-          displayName,
-          cloud: cloudType,
-          price: Number(price),
-          availability: gpu.availability || "NONE",
-          maxCount: cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0),
-          cudaVersions: cuda13List,
-          tierRank: tier ? tier.rank : 99,
-          tierKey: tier ? tier.key : `other-${gpu.id}`,
-          tierLabel: tier ? tier.label : displayName,
-          subRank: tier ? tier.subRank : 99
-        });
+          rows.push({
+            rowId,
+            gpuId: gpu.id,
+            displayName,
+            cloud: cloudType,
+            price: Number(price),
+            availability: gpu.availability || "NONE",
+            maxCount: cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0),
+            cudaVersions: cuda13List,
+            tierRank: tier ? tier.rank : 99,
+            tierKey: tier ? tier.key : `other-${gpu.id}`,
+            tierLabel: tier ? tier.label : displayName,
+            subRank: tier ? tier.subRank : 99
+          });
+        }
+      };
+
+      processList(communityRes?.gpus, "COMMUNITY");
+      processList(secureRes?.gpus, "SECURE");
+
+      rows.sort((a, b) => {
+        if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
+        if (a.subRank !== b.subRank) return a.subRank - b.subRank;
+
+        const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
+        const cloudScoreB = b.cloud === "COMMUNITY" ? 0 : 1;
+        if (cloudScoreA !== cloudScoreB) return cloudScoreA - cloudScoreB;
+
+        const availDiff = (AVAILABILITY_WEIGHT[b.availability] || 0) - (AVAILABILITY_WEIGHT[a.availability] || 0);
+        if (availDiff !== 0) return availDiff;
+
+        return a.price - b.price;
+      });
+
+      state.catalogRows = rows;
+      state.catalogLastFetchedAt = Date.now();
+      initDefaultSelections();
+      renderGpuTable();
+      updateLiveIndicator();
+    } catch (err) {
+      if (!silent) {
+        tbody.replaceChildren();
+        const errRow = document.createElement("tr");
+        const errTd = document.createElement("td");
+        errTd.colSpan = 5;
+        errTd.className = "empty-cell";
+        errTd.textContent = `Ошибка загрузки: ${err.message}`;
+        errRow.appendChild(errTd);
+        tbody.appendChild(errRow);
       }
-    };
-
-    processList(communityRes?.gpus, "COMMUNITY");
-    processList(secureRes?.gpus, "SECURE");
-
-    rows.sort((a, b) => {
-      if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
-      if (a.subRank !== b.subRank) return a.subRank - b.subRank;
-
-      const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
-      const cloudScoreB = b.cloud === "COMMUNITY" ? 0 : 1;
-      if (cloudScoreA !== cloudScoreB) return cloudScoreA - cloudScoreB;
-
-      const availDiff = (AVAILABILITY_WEIGHT[b.availability] || 0) - (AVAILABILITY_WEIGHT[a.availability] || 0);
-      if (availDiff !== 0) return availDiff;
-
-      return a.price - b.price;
-    });
-
-    state.catalogRows = rows;
-    initDefaultSelections();
-    renderGpuTable();
-    updateLiveIndicator();
-  } catch (err) {
-    if (!silent) {
-      tbody.replaceChildren();
-      const errRow = document.createElement("tr");
-      const errTd = document.createElement("td");
-      errTd.colSpan = 5;
-      errTd.className = "empty-cell";
-      errTd.textContent = `Ошибка загрузки: ${err.message}`;
-      errRow.appendChild(errTd);
-      tbody.appendChild(errRow);
+    } finally {
+      if (state.catalogFetchPromise === fetchTask) {
+        state.catalogFetchPromise = null;
+        state.isFetchingCatalog = false;
+      }
     }
-  } finally {
-    state.isFetchingCatalog = false;
-  }
+  })();
+
+  state.catalogFetchPromise = fetchTask;
+  return fetchTask;
 }
 
 function initDefaultSelections() {
@@ -860,7 +901,7 @@ function renderGpuTable() {
       launchBtn.title = "Нет в наличии";
     }
     launchBtn.addEventListener("click", () => {
-      startDeploymentSequence([row]);
+      startDeploymentSequence([row], null, { singleGpuOnly: true });
     });
     tdAction.appendChild(launchBtn);
 
@@ -1949,7 +1990,7 @@ function buildPayload(candidate) {
  * При попытке пересоздать под сначала запускается запуск нового пода,
  * и только после успешного создания глушится старый, чтобы не попасть на тот же сбойный хост!
  */
-async function startDeploymentSequence(candidates, oldBadPodId = null) {
+async function startDeploymentSequence(candidates, oldBadPodId = null, { singleGpuOnly = false } = {}) {
   const podsSection = document.getElementById("pods-section");
   if (podsSection) podsSection.hidden = false;
   podsSection.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1965,7 +2006,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
   const sessionId = Symbol("deploy-session");
   state.currentDeploySessionId = sessionId;
 
-  const isSingleCandidate = candidates.length === 1;
+  const isSingleCandidate = Boolean(singleGpuOnly && candidates.length === 1);
 
   if (cancelBtn) {
     cancelBtn.onclick = () => {
@@ -1978,9 +2019,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
     let currentCandidates = candidates;
     if (!isSingleCandidate) {
       const refreshedQueue = getSelectedCandidatesQueue();
-      if (refreshedQueue.length > 0) {
-        currentCandidates = refreshedQueue;
-      }
+      currentCandidates = refreshedQueue;
     }
 
     let lastErrorMessage = "";
@@ -2106,7 +2145,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
     }
 
     // Auto-retry loop countdown
-    const targetLabel = isSingleCandidate
+    const targetLabel = isSingleCandidate && currentCandidates[0]
       ? currentCandidates[0].displayName
       : "Все выбранные видеокарты";
 
@@ -2152,9 +2191,14 @@ async function triggerRedeploy(badPodId, reason) {
     return;
   }
 
-  const queue = getSelectedCandidatesQueue();
-  state.redeployInProgress = false;
-  await startDeploymentSequence(queue, badPodId);
+  let queue = [];
+  try {
+    await fetchGpuCatalog(true);
+    queue = getSelectedCandidatesQueue();
+  } finally {
+    state.redeployInProgress = false;
+  }
+  await startDeploymentSequence(queue, badPodId, { singleGpuOnly: false });
 }
 
 function getSelectedCandidatesQueue() {
@@ -2163,6 +2207,16 @@ function getSelectedCandidatesQueue() {
     if (r.price > maxPrice) return false;
     if (!isGpuDesiredByUser(r)) return false;
     if (r.availability === "NONE") return false;
+    if (state.secureOnly && r.cloud !== "SECURE") return false;
+    return true;
+  });
+}
+
+function hasAnyDesiredGpuMatchingFilters() {
+  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
+  return state.catalogRows.some((r) => {
+    if (r.price > maxPrice) return false;
+    if (!isGpuDesiredByUser(r)) return false;
     if (state.secureOnly && r.cloud !== "SECURE") return false;
     return true;
   });
@@ -2183,12 +2237,19 @@ function startAutoRefreshLoop() {
     }
   }, CATALOG_AUTO_REFRESH_MS);
 
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && state.apiKey) {
-      fetchGpuCatalog(true);
+  const refreshOnWake = () => {
+    if (!document.hidden && state.apiKey && !state.redeployInProgress) {
+      if (Date.now() - state.catalogLastFetchedAt > 2500) {
+        fetchGpuCatalog(true);
+      }
       fetchActivePods();
     }
-  });
+  };
+
+  document.addEventListener("visibilitychange", refreshOnWake);
+  window.addEventListener("focus", refreshOnWake);
+  window.addEventListener("pageshow", refreshOnWake);
+  window.addEventListener("online", refreshOnWake);
 }
 
 /* ==========================================================================
@@ -2323,13 +2384,36 @@ async function init() {
   });
 
   // Deploy Best Button
-  document.getElementById("deploy-best-btn").addEventListener("click", () => {
+  document.getElementById("deploy-best-btn").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    const origText = btn.textContent;
+    const isCatalogStale = !state.catalogLastFetchedAt
+      || Date.now() - state.catalogLastFetchedAt > 3000
+      || !!state.catalogFetchPromise
+      || state.catalogRows.length === 0;
+
+    if (isCatalogStale) {
+      btn.disabled = true;
+      btn.textContent = "Обновление списка GPU...";
+      try {
+        await fetchGpuCatalog(true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    }
+
     const queue = getSelectedCandidatesQueue();
     if (queue.length === 0) {
+      const autoRedeployChecked = document.getElementById("opt-auto-redeploy")?.checked;
+      if (autoRedeployChecked && hasAnyDesiredGpuMatchingFilters()) {
+        startDeploymentSequence([], null, { singleGpuOnly: false });
+        return;
+      }
       alert("Нет доступных видеокарт среди выбранных по текущим фильтрам (цена, Secure). Увеличьте ползунок цены или выберите другие карты.");
       return;
     }
-    startDeploymentSequence(queue);
+    startDeploymentSequence(queue, null, { singleGpuOnly: false });
   });
 
   // Refresh Pods
