@@ -920,6 +920,62 @@ function isPodCreatedByUs(pod) {
   return false;
 }
 
+function syncPodStateFromApi(ctrl, pod) {
+  if (!pod) return;
+  ctrl.pod = pod;
+  ctrl.status = pod.status || ctrl.status;
+
+  if (!ctrl.isOurPod) return;
+
+  const hasErrorStage =
+    ctrl.stages.provision === "error" ||
+    ctrl.stages.container === "error" ||
+    ctrl.stages.cuda === "error";
+  if (hasErrorStage || ctrl.status === "ERROR" || ctrl.status === "EXITED") return;
+
+  if (ctrl.stages.ready === "done" || ctrl.cudaStagePassed) {
+    ctrl.containerStarted = true;
+    ctrl.stages.provision = "done";
+    ctrl.stages.container = "done";
+    ctrl.stages.cuda = "done";
+    return;
+  }
+
+  if (pod.runtime) {
+    ctrl.containerStarted = true;
+    ctrl.stages.provision = "done";
+    ctrl.stages.container = "done";
+    if (ctrl.stages.cuda === "pending") {
+      ctrl.stages.cuda = "active";
+      ctrl.subtitle = "Инициализация и проверка CUDA 13.0...";
+    }
+    return;
+  }
+
+  // pod.runtime is null -> container has NOT started yet (pulling/creating on host)
+  if (!ctrl.containerStarted) {
+    ctrl.stages.cuda = "pending";
+    ctrl.stages.ready = "pending";
+    if (pod.status === "RUNNING") {
+      ctrl.stages.provision = "done";
+      ctrl.stages.container = "active";
+      if (
+        !ctrl.subtitle ||
+        ctrl.subtitle.includes("Подготовка хоста") ||
+        ctrl.subtitle.includes("CUDA")
+      ) {
+        ctrl.subtitle = "Загрузка и подготовка Docker-контейнера...";
+      }
+    } else {
+      ctrl.stages.provision = "active";
+      ctrl.stages.container = "pending";
+      if (!ctrl.subtitle || ctrl.subtitle.includes("CUDA")) {
+        ctrl.subtitle = "Подготовка хоста на RunPod...";
+      }
+    }
+  }
+}
+
 function getOrCreatePodController(podId, initData = {}) {
   let ctrl = state.podControllers.get(podId);
   if (!ctrl) {
@@ -932,20 +988,25 @@ function getOrCreatePodController(podId, initData = {}) {
       price: initData.price || 0,
       isOurPod: isOur,
       isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : true,
-      status: initData.status || "STARTING",
+      pod: initData.pod || null,
+      status: initData.status || initData.pod?.status || "STARTING",
+      containerStarted: Boolean(initData.pod?.runtime),
       stages: {
-        provision: "done",
-        container: "done",
-        cuda: "active",
+        provision: "active",
+        container: "pending",
+        cuda: "pending",
         ready: "pending"
       },
-      subtitle: isOur ? "Инициализация и проверка CUDA 13.0..." : "",
+      subtitle: isOur ? "Подготовка хоста на RunPod..." : "",
       alert: null,
       logLines: [],
       logAbortController: null,
       cudaStagePassed: false,
       pollTimerId: null
     };
+    if (initData.pod) {
+      syncPodStateFromApi(ctrl, initData.pod);
+    }
     state.podControllers.set(podId, ctrl);
 
     // Start background health polling immediately
@@ -1018,12 +1079,11 @@ async function fetchActivePods() {
           isExpanded: true
         });
       } else {
-        ctrl.status = pod.status;
         ctrl.displayName = pod.name || ctrl.displayName;
         ctrl.gpuName = gpuName;
         ctrl.cloud = pod.cloud || ctrl.cloud;
-        ctrl.pod = pod;
         ctrl.isOurPod = isOur;
+        syncPodStateFromApi(ctrl, pod);
       }
 
       // Logs visible by default for all pods: start SSE stream if expanded
@@ -1380,7 +1440,12 @@ function updatePodCardElement(ctrl, cardEl) {
 
   const isComfyReady = ctrl.stages.ready === "done";
   const isCudaPassed = ctrl.stages.cuda === "done";
-  const isError = ctrl.status === "ERROR" || ctrl.status === "EXITED" || ctrl.stages.cuda === "error";
+  const isError =
+    ctrl.status === "ERROR" ||
+    ctrl.status === "EXITED" ||
+    ctrl.stages.provision === "error" ||
+    ctrl.stages.container === "error" ||
+    ctrl.stages.cuda === "error";
 
   cardEl.classList.toggle("pod-running", isComfyReady);
   cardEl.classList.toggle("pod-deploying", !isComfyReady && !isError);
@@ -1398,9 +1463,15 @@ function updatePodCardElement(ctrl, cardEl) {
     } else if (isCudaPassed) {
       statusBadge.className = "badge badge-warn pod-status-badge";
       statusBadge.textContent = "ЗАПУСК COMFYUI";
-    } else {
+    } else if (ctrl.stages.cuda === "active") {
       statusBadge.className = "badge badge-warn pod-status-badge";
       statusBadge.textContent = "ПРОВЕРКА CUDA";
+    } else if (ctrl.stages.container === "active") {
+      statusBadge.className = "badge badge-warn pod-status-badge";
+      statusBadge.textContent = "КОНТЕЙНЕР";
+    } else {
+      statusBadge.className = "badge badge-warn pod-status-badge";
+      statusBadge.textContent = "ПОДГОТОВКА ХОСТА";
     }
   }
 
@@ -1415,7 +1486,7 @@ function updatePodCardElement(ctrl, cardEl) {
   if (sub) sub.textContent = ctrl.subtitle;
 
   const spinner = cardEl.querySelector(".pod-card-spinner");
-  if (spinner) spinner.hidden = isComfyReady;
+  if (spinner) spinner.hidden = isComfyReady || isError;
 
   // Alert
   const alertBox = cardEl.querySelector(".pod-card-alert");
@@ -1521,6 +1592,7 @@ async function startLogStreamForPod(ctrl) {
   if (ctrl.logAbortController) ctrl.logAbortController.abort();
   const abortController = new AbortController();
   ctrl.logAbortController = abortController;
+  ctrl.logLines = [];
 
   try {
     const res = await fetch(`${RUNPOD_API_BASE}/pods/${encodeURIComponent(ctrl.podId)}/logs?tail=200`, {
@@ -1627,9 +1699,75 @@ function handlePodLog(ctrl, entry) {
     return;
   }
 
+  if (source === "system") {
+    const hasErrorStage =
+      ctrl.stages.provision === "error" ||
+      ctrl.stages.container === "error" ||
+      ctrl.stages.cuda === "error";
+
+    if (!ctrl.containerStarted && !ctrl.cudaStagePassed && ctrl.stages.ready !== "done" && !hasErrorStage) {
+      const isContainerStarting =
+        lowerLine.includes("creating container") ||
+        lowerLine.includes("created container") ||
+        lowerLine.includes("starting container") ||
+        lowerLine.includes("started container");
+
+      const isExtracting =
+        lowerLine.includes("extracting") ||
+        lowerLine.includes("pull complete");
+
+      const isPulling =
+        lowerLine.includes("downloading") ||
+        lowerLine.includes("pulling") ||
+        lowerLine.includes("waiting") ||
+        lowerLine.includes("verifying checksum") ||
+        lowerLine.includes("download complete") ||
+        lowerLine.includes("already exists") ||
+        lowerLine.includes("downloaded newer image") ||
+        lowerLine.includes("image is up to date") ||
+        lowerLine.includes("digest:");
+
+      if (isContainerStarting || isExtracting || isPulling) {
+        ctrl.stages.provision = "done";
+        ctrl.stages.container = "active";
+        ctrl.stages.cuda = "pending";
+        ctrl.stages.ready = "pending";
+
+        if (isContainerStarting) {
+          ctrl.subtitle = "Создание и запуск контейнера на хосте...";
+        } else if (isExtracting) {
+          ctrl.subtitle = "Распаковка Docker-образа контейнера...";
+        } else {
+          ctrl.subtitle = "Скачивание Docker-образа контейнера...";
+        }
+        if (card) updatePodCardElement(ctrl, card);
+      } else if (
+        ctrl.stages.container === "pending" &&
+        (lowerLine.includes("assigning") ||
+          lowerLine.includes("scheduling") ||
+          lowerLine.includes("allocating") ||
+          lowerLine.includes("mounting") ||
+          lowerLine.includes("volume"))
+      ) {
+        ctrl.stages.provision = "active";
+        ctrl.subtitle = "Подготовка хоста и диска...";
+        if (card) updatePodCardElement(ctrl, card);
+      }
+    }
+    return;
+  }
+
   if (source === "container") {
+    ctrl.containerStarted = true;
     ctrl.stages.provision = "done";
     ctrl.stages.container = "done";
+
+    if (!ctrl.cudaStagePassed && ctrl.stages.cuda !== "error" && ctrl.stages.ready !== "done") {
+      if (ctrl.stages.cuda !== "active") {
+        ctrl.stages.cuda = "active";
+        ctrl.subtitle = "Инициализация и проверка CUDA 13.0...";
+      }
+    }
 
     if (line.includes("Checking CUDA initialization") || line.includes("[cuda][warn] preflight")) {
       ctrl.stages.cuda = "active";
@@ -1655,8 +1793,10 @@ function handlePodLog(ctrl, entry) {
     }
 
     // Dynamic detailed progress updates
-    if (ctrl.cudaStagePassed) {
-      if (line.includes("[fizgig]") || line.includes("Fizgig")) {
+    if (ctrl.cudaStagePassed && ctrl.stages.ready !== "done") {
+      if (line.includes("STAGE: Starting ComfyUI") || line.includes("Starting ComfyUI")) {
+        ctrl.subtitle = "✓ Проверки пройдены. Запуск ComfyUI...";
+      } else if (line.includes("[fizgig]") || line.includes("Fizgig")) {
         ctrl.subtitle = "✓ Проверки пройдены. Настройка Fizgig Studio...";
       } else if (line.includes("STAGE: Ensuring ComfyUI Manager") || line.includes("comfyui-manager")) {
         ctrl.subtitle = "✓ Проверки пройдены. Подготовка ComfyUI Manager...";
@@ -1669,7 +1809,9 @@ function handlePodLog(ctrl, entry) {
       }
     }
 
-    if (line.includes("Starting ComfyUI") || line.includes("To see the GUI go to:") || line.includes("ComfyUI is ready")) {
+    if (line.includes("To see the GUI go to:") || line.includes("ComfyUI is ready")) {
+      ctrl.cudaStagePassed = true;
+      ctrl.stages.cuda = "done";
       ctrl.stages.ready = "done";
       ctrl.subtitle = "ComfyUI и Fizgig готовы к работе!";
       ctrl.status = "RUNNING";
@@ -1710,32 +1852,28 @@ async function pollHealthForPod(ctrl) {
       return;
     }
 
-    if (pod.runtime) {
-      ctrl.stages.provision = "done";
-      ctrl.stages.container = "done";
-
-      if (pod.runtime.uptimeInSeconds > 15 && !ctrl.cudaStagePassed && ctrl.stages.cuda !== "error") {
-        ctrl.cudaStagePassed = true;
-        ctrl.stages.cuda = "done";
-        ctrl.subtitle = "✓ Проверки CUDA 13.0 и CPU пройдены успешно! Запуск сервисов...";
-      }
-    }
-
     if (pod.status === "ERROR" || pod.status === "EXITED") {
       triggerRedeploy(ctrl.podId, `Статус пода: ${pod.status}`);
       return;
     }
 
-    try {
-      const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, { cache: "no-store" });
-      if (statsRes.ok && ctrl.stages.cuda !== "error") {
-        ctrl.cudaStagePassed = true;
-        ctrl.stages.cuda = "done";
-        ctrl.stages.ready = "done";
-        ctrl.status = "RUNNING";
-        ctrl.subtitle = "ComfyUI и Fizgig доступны и готовы к работе!";
-      }
-    } catch {}
+    syncPodStateFromApi(ctrl, pod);
+
+    if (pod.runtime) {
+      try {
+        const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, { cache: "no-store" });
+        if (statsRes.ok && ctrl.stages.cuda !== "error") {
+          ctrl.containerStarted = true;
+          ctrl.stages.provision = "done";
+          ctrl.stages.container = "done";
+          ctrl.cudaStagePassed = true;
+          ctrl.stages.cuda = "done";
+          ctrl.stages.ready = "done";
+          ctrl.status = "RUNNING";
+          ctrl.subtitle = "ComfyUI и Fizgig доступны и готовы к работе!";
+        }
+      } catch {}
+    }
 
     const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
     if (card) updatePodCardElement(ctrl, card);
@@ -1900,7 +2038,8 @@ async function startDeploymentSequence(candidates, oldBadPodId = null) {
           gpuName: candidate.displayName,
           cloud: candidate.cloud,
           price: candidate.price,
-          status: "STARTING",
+          status: created.status || "CREATED",
+          pod: created,
           isOurPod: true,
           isExpanded: true
         });
