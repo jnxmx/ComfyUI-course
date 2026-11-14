@@ -358,6 +358,56 @@ input[type="range"] {
   cursor: pointer;
 }
 
+.ram-filter-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--bg-subtle);
+  font-size: 0.85rem;
+}
+
+.ram-filter-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.ram-input-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ram-prefix,
+.ram-unit,
+.ram-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.ram-gb-input {
+  width: 64px;
+  padding: 0.25rem 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.ram-gb-input:focus-visible {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
 .gpu-quick-buttons {
   display: flex;
   align-items: center;
@@ -507,6 +557,7 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 .gpu-pills-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
 }
 
@@ -528,6 +579,17 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   background-color: var(--success-bg);
   color: var(--success);
   border: 1px solid var(--success);
+}
+
+.ram-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.14rem 0.45rem;
+  border-radius: 4px;
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
 }
 
 .net-pill {

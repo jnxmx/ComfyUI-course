@@ -9,7 +9,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Comfy.Work Deployer</title>
-  <link rel="stylesheet" href="styles.css?v=20261114_01">
+  <link rel="stylesheet" href="styles.css?v=20261114_02">
 </head>
 <body>
   <div class="app-container">
@@ -162,7 +162,7 @@
         </div>
       </section>
 
-      <!-- 3. GPU Table, Price Slider, Secure & Network Filters -->
+      <!-- 3. GPU Table, Price Slider, Secure & RAM Filters -->
       <section class="card gpu-card" aria-label="Выбор видеокарты">
         <div class="gpu-toolbar">
           <div class="price-slider-box">
@@ -179,6 +179,25 @@
               value="1.20"
               aria-label="Максимальная цена в евро за час"
             >
+          </div>
+
+          <div class="ram-filter-box">
+            <label for="min-ram-input" class="ram-filter-label">Мин. RAM:</label>
+            <div class="ram-input-wrapper">
+              <span class="ram-prefix">от</span>
+              <input
+                type="number"
+                id="min-ram-input"
+                class="ram-gb-input"
+                min="0"
+                max="65536"
+                step="1"
+                value="0"
+                aria-label="Минимальный объём системной RAM в ГБ (0 — любое)"
+              >
+              <span class="ram-unit">ГБ</span>
+            </div>
+            <span id="min-ram-hint" class="ram-hint">(любое)</span>
           </div>
 
           <div class="gpu-quick-buttons">
@@ -229,6 +248,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261114_01"></script>
+  <script type="module" src="app.js?v=20261114_02"></script>
 </body>
 </html>

@@ -166,6 +166,7 @@ const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1",
   SELECTED_ROWS: "yakushev_selected_gpus_v3",
   SECURE_ONLY: "yakushev_secure_only_v1",
+  MIN_RAM: "yakushev_min_ram_gb_v1",
   MAX_PRICE: "yakushev_max_price_v3",
   OPTIONS: "yakushev_options_v4",
   COLOR_SCHEME: "color-scheme",
@@ -182,6 +183,7 @@ const state = {
   userSelectionOverrides: new Map(),
   defaultSelectedAll: false,
   secureOnly: false,
+  minRamGb: 0,
   activePods: [],
   podControllers: new Map(), // Map<podId, PodController>
   currentTemplate: { ...DEFAULT_TEMPLATE },
@@ -244,6 +246,12 @@ function cleanGpuName(rawId, rawName) {
     return rawName.replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
   }
   return (rawId || "").replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
+}
+
+function normalizeMinRamGb(value) {
+  const num = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(num) || num <= 0) return 0;
+  return Math.min(65536, num);
 }
 
 function saveOptions() {
@@ -642,6 +650,7 @@ async function fetchGpuCatalog(silent = false) {
             price: Number(price),
             availability: gpu.availability || "NONE",
             maxCount: cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0),
+            minRam: Number.isFinite(gpu.minRam) ? gpu.minRam : null,
             cudaVersions: cuda13List,
             tierRank: tier ? tier.rank : 99,
             tierKey: tier ? tier.key : `other-${gpu.id}`,
@@ -861,6 +870,14 @@ function renderGpuTable() {
     cloudPill.className = `cloud-pill ${row.cloud.toLowerCase()}`;
     cloudPill.textContent = row.cloud;
     pillsRow.appendChild(cloudPill);
+
+    if (row.minRam && row.minRam > 0) {
+      const ramPill = document.createElement("span");
+      ramPill.className = "ram-pill";
+      ramPill.textContent = `RAM от ${row.minRam} ГБ`;
+      ramPill.title = "Минимальный объём системной RAM среди доступных сейчас хостов этой видеокарты";
+      pillsRow.appendChild(ramPill);
+    }
 
     nameWrap.append(titleSpan, pillsRow);
     tdName.appendChild(nameWrap);
@@ -1945,14 +1962,20 @@ function buildPayload(candidate) {
     env.DISABLE_SHUTDOWN_TIMER = "1";
   }
 
+  const minRamGb = normalizeMinRamGb(state.minRamGb);
+  const gpuConfig = {
+    id: candidate.gpuId,
+    count: 1,
+    allowedCudaVersions: tpl.allowedCudaVersions || ["13.0", "13.1", "13.2", "13.3", "13.4"]
+  };
+  if (minRamGb > 0) {
+    gpuConfig.minRamPerGpu = minRamGb;
+  }
+
   const payload = {
     name: `comfy-work-${slug}`,
     cloud: candidate.cloud,
-    gpu: {
-      id: candidate.gpuId,
-      count: 1,
-      allowedCudaVersions: tpl.allowedCudaVersions || ["13.0", "13.1", "13.2", "13.3", "13.4"]
-    },
+    gpu: gpuConfig,
     disk: tpl.containerDiskGb || 15,
     mounts: {
       persistent: {
@@ -2039,7 +2062,8 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
           pendingAlert.textContent = `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${oldBadPodId}...`;
         }
       } else {
-        if (pendingSub) pendingSub.textContent = `Создание пода по цене ${candidate.price.toFixed(2)} €/ч...`;
+        const ramNote = state.minRamGb > 0 ? `, RAM ≥ ${state.minRamGb} ГБ` : "";
+        if (pendingSub) pendingSub.textContent = `Создание пода по цене ${candidate.price.toFixed(2)} €/ч${ramNote}...`;
         if (pendingAlert) {
           pendingAlert.hidden = false;
           pendingAlert.className = "monitor-alert alert-info";
@@ -2282,6 +2306,32 @@ async function init() {
   };
   slider.addEventListener("input", onPriceChange);
   slider.addEventListener("change", onPriceChange);
+
+  // Min System RAM Filter
+  const minRamInput = document.getElementById("min-ram-input");
+  const minRamHint = document.getElementById("min-ram-hint");
+  if (minRamInput) {
+    const savedMinRam = localStorage.getItem(STORAGE_KEYS.MIN_RAM);
+    state.minRamGb = normalizeMinRamGb(savedMinRam);
+    minRamInput.value = String(state.minRamGb);
+
+    const updateRamHint = () => {
+      if (!minRamHint) return;
+      minRamHint.textContent = state.minRamGb === 0 ? "(любое)" : "(фильтр хоста)";
+    };
+    updateRamHint();
+
+    const onRamInput = () => {
+      state.minRamGb = normalizeMinRamGb(minRamInput.value);
+      localStorage.setItem(STORAGE_KEYS.MIN_RAM, String(state.minRamGb));
+      updateRamHint();
+    };
+    minRamInput.addEventListener("input", onRamInput);
+    minRamInput.addEventListener("change", () => {
+      onRamInput();
+      minRamInput.value = String(state.minRamGb);
+    });
+  }
 
   // Key Visibility Toggle
   const keyInput = document.getElementById("runpod-api-key");
