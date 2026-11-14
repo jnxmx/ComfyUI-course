@@ -197,6 +197,9 @@ const state = {
   currentTemplate: { ...DEFAULT_TEMPLATE },
   accountSecrets: [],
   ourPodIds: new Set(),
+  heldBadPodIds: new Set(),
+  redeployTriggeredPodIds: new Set(),
+  deployCreateInFlight: false,
   currentDeploySessionId: null,
   redeployCount: 0,
   redeployInProgress: false,
@@ -1142,6 +1145,7 @@ function getOrCreatePodController(podId, initData = {}) {
       logLines: [],
       logAbortController: null,
       cudaStagePassed: false,
+      cudaFatalTriggered: false,
       pollTimerId: null
     };
     if (initData.pod) {
@@ -1201,6 +1205,12 @@ async function fetchActivePods() {
         stopPodController(ctrl);
         state.podControllers.delete(id);
       }
+    }
+    for (const id of state.heldBadPodIds) {
+      if (!currentIds.has(id)) state.heldBadPodIds.delete(id);
+    }
+    for (const id of state.redeployTriggeredPodIds) {
+      if (!currentIds.has(id)) state.redeployTriggeredPodIds.delete(id);
     }
 
     for (const pod of pods) {
@@ -1321,6 +1331,8 @@ function createPodCardElement(ctrl) {
     deleteBtn.textContent = "Удаление...";
     stopPodController(ctrl);
     unmarkPodAsOurs(ctrl.podId);
+    state.heldBadPodIds.delete(ctrl.podId);
+    state.redeployTriggeredPodIds.delete(ctrl.podId);
     try {
       await runpodFetch(`/pods/${encodeURIComponent(ctrl.podId)}`, { method: "DELETE" });
       state.podControllers.delete(ctrl.podId);
@@ -1777,7 +1789,6 @@ async function startLogStreamForPod(ctrl) {
 }
 
 function handlePodLog(ctrl, entry) {
-  if (state.redeployInProgress) return;
   const line = String(entry.line || "").trim();
   const source = entry.source || "log";
   if (!line) return;
@@ -1798,20 +1809,23 @@ function handlePodLog(ctrl, entry) {
   if (!ctrl.isOurPod) return;
 
   const lowerLine = line.toLowerCase();
+  const isPreflightWarn = line.includes("[cuda][warn]");
 
-  // Detect fatal CUDA / GPU error (checked for ANY log source: system, container, docker daemon)
+  // Detect fatal CUDA / GPU error (ignore transient [cuda][warn] preflight attempts until fatal line)
   const isNotEnoughGpu =
     lowerLine.includes("not enough gpus free") ||
     (lowerLine.includes("error creating container") && lowerLine.includes("gpu"));
 
   const isCudaFatal =
-    line.includes("[fatal][gpu]") ||
-    line.includes("host_gpu_driver_corrupt") ||
-    line.includes("CUDA runtime initialization failed") ||
-    line.includes("torch.cuda.is_available() returned False") ||
-    line.includes("Error 803:") ||
-    line.includes("Error 804:") ||
-    isNotEnoughGpu;
+    !isPreflightWarn &&
+    (line.includes("[fatal][gpu]") ||
+      line.includes("STAGE: Host driver failure") ||
+      line.includes("host_gpu_driver_corrupt") ||
+      line.includes("CUDA runtime initialization failed") ||
+      line.includes("torch.cuda.is_available() returned False") ||
+      line.includes("Error 803:") ||
+      line.includes("Error 804:") ||
+      isNotEnoughGpu);
 
   if (isCudaFatal) {
     ctrl.stages.cuda = "error";
@@ -1823,10 +1837,13 @@ function handlePodLog(ctrl, entry) {
     }
     if (card) updatePodCardElement(ctrl, card);
 
-    const reason = isNotEnoughGpu
-      ? "Сбой GPU на хосте (not enough GPUs free)"
-      : "Сбой драйвера CUDA на хосте";
-    triggerRedeploy(ctrl.podId, reason);
+    if (!ctrl.cudaFatalTriggered) {
+      ctrl.cudaFatalTriggered = true;
+      const reason = isNotEnoughGpu
+        ? "Сбой GPU на хосте (not enough GPUs free)"
+        : "Сбой драйвера CUDA на хосте";
+      triggerRedeploy(ctrl.podId, reason);
+    }
     return;
   }
 
@@ -1835,7 +1852,10 @@ function handlePodLog(ctrl, entry) {
     ctrl.stages.cuda = "error";
     ctrl.subtitle = "✗ Критическая перегрузка CPU хоста";
     if (card) updatePodCardElement(ctrl, card);
-    triggerRedeploy(ctrl.podId, "Критическая перегрузка CPU хоста");
+    if (!ctrl.cudaFatalTriggered) {
+      ctrl.cudaFatalTriggered = true;
+      triggerRedeploy(ctrl.podId, "Критическая перегрузка CPU хоста");
+    }
     return;
   }
 
@@ -1910,8 +1930,13 @@ function handlePodLog(ctrl, entry) {
     }
 
     if (line.includes("Checking CUDA initialization") || line.includes("[cuda][warn] preflight")) {
-      ctrl.stages.cuda = "active";
-      ctrl.subtitle = "Инициализация и проверка CUDA 13.0...";
+      if (ctrl.stages.cuda !== "error") {
+        ctrl.stages.cuda = "active";
+        const attemptMatch = line.match(/preflight attempt (\d+\/\d+)/i);
+        ctrl.subtitle = attemptMatch
+          ? `Проверка CUDA 13.0 (попытка ${attemptMatch[1]})...`
+          : "Инициализация и проверка CUDA 13.0...";
+      }
     }
 
     // Fast CUDA & CPU completion detection
@@ -1988,12 +2013,18 @@ async function pollHealthForPod(ctrl) {
       ctrl.subtitle = "✗ Ошибка хоста: not enough GPUs free (CUDA недоступна)";
       const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
       if (card) updatePodCardElement(ctrl, card);
-      triggerRedeploy(ctrl.podId, "Сбой GPU на хосте (not enough GPUs free)");
+      if (!ctrl.cudaFatalTriggered) {
+        ctrl.cudaFatalTriggered = true;
+        triggerRedeploy(ctrl.podId, "Сбой GPU на хосте (not enough GPUs free)");
+      }
       return;
     }
 
     if (pod.status === "ERROR" || pod.status === "EXITED") {
-      triggerRedeploy(ctrl.podId, `Статус пода: ${pod.status}`);
+      if (!ctrl.cudaFatalTriggered) {
+        ctrl.cudaFatalTriggered = true;
+        triggerRedeploy(ctrl.podId, `Статус пода: ${pod.status}`);
+      }
       return;
     }
 
@@ -2091,11 +2122,35 @@ function buildPayload(candidate) {
 }
 
 /**
+ * Удаляет все удерживаемые сбойные поды (после создания замены или при остановке без автоповтора).
+ */
+async function deleteHeldBadPods(excludePodId = null) {
+  const ids = [...state.heldBadPodIds].filter((id) => id && id !== excludePodId);
+  for (const badId of ids) {
+    state.heldBadPodIds.delete(badId);
+    state.redeployTriggeredPodIds.delete(badId);
+    unmarkPodAsOurs(badId);
+    const badCtrl = state.podControllers.get(badId);
+    if (badCtrl) {
+      stopPodController(badCtrl);
+      state.podControllers.delete(badId);
+    }
+    try {
+      await runpodFetch(`/pods/${encodeURIComponent(badId)}`, { method: "DELETE" });
+    } catch (delErr) {
+      console.warn(`Предупреждение при удалении старого пода ${badId}:`, delErr);
+    }
+  }
+}
+
+/**
  * CRITICAL RULE:
  * При попытке пересоздать под сначала запускается запуск нового пода,
- * и только после успешного создания глушится старый, чтобы не попасть на тот же сбойный хост!
+ * и только после успешного создания глушатся старые сбойные поды, чтобы не попасть на тот же сбойный хост!
  */
 async function startDeploymentSequence(candidates, oldBadPodId = null, { singleGpuOnly = false } = {}) {
+  if (state.deployCreateInFlight) return;
+
   const podsSection = document.getElementById("pods-section");
   if (podsSection) podsSection.hidden = false;
   podsSection.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2106,6 +2161,9 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
   const pendingAlert = document.getElementById("pending-deploy-alert");
   const cancelBtn = document.getElementById("cancel-pending-deploy-btn");
 
+  if (oldBadPodId) {
+    state.heldBadPodIds.add(oldBadPodId);
+  }
   if (pendingCard) pendingCard.hidden = false;
 
   const sessionId = Symbol("deploy-session");
@@ -2116,6 +2174,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
   if (cancelBtn) {
     cancelBtn.onclick = () => {
       state.currentDeploySessionId = null;
+      state.redeployInProgress = false;
       if (pendingCard) pendingCard.hidden = true;
     };
   }
@@ -2136,12 +2195,16 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
       state.redeployCount += 1;
       if (pendingTitle) pendingTitle.textContent = `Запуск: ${candidate.displayName} (${candidate.cloud})`;
 
-      if (oldBadPodId) {
-        if (pendingSub) pendingSub.textContent = `Запуск нового пода (сбойный хост ${oldBadPodId} удерживается)...`;
+      const heldList = [...state.heldBadPodIds];
+      if (heldList.length > 0) {
+        const heldLabel = heldList.length === 1
+          ? `сбойный хост ${heldList[0]} удерживается`
+          : `сбойные хосты ${heldList.join(", ")} удерживаются`;
+        if (pendingSub) pendingSub.textContent = `Запуск нового пода (${heldLabel})...`;
         if (pendingAlert) {
           pendingAlert.hidden = false;
           pendingAlert.className = "monitor-alert alert-info";
-          pendingAlert.textContent = `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${oldBadPodId}...`;
+          pendingAlert.textContent = `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${heldList.join(", ")}...`;
         }
       } else {
         const ramNote = state.minRamGb > 0 ? `, RAM ≥ ${state.minRamGb} ГБ` : "";
@@ -2153,29 +2216,53 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         }
       }
 
+      if (state.currentDeploySessionId !== sessionId || state.deployCreateInFlight) return;
+
+      state.deployCreateInFlight = true;
+      let created = null;
       try {
         const payload = buildPayload(candidate);
-        const created = await runpodFetch("/pods", {
+        created = await runpodFetch("/pods", {
           method: "POST",
           body: JSON.stringify(payload)
         });
+      } catch (err) {
+        state.deployCreateInFlight = false;
+        lastErrorMessage = err.message || "";
+        const lowerErr = lastErrorMessage.toLowerCase();
+        if (
+          lastErrorMessage.includes("401") ||
+          lastErrorMessage.includes("402") ||
+          lastErrorMessage.includes("403") ||
+          lowerErr.includes("unauthorized") ||
+          lowerErr.includes("payment") ||
+          lowerErr.includes("balance")
+        ) {
+          isFatalAuthOrBilling = true;
+          break;
+        }
 
+        if (pendingAlert) {
+          pendingAlert.hidden = false;
+          pendingAlert.className = "monitor-alert alert-warn";
+          pendingAlert.textContent = `Попытка #${state.redeployCount} (${candidate.displayName}): ${err.message}.`;
+        }
+        await new Promise((r) => setTimeout(r, 600));
+        continue;
+      }
+      state.deployCreateInFlight = false;
+
+      try {
         const newPodId = created?.id;
         if (!newPodId) throw new Error("RunPod вернул пустой ID.");
 
         markPodAsOurs(newPodId);
-
-        if (oldBadPodId) {
-          unmarkPodAsOurs(oldBadPodId);
-          try {
-            await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
-          } catch (delErr) {
-            console.warn(`Предупреждение при удалении старого пода ${oldBadPodId}:`, delErr);
-          }
-        }
+        await deleteHeldBadPods(newPodId);
 
         if (pendingCard) pendingCard.hidden = true;
-        state.currentDeploySessionId = null;
+        if (state.currentDeploySessionId === sessionId) {
+          state.currentDeploySessionId = null;
+        }
 
         // Initialize controller for the newly launched pod
         const ctrl = getOrCreatePodController(newPodId, {
@@ -2202,19 +2289,6 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         return;
       } catch (err) {
         lastErrorMessage = err.message || "";
-        const lowerErr = lastErrorMessage.toLowerCase();
-        if (
-          lastErrorMessage.includes("401") ||
-          lastErrorMessage.includes("402") ||
-          lastErrorMessage.includes("403") ||
-          lowerErr.includes("unauthorized") ||
-          lowerErr.includes("payment") ||
-          lowerErr.includes("balance")
-        ) {
-          isFatalAuthOrBilling = true;
-          break;
-        }
-
         if (pendingAlert) {
           pendingAlert.hidden = false;
           pendingAlert.className = "monitor-alert alert-warn";
@@ -2227,6 +2301,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     if (state.currentDeploySessionId !== sessionId) return;
 
     if (isFatalAuthOrBilling) {
+      if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
       if (pendingAlert) {
         pendingAlert.hidden = false;
         pendingAlert.className = "monitor-alert alert-error";
@@ -2235,13 +2310,11 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
       return;
     }
 
-    const autoRedeploy = document.getElementById("opt-auto-redeploy").checked;
+    const autoRedeploy = document.getElementById("opt-auto-redeploy")?.checked;
     if (!autoRedeploy) {
-      if (oldBadPodId) {
-        try {
-          await runpodFetch(`/pods/${encodeURIComponent(oldBadPodId)}`, { method: "DELETE" });
-        } catch {}
-      }
+      if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
+      await deleteHeldBadPods();
+      await fetchActivePods();
       if (pendingAlert) {
         pendingAlert.hidden = false;
         pendingAlert.className = "monitor-alert alert-error";
@@ -2274,16 +2347,14 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 }
 
 async function triggerRedeploy(badPodId, reason) {
-  if (state.redeployInProgress) return;
-  state.redeployInProgress = true;
+  if (!badPodId) return;
+  if (state.redeployTriggeredPodIds.has(badPodId)) return;
+  state.redeployTriggeredPodIds.add(badPodId);
 
-  const autoRedeploy = document.getElementById("opt-auto-redeploy").checked;
+  const autoRedeploy = document.getElementById("opt-auto-redeploy")?.checked;
   const ctrl = state.podControllers.get(badPodId);
   if (ctrl) {
-    ctrl.alert = {
-      msg: `Обнаружена проблема: ${reason}. Перезапуск пода...`,
-      level: "warn"
-    };
+    ctrl.cudaFatalTriggered = true;
   }
 
   if (!autoRedeploy) {
@@ -2292,19 +2363,35 @@ async function triggerRedeploy(badPodId, reason) {
         msg: `Ошибка пода (${reason}). Повторные попытки отключены.`,
         level: "error"
       };
+      const card = document.querySelector(`.pod-card[data-pod-id="${badPodId}"]`);
+      if (card) updatePodCardElement(ctrl, card);
     }
-    state.redeployInProgress = false;
     return;
   }
 
-  let queue = [];
+  state.heldBadPodIds.add(badPodId);
+  if (ctrl) {
+    ctrl.alert = {
+      msg: `Обнаружена проблема: ${reason}. Перезапуск пода...`,
+      level: "warn"
+    };
+    const card = document.querySelector(`.pod-card[data-pod-id="${badPodId}"]`);
+    if (card) updatePodCardElement(ctrl, card);
+  }
+
+  // If a deploy/redeploy session is already active, it will hold and clean up this pod ID too
+  if (state.redeployInProgress || state.currentDeploySessionId !== null) {
+    return;
+  }
+
+  state.redeployInProgress = true;
   try {
     await fetchGpuCatalog(true);
-    queue = getSelectedCandidatesQueue();
+    const queue = getSelectedCandidatesQueue();
+    await startDeploymentSequence(queue, badPodId, { singleGpuOnly: false });
   } finally {
     state.redeployInProgress = false;
   }
-  await startDeploymentSequence(queue, badPodId, { singleGpuOnly: false });
 }
 
 function getSelectedCandidatesQueue() {
