@@ -6,6 +6,14 @@
 const RUNPOD_API_BASE = "https://api.runpod.io/v2";
 const CATALOG_AUTO_REFRESH_MS = 12000;
 
+// Деления слайдера цены: 0.20..1.60 с шагом 0.05, затем последние 2 деления — 2.00 и 3.00
+const PRICE_STEPS = Object.freeze([
+  ...Array.from({ length: 29 }, (_, i) => Number((0.2 + i * 0.05).toFixed(2))),
+  2.0,
+  3.0
+]);
+const DEFAULT_PRICE_STEP_INDEX = 20; // 1.20 €/ч
+
 const DEFAULT_TEMPLATE = Object.freeze({
   templateId: "casls01eko",
   name: "comfy.work CUDA 13.0 with New Manager",
@@ -252,6 +260,31 @@ function normalizeMinRamGb(value) {
   const num = Number.parseInt(String(value ?? ""), 10);
   if (!Number.isFinite(num) || num <= 0) return 0;
   return Math.min(65536, num);
+}
+
+function getMaxPriceFromSlider() {
+  const slider = document.getElementById("max-price-slider");
+  if (!slider) return PRICE_STEPS[DEFAULT_PRICE_STEP_INDEX];
+  const idx = Number.parseInt(slider.value, 10);
+  if (Number.isFinite(idx) && idx >= 0 && idx < PRICE_STEPS.length) {
+    return PRICE_STEPS[idx];
+  }
+  return PRICE_STEPS[DEFAULT_PRICE_STEP_INDEX];
+}
+
+function findClosestPriceStepIndex(rawPrice) {
+  const price = Number.parseFloat(rawPrice);
+  if (!Number.isFinite(price)) return DEFAULT_PRICE_STEP_INDEX;
+  let bestIdx = 0;
+  let bestDiff = Infinity;
+  for (let i = 0; i < PRICE_STEPS.length; i += 1) {
+    const diff = Math.abs(PRICE_STEPS[i] - price);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
 }
 
 function rowFailsRamFilter(row, minRamGb) {
@@ -749,7 +782,7 @@ function renderGpuTable() {
   const tbody = document.getElementById("gpu-tbody");
   tbody.replaceChildren();
 
-  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
+  const maxPrice = getMaxPriceFromSlider();
   const minRamGb = normalizeMinRamGb(state.minRamGb);
 
   let displayRows = [...state.catalogRows];
@@ -2275,7 +2308,7 @@ async function triggerRedeploy(badPodId, reason) {
 }
 
 function getSelectedCandidatesQueue() {
-  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
+  const maxPrice = getMaxPriceFromSlider();
   const minRamGb = normalizeMinRamGb(state.minRamGb);
   return state.catalogRows.filter((r) => {
     if (r.price > maxPrice) return false;
@@ -2288,7 +2321,7 @@ function getSelectedCandidatesQueue() {
 }
 
 function hasAnyDesiredGpuMatchingFilters() {
-  const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
+  const maxPrice = getMaxPriceFromSlider();
   const minRamGb = normalizeMinRamGb(state.minRamGb);
   return state.catalogRows.some((r) => {
     if (r.price > maxPrice) return false;
@@ -2342,18 +2375,22 @@ async function init() {
   const slider = document.getElementById("max-price-slider");
   const priceVal = document.getElementById("max-price-val");
 
+  slider.min = "0";
+  slider.max = String(PRICE_STEPS.length - 1);
+  slider.step = "1";
+
   const savedPrice = localStorage.getItem(STORAGE_KEYS.MAX_PRICE);
-  if (savedPrice && !isNaN(Number.parseFloat(savedPrice))) {
-    slider.value = savedPrice;
-    priceVal.textContent = `${Number.parseFloat(savedPrice).toFixed(2)} €/ч`;
-  } else {
-    slider.value = "1.20";
-    priceVal.textContent = "1.20 €/ч";
-  }
+  const initIdx = savedPrice !== null ? findClosestPriceStepIndex(savedPrice) : DEFAULT_PRICE_STEP_INDEX;
+  slider.value = String(initIdx);
+  const initPrice = PRICE_STEPS[initIdx];
+  priceVal.textContent = `${initPrice.toFixed(2)} €/ч`;
+  slider.setAttribute("aria-valuetext", `${initPrice.toFixed(2)} €/ч`);
 
   const onPriceChange = () => {
-    const val = Number.parseFloat(slider.value).toFixed(2);
+    const price = getMaxPriceFromSlider();
+    const val = price.toFixed(2);
     priceVal.textContent = `${val} €/ч`;
+    slider.setAttribute("aria-valuetext", `${val} €/ч`);
     localStorage.setItem(STORAGE_KEYS.MAX_PRICE, val);
     renderGpuTable();
   };
