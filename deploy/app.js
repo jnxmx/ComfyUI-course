@@ -254,6 +254,17 @@ function normalizeMinRamGb(value) {
   return Math.min(65536, num);
 }
 
+function rowFailsRamFilter(row, minRamGb) {
+  if (minRamGb <= 0) return false;
+  return !row.minRam || row.minRam < minRamGb;
+}
+
+function getRowFilterBucket(row, maxPrice, minRamGb) {
+  if (row.price > maxPrice) return 2;
+  if (rowFailsRamFilter(row, minRamGb)) return 1;
+  return 0;
+}
+
 function saveOptions() {
   const newManager = document.getElementById("opt-new-manager")?.checked ?? true;
   const restoreBackup = document.getElementById("opt-restore-backup")?.checked ?? true;
@@ -739,6 +750,7 @@ function renderGpuTable() {
   tbody.replaceChildren();
 
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
+  const minRamGb = normalizeMinRamGb(state.minRamGb);
 
   let displayRows = [...state.catalogRows];
   if (state.secureOnly) {
@@ -758,8 +770,9 @@ function renderGpuTable() {
 
   /**
    * СОРТИРОВКА:
-   * 1. Карты в пределах фильтра цены (price <= maxPrice) идут СВЕРХУ (0).
-   *    Карты дороже фильтра цены (price > maxPrice) отбрасываются ВНИЗ (1)!
+   * 1. Карты в пределах цены И RAM идут СВЕРХУ (0).
+   *    Карты в пределах цены, но ниже фильтра RAM отбрасываются ВНИЗ (1).
+   *    Карты дороже фильтра цены (price > maxPrice) отбрасываются В САМЫЙ НИЗ (2).
    * 2. Приоритетный ранг (1..15, затем 99)
    * 3. Sub-rank
    * 4. Community выше Secure (0 vs 1)
@@ -767,9 +780,8 @@ function renderGpuTable() {
    * 6. Цена по возрастанию
    */
   displayRows.sort((a, b) => {
-    const aExceeds = a.price > maxPrice ? 1 : 0;
-    const bExceeds = b.price > maxPrice ? 1 : 0;
-    if (aExceeds !== bExceeds) return aExceeds - bExceeds;
+    const bucketDiff = getRowFilterBucket(a, maxPrice, minRamGb) - getRowFilterBucket(b, maxPrice, minRamGb);
+    if (bucketDiff !== 0) return bucketDiff;
 
     if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
     if (a.subRank !== b.subRank) return a.subRank - b.subRank;
@@ -784,13 +796,29 @@ function renderGpuTable() {
     return a.price - b.price;
   });
 
+  let addedRamDivider = false;
   let addedPriceDivider = false;
   let inOtherSection = false;
+  let inOtherRamSection = false;
   let inOtherOverpricedSection = false;
 
   for (const row of displayRows) {
     const exceedsPrice = row.price > maxPrice;
+    const failsRam = rowFailsRamFilter(row, minRamGb);
+    const failsFilter = exceedsPrice || failsRam;
     const isDesired = isGpuDesiredByUser(row);
+
+    // Разделитель перед видеокартами в пределах цены, не проходящими по RAM
+    if (!exceedsPrice && failsRam && !addedRamDivider) {
+      addedRamDivider = true;
+      const divTr = document.createElement("tr");
+      divTr.className = "table-divider-row table-divider-ram";
+      const divTd = document.createElement("td");
+      divTd.colSpan = 5;
+      divTd.textContent = `Не подходит под фильтр RAM (< ${minRamGb} ГБ)`;
+      divTr.appendChild(divTd);
+      tbody.appendChild(divTr);
+    }
 
     // Разделитель перед видеокартами, которые улетели вниз из-за превышения цены
     if (exceedsPrice && !addedPriceDivider) {
@@ -804,14 +832,26 @@ function renderGpuTable() {
       tbody.appendChild(divTr);
     }
 
-    // Разделитель "Другие видеокарты" в пределах цены
-    if (!exceedsPrice && row.tierRank === 99 && !inOtherSection) {
+    // Разделитель "Другие видеокарты" в подходящем блоке
+    if (!failsFilter && row.tierRank === 99 && !inOtherSection) {
       inOtherSection = true;
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
       divTd.textContent = "Другие видеокарты с поддержкой CUDA ≥ 13.0";
+      divTr.appendChild(divTd);
+      tbody.appendChild(divTr);
+    }
+
+    // Разделитель "Другие видеокарты" в блоке RAM
+    if (!exceedsPrice && failsRam && row.tierRank === 99 && !inOtherRamSection) {
+      inOtherRamSection = true;
+      const divTr = document.createElement("tr");
+      divTr.className = "table-divider-row";
+      const divTd = document.createElement("td");
+      divTd.colSpan = 5;
+      divTd.textContent = `Другие видеокарты (RAM < ${minRamGb} ГБ, CUDA ≥ 13.0)`;
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
@@ -831,21 +871,30 @@ function renderGpuTable() {
     const tr = document.createElement("tr");
     tr.dataset.rowId = row.rowId;
 
-    if (exceedsPrice) {
+    if (failsFilter) {
       tr.classList.add("row-exceeds-price");
     }
 
+    let mismatchReason = "";
+    if (exceedsPrice && failsRam) {
+      mismatchReason = `Превышает лимит ${maxPrice.toFixed(2)} €/ч и меньше фильтра RAM (${minRamGb} ГБ).`;
+    } else if (exceedsPrice) {
+      mismatchReason = `Превышает лимит ${maxPrice.toFixed(2)} €/ч. Увеличьте ползунок цены, чтобы выбрать.`;
+    } else if (failsRam) {
+      mismatchReason = `Доступная RAM ниже фильтра ${minRamGb} ГБ. Уменьшите фильтр RAM, чтобы выбрать.`;
+    }
+
     // Checkbox:
-    // Видеокарты, превышающие цену, не имеют включенных галочек и заблокированы для выбора
-    const isChecked = !exceedsPrice && isDesired;
+    // Видеокарты, не проходящие по фильтрам цены/RAM, не имеют включенных галочек и заблокированы
+    const isChecked = !failsFilter && isDesired;
     const tdCheck = document.createElement("td");
     tdCheck.className = "col-check";
     const chk = document.createElement("input");
     chk.type = "checkbox";
     chk.checked = isChecked;
-    chk.disabled = exceedsPrice;
-    if (exceedsPrice) {
-      chk.title = `Превышает лимит ${maxPrice.toFixed(2)} €/ч. Увеличьте ползунок цены, чтобы выбрать.`;
+    chk.disabled = failsFilter;
+    if (mismatchReason) {
+      chk.title = mismatchReason;
     }
     chk.addEventListener("change", () => {
       state.userSelectionOverrides.set(row.rowId, chk.checked);
@@ -911,9 +960,9 @@ function renderGpuTable() {
     launchBtn.type = "button";
     launchBtn.className = "btn btn-subtle-sm";
     launchBtn.textContent = "Запустить";
-    launchBtn.disabled = row.availability === "NONE" || exceedsPrice;
-    if (exceedsPrice) {
-      launchBtn.title = `Превышает лимит ${maxPrice.toFixed(2)} €/ч`;
+    launchBtn.disabled = row.availability === "NONE" || failsFilter;
+    if (mismatchReason) {
+      launchBtn.title = mismatchReason;
     } else if (row.availability === "NONE") {
       launchBtn.title = "Нет в наличии";
     }
@@ -2227,8 +2276,10 @@ async function triggerRedeploy(badPodId, reason) {
 
 function getSelectedCandidatesQueue() {
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
+  const minRamGb = normalizeMinRamGb(state.minRamGb);
   return state.catalogRows.filter((r) => {
     if (r.price > maxPrice) return false;
+    if (rowFailsRamFilter(r, minRamGb)) return false;
     if (!isGpuDesiredByUser(r)) return false;
     if (r.availability === "NONE") return false;
     if (state.secureOnly && r.cloud !== "SECURE") return false;
@@ -2238,8 +2289,10 @@ function getSelectedCandidatesQueue() {
 
 function hasAnyDesiredGpuMatchingFilters() {
   const maxPrice = Number.parseFloat(document.getElementById("max-price-slider").value) || 1.2;
+  const minRamGb = normalizeMinRamGb(state.minRamGb);
   return state.catalogRows.some((r) => {
     if (r.price > maxPrice) return false;
+    if (rowFailsRamFilter(r, minRamGb)) return false;
     if (!isGpuDesiredByUser(r)) return false;
     if (state.secureOnly && r.cloud !== "SECURE") return false;
     return true;
@@ -2325,6 +2378,7 @@ async function init() {
       state.minRamGb = normalizeMinRamGb(minRamInput.value);
       localStorage.setItem(STORAGE_KEYS.MIN_RAM, String(state.minRamGb));
       updateRamHint();
+      renderGpuTable();
     };
     minRamInput.addEventListener("input", onRamInput);
     minRamInput.addEventListener("change", () => {
@@ -2460,7 +2514,7 @@ async function init() {
         startDeploymentSequence([], null, { singleGpuOnly: false });
         return;
       }
-      alert("Нет доступных видеокарт среди выбранных по текущим фильтрам (цена, Secure). Увеличьте ползунок цены или выберите другие карты.");
+      alert("Нет доступных видеокарт среди выбранных по текущим фильтрам (цена, RAM, Secure). Измените фильтры или выберите другие карты.");
       return;
     }
     startDeploymentSequence(queue, null, { singleGpuOnly: false });

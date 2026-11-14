@@ -496,6 +496,19 @@ input[type="range"] {
   border-bottom: 1.5px solid var(--border);
 }
 
+.table-divider-ram td {
+  background-color: #fffbeb !important;
+  color: #92400e !important;
+  border-top: 2px solid #fde68a !important;
+  border-bottom: 2px solid #fde68a !important;
+}
+
+[data-theme="dark"] .table-divider-ram td {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+
 .table-divider-price td {
   background-color: #fef2f2 !important;
   color: #991b1b !important;
