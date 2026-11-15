@@ -375,8 +375,8 @@
                     const halfW = Math.max(size.x, size.z) / 2;
                     const fitDistY = halfH / Math.tan(fovRad / 2);
                     const fitDistX = halfW / (Math.tan(fovRad / 2) * camera.aspect);
-                    const dist = Math.max(fitDistY, fitDistX) * 1.18;
-                    camera.position.set(0, size.y * 0.02, dist);
+                    const dist = Math.max(fitDistY, fitDistX) * 1.48;
+                    camera.position.set(0, 0, dist);
                     controls.target.set(0, 0, 0);
                     controls.update();
                 }
