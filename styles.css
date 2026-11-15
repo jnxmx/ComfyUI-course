@@ -1507,10 +1507,10 @@ html:has(body.gallery-page) {
 }
 
 .course-page .highlight {
-  font-weight: 600;
-  color: #111111;
-  background-color: rgba(184, 29, 36, 0.08);
-  padding: 0.04em 0.26em;
+  font-weight: inherit;
+  color: inherit;
+  background: none;
+  padding: 0;
   border: none;
   border-radius: 0;
 }
