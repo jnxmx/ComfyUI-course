@@ -1224,6 +1224,10 @@ body.course-page::after {
   background: #dcded6;
 }
 
+.course-page #schedule > p {
+  margin-bottom: 1.25rem;
+}
+
 .course-page #schedule ol {
   list-style: decimal outside;
   column-count: 2;
