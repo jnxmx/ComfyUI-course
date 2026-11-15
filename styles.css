@@ -1183,6 +1183,11 @@ body.gallery-page::before {
   margin-right: auto;
 }
 
+.students-gallery-intro {
+  margin-top: 2.75rem;
+  margin-bottom: 0;
+}
+
 .students-gallery-intro p {
   margin: 0 0 1.25rem;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
