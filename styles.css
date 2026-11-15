@@ -1167,15 +1167,6 @@ body.course-page::after {
   letter-spacing: -0.01em;
   text-transform: uppercase;
   margin: 0 0 1rem;
-  margin-left: 4%;
-}
-
-.course-page main section:nth-of-type(even) > h3 {
-  margin-left: 11%;
-}
-
-.course-page main section:nth-of-type(3n) > h3 {
-  margin-left: 7%;
 }
 
 .course-page main p,
@@ -1281,14 +1272,6 @@ body.course-page::after {
 @media (max-width: 600px) {
   .course-page .content-wrapper {
     padding: 1.5rem 1.25rem 0.75rem;
-  }
-  .course-page main section > h3,
-  .course-page main section:nth-of-type(even) > h3,
-  .course-page main section:nth-of-type(3n) > h3 {
-    margin-left: 0;
-  }
-  .course-page main section:nth-of-type(even) > h3 {
-    margin-left: 4%;
   }
   .course-page #schedule ol {
     column-count: 1 !important;
