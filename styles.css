@@ -1202,11 +1202,6 @@ body.course-page::after {
   fill: #1a1a1a;
 }
 
-.course-page .node-text--sub {
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .course-page .course-gallery-link,
 .course-page .course-ask-link {
   margin-left: 0;
@@ -1293,6 +1288,16 @@ body.course-page::after {
   letter-spacing: -0.01em;
   color: #111111;
   text-transform: none;
+}
+
+@media (min-width: 960px) {
+  .course-page {
+    overflow-x: clip;
+  }
+  .course-page main p,
+  .course-page main ul {
+    font-size: 1.12vw;
+  }
 }
 
 .course-page main p {
