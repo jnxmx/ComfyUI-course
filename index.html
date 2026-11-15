@@ -5,8 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=40">
+    <link rel="stylesheet" href="styles.css?v=42">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+            "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.4.0/spark.module.js"
+        }
+    }
+    </script>
 </head>
 <body class="course-page gallery-page">
     <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
@@ -236,6 +245,7 @@
 
                 <section id="instructor">
             <h3>О&nbsp;преподавателе</h3>
+            <div class="instructor-splat" id="instructor-splat" aria-label="Интерактивная 3D-модель рядом с разделом о преподавателе"></div>
             <p><span class="highlight">Иван Якушев</span> — цифровой визуальный художник и преподаватель.</p>
             <p>С 2022 года преподаёт во Франции в национальной высшей школе искусства и дизайна <a href="https://www.ensad-nancy.fr/" target="_blank">ENSAD Nancy</a>. С 2024 года ведёт практический курс по применению ИИ в искусстве для студентов-художников ENSAD Nancy и инженеров <a href="https://mines-nancy.univ-lorraine.fr/" target="_blank">École des Mines Nancy</a>.</p>
             <p>Организовывал и проводил воркшопы по нейросетевому искусству для студентов художественных вузов Франции, Бельгии, Италии и Германии в рамках программы Erasmus. С 2015 по 2022 год преподавал в <a href="https://design.hse.ru/" target="_blank">HSE Art and Design School</a> визуальную коммуникацию и алгоритмическую графику.</p>
@@ -299,6 +309,81 @@
                 document.body.style.setProperty('--raster-noise-url', `url("${noiseCanvas.toDataURL('image/png')}")`);
             }
         });
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
+
+        const container = document.getElementById('instructor-splat');
+        if (container) {
+            const width = container.clientWidth || 320;
+            const height = container.clientHeight || 360;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(40, width / height, 0.05, 100);
+            camera.position.set(0, 0.15, 2.4);
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(width, height);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+
+            const spark = new SparkRenderer({ renderer });
+            scene.add(spark);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.06;
+            controls.enableZoom = false;
+            controls.enablePan = false;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.1;
+
+            const splatMesh = new SplatMesh({ url: 'assets/instructor_idol.spz' });
+            splatMesh.rotation.x = Math.PI;
+            const pivot = new THREE.Group();
+            pivot.add(splatMesh);
+            scene.add(pivot);
+
+            splatMesh.initialized.then(() => {
+                pivot.updateMatrixWorld(true);
+                const box = new THREE.Box3().setFromObject(pivot);
+                if (box && !box.isEmpty()) {
+                    const center = new THREE.Vector3();
+                    const size = new THREE.Vector3();
+                    box.getCenter(center);
+                    box.getSize(size);
+                    pivot.position.sub(center);
+
+                    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                    const fovRad = (camera.fov * Math.PI) / 180;
+                    const dist = (maxDim / 2) / Math.tan(fovRad / 2) * 1.35;
+                    camera.position.set(0, size.y * 0.06, dist);
+                    controls.target.set(0, 0, 0);
+                    controls.update();
+                }
+            }).catch((err) => {
+                console.error('Failed to load instructor splat:', err);
+            });
+
+            const resizeObserver = new ResizeObserver((entries) => {
+                for (const entry of entries) {
+                    const w = Math.max(1, Math.floor(entry.contentRect.width));
+                    const h = Math.max(1, Math.floor(entry.contentRect.height));
+                    camera.aspect = w / h;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(w, h);
+                }
+            });
+            resizeObserver.observe(container);
+
+            renderer.setAnimationLoop(() => {
+                controls.update();
+                renderer.render(scene, camera);
+            });
+        }
     </script>
 
 </body>

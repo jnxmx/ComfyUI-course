@@ -1460,6 +1460,42 @@ html:has(body.course-page) {
   margin-bottom: 0.55rem;
 }
 
+.course-page .instructor-splat {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1 / 1.15;
+  margin: 0.5rem auto 1.25rem;
+  cursor: grab;
+  position: relative;
+}
+
+.course-page .instructor-splat:active {
+  cursor: grabbing;
+}
+
+.course-page .instructor-splat canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (min-width: 960px) {
+  .course-page #instructor {
+    position: relative;
+  }
+  .course-page .instructor-splat {
+    position: absolute;
+    right: calc(100% + 50px);
+    top: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: 460px;
+    aspect-ratio: auto;
+    margin: 0;
+  }
+}
+
 @media (max-width: 600px) {
   .course-page .content-wrapper,
   .course-page .content-wrapper.course-layout {
