@@ -1125,20 +1125,47 @@ body.course-page::after {
   display: none;
 }
 
-.course-page .content-wrapper {
-  max-width: 860px;
-  padding-top: 2rem;
-  padding-bottom: 0.75rem;
+.course-page .content-wrapper.course-layout {
+  max-width: 1380px;
+  padding: 2rem 2rem 0.75rem;
   color: #111111;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.25rem;
+}
+
+@media (min-width: 960px) {
+  .course-page .content-wrapper.course-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+  }
+  .course-page .course-sidebar {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+.course-page .course-sidebar {
+  min-width: 0;
+}
+
+.course-page .course-main-column {
+  min-width: 0;
+}
+
+.course-page .gallery-editorial-block--01,
+.course-page .gallery-editorial-block--02 {
+  margin-left: 0;
 }
 
 .course-page .gallery-editorial-block--01 {
-  margin-bottom: 0.9rem;
+  margin-bottom: 1.15rem;
 }
 
 .course-page .gallery-editorial-block--01 h1 {
-  font-size: clamp(1.35rem, 2.9vw, 2.35rem);
-  line-height: 1.03;
+  font-size: clamp(1.3rem, 2.15vw, 1.95rem);
+  line-height: 1.04;
   letter-spacing: -0.025em;
   font-weight: 700;
   color: #747678;
@@ -1149,20 +1176,24 @@ body.course-page::after {
     0 0 3px rgba(116, 118, 120, 0.24);
 }
 
-.course-page .course-lead {
-  margin-bottom: 3rem;
-}
-
-.course-page main p.course-meta {
-  margin: 0 0 0.45rem;
+.course-page .course-meta {
+  margin: 0 0 1.25rem;
   font-size: 0.82rem;
   font-weight: 400;
-  line-height: 1.32;
+  line-height: 1.38;
   letter-spacing: -0.01em;
   color: #111111;
 }
 
-.course-page main p.course-status {
+.course-page .course-sidebar-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem 1.25rem;
+  margin-left: 0;
+}
+
+.course-page .course-status {
   margin: 0;
   font-size: 0.82rem;
   font-weight: 600;
@@ -1287,7 +1318,8 @@ body.course-page::after {
 }
 
 @media (max-width: 600px) {
-  .course-page .content-wrapper {
+  .course-page .content-wrapper,
+  .course-page .content-wrapper.course-layout {
     padding: 1.5rem 1.25rem 0.75rem;
   }
   .course-page #schedule ol {
