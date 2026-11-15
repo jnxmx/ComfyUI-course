@@ -1278,21 +1278,13 @@ html:has(body.gallery-page) {
   .course-page .content-wrapper.course-layout {
     grid-template-columns: 50% 50%;
     gap: 0;
-    padding: 24px 0 15px;
+    padding: 24px 0 calc(84px + env(safe-area-inset-bottom, 0px));
     align-items: start;
   }
   .course-page .course-sidebar,
   .course-page .course-main-column {
     padding: 0 25px;
     box-sizing: border-box;
-  }
-  .course-page .course-ask-link {
-    position: fixed;
-    left: 25px;
-    bottom: 15px;
-    z-index: 10;
-    margin: 0;
-    padding: 0;
   }
 }
 
@@ -1368,10 +1360,18 @@ html:has(body.gallery-page) {
   display: inline-block;
 }
 
-@media (min-width: 960px) {
-  .course-page .course-enroll-mobile {
-    display: none;
-  }
+.course-page .course-ask-link {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0;
+  padding: 46px 25px calc(15px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(242, 235, 229, 0.96) 66%, rgba(242, 235, 229, 0) 100%);
 }
 
 @media (max-width: 959px) {
@@ -1382,19 +1382,6 @@ html:has(body.gallery-page) {
   .course-page .content-wrapper,
   .course-page .content-wrapper.course-layout {
     padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
-  }
-  .course-page .course-ask-link {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 20;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin: 0;
-    padding: 46px 25px calc(15px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(to top, rgba(242, 235, 229, 0.96) 66%, rgba(242, 235, 229, 0) 100%);
   }
 }
 
