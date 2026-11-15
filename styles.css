@@ -1126,8 +1126,11 @@ body.course-page::after {
 }
 
 .course-page .content-wrapper.course-layout {
-  max-width: 1380px;
-  padding: 2rem 2rem 0.75rem;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 1.5rem 1.25rem 0.75rem;
   color: #111111;
   display: grid;
   grid-template-columns: 1fr;
@@ -1137,17 +1140,82 @@ body.course-page::after {
 @media (min-width: 960px) {
   .course-page .content-wrapper.course-layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 3rem;
+    gap: 2.5rem;
     align-items: start;
   }
   .course-page .course-sidebar {
     position: sticky;
-    top: 2rem;
+    top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 3rem);
+  }
+  .course-page .course-ask-link {
+    margin-top: auto;
+    padding-top: 2rem;
   }
 }
 
 .course-page .course-sidebar {
   min-width: 0;
+}
+
+.course-page .course-nodes {
+  margin: 0.25rem 0 1.25rem;
+  width: 100%;
+}
+
+.course-page .course-nodes-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.course-page .course-nodes-group {
+  filter: url(#printer-noise-text);
+}
+
+.course-page .node-box {
+  fill: none;
+  stroke: #1a1a1a;
+  stroke-width: 1.5;
+}
+
+.course-page .node-wire {
+  fill: none;
+  stroke: #1a1a1a;
+  stroke-width: 1.4;
+}
+
+.course-page .node-port {
+  fill: #F2EBE5;
+  stroke: #1a1a1a;
+  stroke-width: 1.5;
+}
+
+.course-page .node-text {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  fill: #1a1a1a;
+}
+
+.course-page .node-text--sub {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.course-page .course-gallery-link,
+.course-page .course-ask-link {
+  margin-left: 0;
+}
+
+@media (max-width: 959px) {
+  .course-page .course-ask-link {
+    margin-top: 0.75rem;
+  }
 }
 
 .course-page .course-main-column {
