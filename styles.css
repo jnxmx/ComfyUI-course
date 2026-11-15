@@ -1142,10 +1142,11 @@ body.gallery-page::before {
   letter-spacing: -0.01em;
   text-transform: uppercase;
   text-decoration: none;
-  border: 1.5px solid currentColor;
+  border: 1.5px solid #1a1a1a;
   border-radius: 10px;
   background: transparent;
   padding: 0.32em 0.72em;
+  filter: url(#printer-noise-text);
 }
 
 .students-gallery-back a:hover {
@@ -1362,11 +1363,12 @@ html:has(body.gallery-page) {
 .course-page .course-ask-link a {
   display: inline-block;
   text-decoration: none;
-  border: 1.5px solid currentColor;
+  border: 1.5px solid #1a1a1a;
   border-radius: 10px;
   background: transparent;
   padding: 0.32em 0.72em;
   line-height: 1.08;
+  filter: url(#printer-noise-text);
 }
 
 .course-page #enroll-form {
