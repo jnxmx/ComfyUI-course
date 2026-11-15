@@ -1304,7 +1304,10 @@ body.course-page::after {
     overflow-x: clip;
   }
   .course-page main p,
-  .course-page main ul {
+  .course-page main ul,
+  .course-page main section > h3,
+  .course-page .course-gallery-link,
+  .course-page .course-ask-link {
     font-size: 1.12vw;
   }
 }
