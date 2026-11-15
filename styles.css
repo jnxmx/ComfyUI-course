@@ -1125,12 +1125,22 @@ body.course-page::after {
   display: none;
 }
 
+html:has(body.course-page) {
+  font-size: 3.08vw;
+}
+
+@media (min-width: 960px) {
+  html:has(body.course-page) {
+    font-size: 1.44vh;
+  }
+}
+
 .course-page .content-wrapper.course-layout {
   max-width: none;
   width: 100%;
   margin: 0;
   box-sizing: border-box;
-  padding: 1.5rem 1.25rem 0.75rem;
+  padding: 24px 25px 15px;
   color: #111111;
   display: grid;
   grid-template-columns: 1fr;
@@ -1141,18 +1151,18 @@ body.course-page::after {
   .course-page .content-wrapper.course-layout {
     grid-template-columns: 50% 50%;
     gap: 0;
-    padding: 1.5rem 0 0.75rem;
+    padding: 24px 0 15px;
     align-items: start;
   }
   .course-page .course-sidebar,
   .course-page .course-main-column {
-    padding: 0 1.25rem;
+    padding: 0 25px;
     box-sizing: border-box;
   }
   .course-page .course-ask-link {
     position: fixed;
-    left: 1.25rem;
-    bottom: 0.75rem;
+    left: 25px;
+    bottom: 15px;
     z-index: 10;
     margin: 0;
     padding: 0;
@@ -1208,6 +1218,7 @@ body.course-page::after {
 .course-page .course-gallery-link,
 .course-page .course-ask-link {
   margin-left: 0;
+  font-size: 1.38rem;
 }
 
 .course-page .course-gallery-link a,
@@ -1251,7 +1262,7 @@ body.course-page::after {
 
 .course-page .course-meta {
   margin: 0 0 1.25rem;
-  font-size: 0.82rem;
+  font-size: 1.38rem;
   font-weight: 400;
   line-height: 1.38;
   letter-spacing: -0.01em;
@@ -1268,7 +1279,7 @@ body.course-page::after {
 
 .course-page .course-status {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 1.38rem;
   font-weight: 600;
   line-height: 1.32;
   letter-spacing: -0.01em;
@@ -1283,7 +1294,7 @@ body.course-page::after {
   color: #b81d24;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 1.38rem;
   line-height: 1.08;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -1292,7 +1303,7 @@ body.course-page::after {
 
 .course-page main p,
 .course-page main ul {
-  font-size: 0.82rem;
+  font-size: 1.38rem;
   font-weight: 400;
   line-height: 1.38;
   letter-spacing: -0.01em;
@@ -1303,13 +1314,6 @@ body.course-page::after {
 @media (min-width: 960px) {
   .course-page {
     overflow-x: clip;
-  }
-  .course-page main p,
-  .course-page main ul,
-  .course-page main section > h3,
-  .course-page .course-gallery-link,
-  .course-page .course-ask-link {
-    font-size: 1.12vw;
   }
 }
 
@@ -1361,7 +1365,7 @@ body.course-page::after {
 .course-page .schedule-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 1.38rem;
   line-height: 1.38;
   letter-spacing: -0.01em;
   color: #111111;
@@ -1406,12 +1410,6 @@ body.course-page::after {
   color: #111111;
 }
 
-@media (min-width: 960px) {
-  .course-page .schedule-table {
-    font-size: 1.12vw;
-  }
-}
-
 .course-page #schedule ol {
   list-style: decimal outside;
   column-count: 2;
@@ -1450,7 +1448,7 @@ body.course-page::after {
 
 .course-page main p.faq-question {
   font-weight: 600;
-  font-size: 0.82rem;
+  font-size: 1.38rem;
   color: #111111;
   margin-bottom: 0.25rem;
   letter-spacing: -0.01em;
@@ -1465,7 +1463,7 @@ body.course-page::after {
 @media (max-width: 600px) {
   .course-page .content-wrapper,
   .course-page .content-wrapper.course-layout {
-    padding: 1.5rem 1.25rem 0.75rem;
+    padding: 24px 25px 15px;
   }
   .course-page #schedule ol {
     column-count: 1 !important;
