@@ -1139,20 +1139,23 @@ body.course-page::after {
 
 @media (min-width: 960px) {
   .course-page .content-wrapper.course-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 2.5rem;
+    grid-template-columns: 50% 50%;
+    gap: 0;
+    padding: 1.5rem 0 0.75rem;
     align-items: start;
   }
-  .course-page .course-sidebar {
-    position: sticky;
-    top: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    min-height: calc(100vh - 3rem);
+  .course-page .course-sidebar,
+  .course-page .course-main-column {
+    padding: 0 1.25rem;
+    box-sizing: border-box;
   }
   .course-page .course-ask-link {
-    margin-top: auto;
-    padding-top: 2rem;
+    position: fixed;
+    left: 1.25rem;
+    bottom: 0.75rem;
+    z-index: 10;
+    margin: 0;
+    padding: 0;
   }
 }
 
@@ -1196,7 +1199,7 @@ body.course-page::after {
 
 .course-page .node-text {
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 14.5px;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: -0.015em;
   fill: #1a1a1a;
@@ -1205,6 +1208,12 @@ body.course-page::after {
 .course-page .course-gallery-link,
 .course-page .course-ask-link {
   margin-left: 0;
+}
+
+.course-page .course-gallery-link a,
+.course-page .course-ask-link a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @media (max-width: 959px) {
