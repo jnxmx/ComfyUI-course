@@ -1360,8 +1360,20 @@ html:has(body.gallery-page) {
 }
 
 @media (max-width: 959px) {
+  .course-page .content-wrapper,
+  .course-page .content-wrapper.course-layout {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
   .course-page .course-ask-link {
-    margin-top: 0.75rem;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    margin: 0;
+    padding: 14px 25px calc(15px + env(safe-area-inset-bottom, 0px));
+    background-color: #F2EBE5;
+    border-top: 1px solid rgba(17, 17, 17, 0.12);
   }
 }
 
@@ -1669,7 +1681,7 @@ html:has(body.gallery-page) {
 @media (max-width: 600px) {
   .course-page .content-wrapper,
   .course-page .content-wrapper.course-layout {
-    padding: 24px 25px 15px;
+    padding: 24px 25px calc(68px + env(safe-area-inset-bottom, 0px));
   }
   .course-page #schedule ol {
     column-count: 1 !important;
