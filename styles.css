@@ -619,6 +619,7 @@ body.gallery-page {
   --link-color: #b81d24;
   --accent-color: #b81d24;
   color: #b81d24;
+  overscroll-behavior: none;
 }
 
 .gallery-page #bg {
@@ -626,6 +627,8 @@ body.gallery-page {
   inset: 0;
   z-index: -1;
   overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 @keyframes galleryLightBlob {
@@ -662,12 +665,14 @@ body.gallery-page::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: rgba(112, 124, 146, 0.12);
+  background-color: rgba(96, 108, 132, 0.10);
   background-image: var(--raster-noise-url);
   background-repeat: repeat;
   background-size: 256px 256px;
-  opacity: 0.85;
-  mix-blend-mode: multiply;
+  opacity: 0.9;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
   -webkit-mask-image:
     radial-gradient(ellipse 68% 66% at 50% 50%, transparent 0%, transparent 45%, rgba(0, 0, 0, 0.16) 64%, rgba(0, 0, 0, 0.62) 84%, rgba(0, 0, 0, 1) 100%);
   mask-image:
@@ -683,13 +688,13 @@ body.gallery-page::before {
 
 .gallery-page .gallery-editorial-block {
   display: block;
-  color: #111111;
+  color: #b81d24;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 700;
   font-size: 0.82rem;
-  line-height: 1.15;
+  line-height: 1.08;
   letter-spacing: -0.01em;
-  text-transform: none;
+  text-transform: uppercase;
   text-align: left;
 }
 
@@ -700,10 +705,10 @@ body.gallery-page::before {
   margin: 0;
   font-size: inherit;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: inherit;
   letter-spacing: -0.01em;
-  color: #111111;
-  text-transform: none;
+  color: inherit;
+  text-transform: inherit;
   text-decoration: none;
 }
 
@@ -713,20 +718,28 @@ body.gallery-page::before {
 
 .editorial-num {
   font-weight: 700;
-  color: #111111;
+  color: #b81d24;
 }
 
 .gallery-page .gallery-editorial-block--01 {
-  margin-left: 0;
+  margin-left: 4%;
   margin-bottom: 1.1rem;
 }
 
 .gallery-page .gallery-editorial-block--02 {
-  margin-left: 0;
+  margin-left: 18%;
 }
 
 .gallery-page .gallery-editorial-block--03 {
   margin-left: 0;
+}
+
+.gallery-page .gallery-editorial-block--plain {
+  color: #111111;
+  line-height: 1.15;
+  text-transform: none;
+  margin-left: 0;
+  text-align: left;
 }
 
 .instagram-heading-block {
@@ -778,9 +791,14 @@ body.gallery-page::before {
   .gallery-page .gallery-editorial-block {
     font-size: 0.74rem;
   }
-  .gallery-page .gallery-editorial-block--01,
-  .gallery-page .gallery-editorial-block--02,
-  .gallery-page .gallery-editorial-block--03 {
+  .gallery-page .gallery-editorial-block--01 {
+    margin-left: 0;
+  }
+  .gallery-page .gallery-editorial-block--02 {
+    margin-left: 6%;
+  }
+  .gallery-page .gallery-editorial-block--03,
+  .gallery-page .gallery-editorial-block--plain {
     margin-left: 0;
   }
   .gallery-list {
