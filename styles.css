@@ -619,12 +619,14 @@ body.gallery-page {
   --link-color: #b81d24;
   --accent-color: #b81d24;
   color: #b81d24;
-  overscroll-behavior: none;
 }
 
 .gallery-page #bg {
   position: fixed;
-  inset: 0;
+  top: -80px;
+  right: 0;
+  bottom: -80px;
+  left: 0;
   z-index: -1;
   overflow: hidden;
   transform: translateZ(0);
@@ -662,7 +664,10 @@ body.gallery-page {
 body.gallery-page::before {
   content: "";
   position: fixed;
-  inset: 0;
+  top: -80px;
+  right: 0;
+  bottom: -80px;
+  left: 0;
   z-index: 0;
   pointer-events: none;
   background-color: rgba(96, 108, 132, 0.10);
