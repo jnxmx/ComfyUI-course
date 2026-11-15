@@ -1132,6 +1132,23 @@ body.course-page::after {
   color: #111111;
 }
 
+.course-page .gallery-editorial-block--01 {
+  margin-bottom: 0.9rem;
+}
+
+.course-page .gallery-editorial-block--01 h1 {
+  font-size: clamp(1.35rem, 2.9vw, 2.35rem);
+  line-height: 1.03;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  color: #747678;
+  filter: url(#printer-noise-text);
+  text-shadow:
+    -0.6px 0 0 rgba(92, 128, 142, 0.16),
+    0.6px 0 0 rgba(152, 102, 108, 0.14),
+    0 0 3px rgba(116, 118, 120, 0.24);
+}
+
 .course-page .course-lead {
   margin-bottom: 3rem;
 }

@@ -5,10 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=23">
+    <link rel="stylesheet" href="styles.css?v=24">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="course-page gallery-page">
+    <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
+        <defs>
+            <filter id="printer-noise-text" x="-4%" y="-8%" width="108%" height="116%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9 0.55" numOctaves="2" seed="5" result="grain"/>
+                <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.5" xChannelSelector="R" yChannelSelector="G" result="inked"/>
+                <feGaussianBlur in="inked" stdDeviation="0.55" result="halo"/>
+                <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.35 0 0 0 0.72" result="speckAlpha"/>
+                <feComposite in="inked" in2="speckAlpha" operator="in" result="texturedInk"/>
+                <feMerge>
+                    <feMergeNode in="halo"/>
+                    <feMergeNode in="texturedInk"/>
+                </feMerge>
+            </filter>
+        </defs>
+    </svg>
     <div id="bg"></div>
     <!-- <canvas id="video-carousel"></canvas> -->
     <div class="gallery-top-corner gallery-editorial-group">
