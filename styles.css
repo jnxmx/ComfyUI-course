@@ -683,13 +683,14 @@ body.gallery-page::before {
 
 .gallery-page .gallery-editorial-block {
   display: block;
-  color: #b81d24;
+  color: #111111;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 700;
   font-size: 0.82rem;
-  line-height: 1.08;
+  line-height: 1.15;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
+  text-transform: none;
+  text-align: left;
 }
 
 .gallery-page .gallery-editorial-block h1,
@@ -699,10 +700,10 @@ body.gallery-page::before {
   margin: 0;
   font-size: inherit;
   font-weight: 700;
-  line-height: 1.08;
+  line-height: 1.15;
   letter-spacing: -0.01em;
-  color: #b81d24;
-  text-transform: uppercase;
+  color: #111111;
+  text-transform: none;
   text-decoration: none;
 }
 
@@ -712,33 +713,42 @@ body.gallery-page::before {
 
 .editorial-num {
   font-weight: 700;
-  color: #b81d24;
+  color: #111111;
 }
 
 .gallery-page .gallery-editorial-block--01 {
-  margin-left: 4%;
+  margin-left: 0;
   margin-bottom: 1.1rem;
 }
 
 .gallery-page .gallery-editorial-block--02 {
-  margin-left: 18%;
+  margin-left: 0;
 }
 
 .gallery-page .gallery-editorial-block--03 {
-  margin-left: 9%;
+  margin-left: 0;
 }
 
 .instagram-heading-block {
   margin-bottom: 1.25rem;
 }
 
+.gallery-page footer {
+  margin: 3rem 0 0;
+}
+
+.gallery-page footer p {
+  margin: 0;
+}
+
 .gallery-page footer,
 .gallery-page footer a {
-  color: #111111;
-  font-weight: 400;
-  font-size: 0.72rem;
-  letter-spacing: normal;
-  text-transform: none;
+  color: rgba(42, 40, 37, 0.72);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.56rem;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 .gallery-page footer a {
@@ -768,14 +778,10 @@ body.gallery-page::before {
   .gallery-page .gallery-editorial-block {
     font-size: 0.74rem;
   }
-  .gallery-page .gallery-editorial-block--01 {
-    margin-left: 0;
-  }
-  .gallery-page .gallery-editorial-block--02 {
-    margin-left: 6%;
-  }
+  .gallery-page .gallery-editorial-block--01,
+  .gallery-page .gallery-editorial-block--02,
   .gallery-page .gallery-editorial-block--03 {
-    margin-left: 3%;
+    margin-left: 0;
   }
   .gallery-list {
     grid-template-columns: 1fr;
@@ -1021,6 +1027,7 @@ body.gallery-page::before {
   position: relative;
   z-index: 1;
   max-width: 1160px;
+  padding-bottom: 0.75rem;
 }
 
 .instagram-section {
