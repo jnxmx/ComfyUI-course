@@ -1236,6 +1236,11 @@ body.gallery-page::before {
   .gallery-page .content-wrapper.students-gallery-layout {
     padding: 24px 25px 15px;
   }
+  .students-gallery-layout .instagram-section,
+  .students-gallery-layout footer {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 /* --- Main Course Page (Editorial Style) --- */
