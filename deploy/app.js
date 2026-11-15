@@ -1063,6 +1063,33 @@ function isPodCreatedByUs(pod) {
   return false;
 }
 
+function isPodRuntimeActive(pod) {
+  const rt = pod?.runtime;
+  if (!rt) return false;
+  return (Number(rt.uptime) || 0) > 0 || (Array.isArray(rt.ports) && rt.ports.length > 0);
+}
+
+function getContainerFatalReason(lowerLine, source = "system") {
+  if (!lowerLine) return null;
+  if (lowerLine.includes("mount_attr_idmap")) {
+    return "Ошибка ядра/Docker на хосте (MOUNT_ATTR_IDMAP)";
+  }
+  if (source === "system" && lowerLine.includes("no space left on device")) {
+    return "На хосте закончилось место на диске (no space left on device)";
+  }
+  if (
+    lowerLine.includes("error starting container") ||
+    lowerLine.includes("error creating container") ||
+    lowerLine.includes("failed to create task for container") ||
+    lowerLine.includes("failed to create shim task") ||
+    lowerLine.includes("oci runtime create failed") ||
+    lowerLine.includes("runc create failed")
+  ) {
+    return "Ошибка запуска Docker-контейнера на хосте";
+  }
+  return null;
+}
+
 function syncPodStateFromApi(ctrl, pod) {
   if (!pod) return;
   ctrl.pod = pod;
@@ -1084,7 +1111,7 @@ function syncPodStateFromApi(ctrl, pod) {
     return;
   }
 
-  if (pod.runtime) {
+  if (isPodRuntimeActive(pod)) {
     ctrl.containerStarted = true;
     ctrl.stages.provision = "done";
     ctrl.stages.container = "done";
@@ -1133,7 +1160,7 @@ function getOrCreatePodController(podId, initData = {}) {
       isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : true,
       pod: initData.pod || null,
       status: initData.status || initData.pod?.status || "STARTING",
-      containerStarted: Boolean(initData.pod?.runtime),
+      containerStarted: isPodRuntimeActive(initData.pod),
       stages: {
         provision: "active",
         container: "pending",
@@ -1859,6 +1886,20 @@ function handlePodLog(ctrl, entry) {
     return;
   }
 
+  // Detect Docker / OCI container startup errors on the host (e.g. MOUNT_ATTR_IDMAP, runc failed, disk full)
+  const containerFatalReason = getContainerFatalReason(lowerLine, source);
+  if (containerFatalReason) {
+    ctrl.stages.provision = "done";
+    ctrl.stages.container = "error";
+    ctrl.subtitle = `✗ ${containerFatalReason}`;
+    if (card) updatePodCardElement(ctrl, card);
+    if (!ctrl.cudaFatalTriggered) {
+      ctrl.cudaFatalTriggered = true;
+      triggerRedeploy(ctrl.podId, containerFatalReason);
+    }
+    return;
+  }
+
   if (source === "system") {
     const hasErrorStage =
       ctrl.stages.provision === "error" ||
@@ -2020,6 +2061,20 @@ async function pollHealthForPod(ctrl) {
       return;
     }
 
+    const podErrContainerReason = getContainerFatalReason(podErrStr, "system");
+    if (podErrContainerReason) {
+      ctrl.stages.provision = "done";
+      ctrl.stages.container = "error";
+      ctrl.subtitle = `✗ ${podErrContainerReason}`;
+      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+      if (card) updatePodCardElement(ctrl, card);
+      if (!ctrl.cudaFatalTriggered) {
+        ctrl.cudaFatalTriggered = true;
+        triggerRedeploy(ctrl.podId, podErrContainerReason);
+      }
+      return;
+    }
+
     if (pod.status === "ERROR" || pod.status === "EXITED") {
       if (!ctrl.cudaFatalTriggered) {
         ctrl.cudaFatalTriggered = true;
@@ -2030,7 +2085,7 @@ async function pollHealthForPod(ctrl) {
 
     syncPodStateFromApi(ctrl, pod);
 
-    if (pod.runtime) {
+    if (isPodRuntimeActive(pod)) {
       try {
         const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, { cache: "no-store" });
         if (statsRes.ok && ctrl.stages.cuda !== "error") {
