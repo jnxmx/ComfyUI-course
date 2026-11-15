@@ -8,11 +8,23 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Comfy.Work Deployer</title>
-  <link rel="stylesheet" href="styles.css?v=20261114_04">
+  <title>comfy.work deploy — Запуск ComfyUI на RunPod</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261115_01">
 </head>
 <body>
-  <div class="app-container">
+  <div class="content-wrapper">
+    <header class="site-header">
+      <a class="course-back-link" href="https://course.yakushev.fr/">← comfy.course</a>
+    </header>
+
+    <section class="page-intro" aria-label="Заголовок">
+      <h1>comfy.work deploy</h1>
+      <p class="page-subtitle">Облачный запуск ComfyUI на RunPod с проверкой CUDA 13.0 и автоподбором GPU</p>
+    </section>
+
     <main class="main-flow">
       <!-- 1. API Secret Key Section -->
       <section class="card auth-card" aria-label="Авторизация RunPod">
@@ -33,7 +45,7 @@
               spellcheck="false"
               required
             >
-            <button type="button" id="toggle-key-btn" class="btn-toggle-eye" aria-label="Показать/скрыть ключ">
+            <button type="button" id="toggle-key-btn" class="btn-toggle-eye" aria-label="Показать или скрыть ключ">
               Показать
             </button>
           </div>
@@ -144,7 +156,7 @@
           <div class="shutdown-control-group">
             <label class="checkbox-control" for="opt-shutdown-timer">
               <input type="checkbox" id="opt-shutdown-timer" checked>
-              <span>Автоматическое удаление пода при отсутствии активности:</span>
+              <span>Автоудаление при простое:</span>
             </label>
             <div class="shutdown-input-wrapper">
               <input
@@ -156,7 +168,7 @@
                 class="shutdown-minutes-input"
                 aria-label="Минут неактивности до автоматического удаления пода"
               >
-              <span class="shutdown-unit">минут</span>
+              <span class="shutdown-unit">мин</span>
             </div>
           </div>
         </div>
@@ -216,8 +228,9 @@
           </div>
         </div>
 
-        <div class="table-wrapper">
+        <div class="table-wrapper" tabindex="0" role="region" aria-label="Доступные видеокарты RunPod">
           <table id="gpu-table">
+            <caption class="visually-hidden">Каталог доступных видеокарт RunPod с ценами и фильтром RAM</caption>
             <thead>
               <tr>
                 <th scope="col" class="col-check">Выбор</th>
@@ -244,10 +257,10 @@
     </main>
 
     <footer class="app-footer">
-      <p>100% браузерное выполнение &bull; Запросы идут напрямую на <code>api.runpod.io/v2</code> без промежуточных серверов.</p>
+      <p>100% браузерное выполнение · запросы идут напрямую в <code>api.runpod.io/v2</code> · <a href="https://course.yakushev.fr/">course.yakushev.fr</a></p>
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261114_04"></script>
+  <script type="module" src="app.js?v=20261115_01"></script>
 </body>
 </html>
