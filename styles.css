@@ -1360,6 +1360,10 @@ html:has(body.gallery-page) {
 }
 
 @media (max-width: 959px) {
+  .course-page .course-preview-video {
+    margin-left: -25px;
+    margin-right: -25px;
+  }
   .course-page .content-wrapper,
   .course-page .content-wrapper.course-layout {
     padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
