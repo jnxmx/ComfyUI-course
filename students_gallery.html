@@ -5,25 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Галерея студенческих работ | ComfyUI для работы с нейросетями</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=43">
+    <link rel="stylesheet" href="styles.css?v=51">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="waitlist-page colloquium-page gallery-page">
+    <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
+        <defs>
+            <filter id="printer-noise-text" x="-4%" y="-8%" width="108%" height="116%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9 0.55" numOctaves="2" seed="5" result="grain"/>
+                <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.5" xChannelSelector="R" yChannelSelector="G" result="inked"/>
+                <feGaussianBlur in="inked" stdDeviation="0.55" result="halo"/>
+                <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.35 0 0 0 0.72" result="speckAlpha"/>
+                <feComposite in="inked" in2="speckAlpha" operator="in" result="texturedInk"/>
+                <feMerge>
+                    <feMergeNode in="halo"/>
+                    <feMergeNode in="texturedInk"/>
+                </feMerge>
+            </filter>
+        </defs>
+    </svg>
     <div id="bg"></div>
-    <div class="gallery-top-corner gallery-editorial-group">
-        <header class="site-header waitlist-header gallery-editorial-block gallery-editorial-block--01">
-            <a class="waitlist-link" href="index.html">← НАЗАД К ОПИСАНИЮ КУРСА</a>
+    <div class="content-wrapper students-gallery-layout">
+        <header class="students-gallery-header">
+            <div class="students-gallery-back">
+                <a class="waitlist-link" href="index.html">← НАЗАД К ОПИСАНИЮ КУРСА</a>
+            </div>
+            <div class="students-gallery-title">
+                <h1>ГАЛЕРЕЯ СТУДЕНЧЕСКИХ РАБОТ</h1>
+            </div>
         </header>
-        <div class="gallery-editorial-block gallery-editorial-block--02">
-            <h1>ГАЛЕРЕЯ СТУДЕНЧЕСКИХ РАБОТ</h1>
-        </div>
-    </div>
-    <div class="content-wrapper">
         <main>
-            <section class="waitlist-intro gallery-editorial-group">
-                <div class="gallery-editorial-block gallery-editorial-block--03 gallery-editorial-block--plain">
-                    <p>Экспериментальные этюды сделанные на курсе в 2025—2026</p>
-                </div>
+            <section class="students-gallery-intro">
+                <p>Экспериментальные этюды сделанные на курсе в 2025—2026</p>
             </section>
 
             <section class="gallery-list">
@@ -179,9 +192,7 @@
             </section>
 
             <section class="instagram-section">
-                <div class="gallery-editorial-block gallery-editorial-block--plain instagram-heading-block">
-                    <h3>Работы студентов в Instagram</h3>
-                </div>
+                <h3>Работы студентов в Instagram</h3>
                 <div class="instagram-list">
                     <div class="instagram-card">
                         <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DIeQgr7sMbO/" data-instgrm-version="14"></blockquote>
