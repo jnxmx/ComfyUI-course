@@ -1374,7 +1374,7 @@ html:has(body.gallery-page) {
 }
 
 .course-page .gallery-editorial-block--01 h1 {
-  font-size: 4.85cqi;
+  font-size: 7.2cqi;
   line-height: 1.04;
   letter-spacing: -0.025em;
   font-weight: 700;
@@ -1391,6 +1391,9 @@ html:has(body.gallery-page) {
 }
 
 @media (min-width: 960px) {
+  .course-page .gallery-editorial-block--01 h1 {
+    font-size: 4.85cqi;
+  }
   .mobile-only-br {
     display: none;
   }
