@@ -1631,10 +1631,10 @@ html:has(body.gallery-page) {
 }
 
 .course-page .instructor-splat {
-  width: 100%;
-  max-width: 300px;
-  aspect-ratio: 1 / 0.92;
-  margin: 0 auto 0.5rem;
+  width: calc(100% + 50px);
+  max-width: none;
+  aspect-ratio: 1 / 0.86;
+  margin: 0 -25px 0.25rem;
   position: relative;
   pointer-events: none;
 }
@@ -1648,10 +1648,10 @@ html:has(body.gallery-page) {
 
 .course-page .instructor-splat-hitbox {
   position: absolute;
-  left: 15%;
-  top: 8%;
-  width: 70%;
-  height: 84%;
+  left: 18%;
+  top: 10%;
+  width: 64%;
+  height: 80%;
   pointer-events: auto;
   touch-action: none;
   cursor: grab;
