@@ -1489,10 +1489,10 @@ html:has(body.gallery-page) {
   border-radius: 0;
 }
 
-.course-page #about video {
+.course-page .course-preview-video video {
   display: block;
   width: 100%;
-  margin-top: 1.5rem;
+  margin-top: 0;
   background: #dcded6;
 }
 
