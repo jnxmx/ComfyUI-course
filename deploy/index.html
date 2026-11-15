@@ -12,24 +12,78 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261115_01">
+  <link rel="stylesheet" href="styles.css?v=20261115_02">
 </head>
-<body>
-  <div class="content-wrapper">
-    <header class="site-header">
-      <a class="course-back-link" href="https://course.yakushev.fr/">← comfy.course</a>
-    </header>
+<body class="gallery-page deploy-page">
+  <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
+    <defs>
+      <filter id="printer-noise-text" x="-4%" y="-8%" width="108%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9 0.55" numOctaves="2" seed="5" result="grain"/>
+        <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.5" xChannelSelector="R" yChannelSelector="G" result="inked"/>
+        <feGaussianBlur in="inked" stdDeviation="0.55" result="halo"/>
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.35 0 0 0 0.72" result="speckAlpha"/>
+        <feComposite in="inked" in2="speckAlpha" operator="in" result="texturedInk"/>
+        <feMerge>
+          <feMergeNode in="halo"/>
+          <feMergeNode in="texturedInk"/>
+        </feMerge>
+      </filter>
+    </defs>
+  </svg>
 
-    <section class="page-intro" aria-label="Заголовок">
-      <h1>comfy.work deploy</h1>
-      <p class="page-subtitle">Облачный запуск ComfyUI на RunPod с проверкой CUDA 13.0 и автоподбором GPU</p>
-    </section>
+  <div id="bg"></div>
+
+  <div class="content-wrapper deploy-layout">
+    <header class="deploy-header">
+      <div class="students-gallery-back">
+        <a class="waitlist-link" href="https://course.yakushev.fr/">← НАЗАД К ОПИСАНИЮ КУРСА</a>
+      </div>
+      <div class="students-gallery-title deploy-title">
+        <h1>COMFY.WORK DEPLOY</h1>
+      </div>
+      <p class="page-subtitle">Облачный запуск ComfyUI и Fizgig на RunPod с проверкой CUDA 13.0 и автоподбором GPU</p>
+
+      <div class="course-nodes deploy-nodes" aria-hidden="true">
+        <svg class="course-nodes-svg" viewBox="0 0 680 96" xmlns="http://www.w3.org/2000/svg">
+          <g class="course-nodes-group">
+            <path d="M -80 48 L 16 48" class="node-wire"/>
+            <path d="M 146 48 L 188 48" class="node-wire"/>
+            <path d="M 332 48 L 374 48" class="node-wire"/>
+            <path d="M 510 48 C 530 48, 530 28, 550 28" class="node-wire"/>
+            <path d="M 510 48 C 530 48, 530 68, 550 68" class="node-wire"/>
+
+            <rect x="16" y="24" width="130" height="48" rx="10" ry="10" class="node-box"/>
+            <circle cx="16" cy="48" r="4.2" class="node-port"/>
+            <circle cx="146" cy="48" r="4.2" class="node-port"/>
+            <text x="81" y="52" text-anchor="middle" class="node-text">API KEY</text>
+
+            <rect x="188" y="24" width="144" height="48" rx="10" ry="10" class="node-box"/>
+            <circle cx="188" cy="48" r="4.2" class="node-port"/>
+            <circle cx="332" cy="48" r="4.2" class="node-port"/>
+            <text x="260" y="52" text-anchor="middle" class="node-text">RUNPOD GPU</text>
+
+            <rect x="374" y="24" width="136" height="48" rx="10" ry="10" class="node-box"/>
+            <circle cx="374" cy="48" r="4.2" class="node-port"/>
+            <circle cx="510" cy="48" r="4.2" class="node-port"/>
+            <text x="442" y="52" text-anchor="middle" class="node-text">CUDA 13.0</text>
+
+            <rect x="550" y="10" width="118" height="36" rx="10" ry="10" class="node-box"/>
+            <circle cx="550" cy="28" r="4.2" class="node-port"/>
+            <text x="609" y="32" text-anchor="middle" class="node-text">COMFY :7860</text>
+
+            <rect x="550" y="52" width="118" height="36" rx="10" ry="10" class="node-box"/>
+            <circle cx="550" cy="70" r="4.2" class="node-port"/>
+            <text x="609" y="74" text-anchor="middle" class="node-text">FIZGIG :7862</text>
+          </g>
+        </svg>
+      </div>
+    </header>
 
     <main class="main-flow">
       <!-- 1. API Secret Key Section -->
-      <section class="card auth-card" aria-label="Авторизация RunPod">
+      <section class="deploy-section auth-section" aria-label="Авторизация RunPod">
         <div class="auth-header-row">
-          <label for="runpod-api-key" class="field-label">RunPod API Secret Key</label>
+          <label for="runpod-api-key" class="section-heading">RunPod API Secret Key</label>
           <a href="https://console.runpod.io/user/credentials" target="_blank" rel="noopener noreferrer" class="link-external">
             Получить API ключ ↗
           </a>
@@ -78,11 +132,11 @@
         </div>
       </section>
 
-      <!-- Unified Pods & Deployment Section (all pods expand into full deploy view) -->
-      <section id="pods-section" class="card pods-card" hidden aria-label="Поды и мониторинг">
+      <!-- Unified Pods & Deployment Section -->
+      <section id="pods-section" class="deploy-section pods-section" hidden aria-label="Поды и мониторинг">
         <div class="section-head">
           <div class="pods-head-title-row">
-            <h2 class="section-title">Активные поды</h2>
+            <h2 class="section-heading">Активные поды</h2>
             <span id="pods-count-badge" class="badge badge-subtle">0</span>
           </div>
           <button type="button" id="refresh-pods-btn" class="btn btn-subtle" title="Обновить список подов">
@@ -90,7 +144,7 @@
           </button>
         </div>
 
-        <!-- Pending Deployment Card (shows when auto-retrying or allocating machine before pod creation) -->
+        <!-- Pending Deployment Card -->
         <div id="pending-deploy-card" class="pending-deploy-card" hidden>
           <div class="pending-deploy-header">
             <div class="pending-deploy-info">
@@ -111,11 +165,11 @@
         <div id="pods-list" class="pods-list" aria-live="polite"></div>
       </section>
 
-      <!-- 2. Template & 3 Options -->
-      <section class="card template-card" aria-label="Настройки темплейта">
+      <!-- 2. Template & Options -->
+      <section class="deploy-section template-section" aria-label="Настройки темплейта">
         <div class="template-header-row">
           <div class="template-name-row">
-            <span class="template-tag">Темплейт:</span>
+            <span class="section-heading">Темплейт</span>
             <strong id="template-display-name" class="template-name">comfy.work CUDA 13.0 with New Manager</strong>
             <code id="template-id-badge" class="template-id-badge">casls01eko</code>
             <button type="button" id="edit-template-btn" class="btn-icon" title="Изменить темплейт (ID или ссылка с RunPod)" aria-label="Изменить темплейт">
@@ -175,7 +229,12 @@
       </section>
 
       <!-- 3. GPU Table, Price Slider, Secure & RAM Filters -->
-      <section class="card gpu-card" aria-label="Выбор видеокарты">
+      <section class="deploy-section gpu-section" aria-label="Выбор видеокарты">
+        <div class="gpu-section-head">
+          <h2 class="section-heading">Выбор видеокарты</h2>
+          <span id="catalog-live-badge" class="live-indicator">● Автообновление активно</span>
+        </div>
+
         <div class="gpu-toolbar">
           <div class="price-slider-box">
             <div class="price-header">
@@ -249,18 +308,36 @@
             </tbody>
           </table>
         </div>
-
-        <div class="table-footer-status">
-          <span id="catalog-live-badge" class="live-indicator">● Автообновление активно</span>
-        </div>
       </section>
     </main>
 
     <footer class="app-footer">
-      <p>100% браузерное выполнение · запросы идут напрямую в <code>api.runpod.io/v2</code> · <a href="https://course.yakushev.fr/">course.yakushev.fr</a></p>
+      <p>100% БРАУЗЕРНОЕ ВЫПОЛНЕНИЕ · ЗАПРОСЫ ИДУТ НАПРЯМУЮ В <code>API.RUNPOD.IO/V2</code> · <a href="https://course.yakushev.fr/">COURSE.YAKUSHEV.FR</a></p>
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261115_01"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const noiseCanvas = document.createElement('canvas');
+      const size = 256;
+      noiseCanvas.width = size;
+      noiseCanvas.height = size;
+      const noiseCtx = noiseCanvas.getContext('2d');
+      if (noiseCtx) {
+        const imgData = noiseCtx.createImageData(size, size);
+        const buf = imgData.data;
+        for (let i = 0; i < buf.length; i += 4) {
+          const grain = Math.pow(Math.random(), 1.45);
+          buf[i] = 68;
+          buf[i + 1] = 82;
+          buf[i + 2] = 108;
+          buf[i + 3] = Math.round(grain * 58);
+        }
+        noiseCtx.putImageData(imgData, 0, 0);
+        document.body.style.setProperty('--raster-noise-url', `url("${noiseCanvas.toDataURL('image/png')}")`);
+      }
+    });
+  </script>
+  <script type="module" src="app.js?v=20261115_02"></script>
 </body>
 </html>
