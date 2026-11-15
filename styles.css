@@ -1187,11 +1187,11 @@ body.gallery-page::before {
   margin: 0 0 1.25rem;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-size: 1.38rem;
-  font-weight: 700;
-  line-height: 1.08;
+  font-weight: 400;
+  line-height: 1.38;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
-  color: #b81d24;
+  text-transform: none;
+  color: #111111;
 }
 
 .students-gallery-layout .gallery-list {
@@ -1211,13 +1211,13 @@ body.gallery-page::before {
 }
 
 .students-gallery-layout .instagram-section h3 {
-  color: #b81d24;
+  color: #111111;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 700;
+  font-weight: 400;
   font-size: 1.38rem;
-  line-height: 1.08;
+  line-height: 1.38;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
+  text-transform: none;
   margin: 0 0 1.25rem;
 }
 
