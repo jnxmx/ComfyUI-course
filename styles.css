@@ -1375,9 +1375,10 @@ html:has(body.gallery-page) {
     bottom: 0;
     z-index: 20;
     margin: 0;
-    padding: 14px 25px calc(15px + env(safe-area-inset-bottom, 0px));
-    background-color: #F2EBE5;
-    border-top: 1px solid rgba(17, 17, 17, 0.12);
+    padding: 28px 25px calc(15px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to top, rgba(242, 235, 229, 0.92) 54%, rgba(242, 235, 229, 0) 100%);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
   }
 }
 
