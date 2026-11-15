@@ -1232,11 +1232,12 @@ body.course-page::after {
 }
 
 .course-page .gallery-editorial-block--01 {
+  container-type: inline-size;
   margin-bottom: 1.15rem;
 }
 
 .course-page .gallery-editorial-block--01 h1 {
-  font-size: clamp(1.3rem, 2.15vw, 1.95rem);
+  font-size: 4.85cqi;
   line-height: 1.04;
   letter-spacing: -0.025em;
   font-weight: 700;
@@ -1350,6 +1351,65 @@ body.course-page::after {
 
 .course-page #schedule > p {
   margin-bottom: 1.25rem;
+}
+
+.course-page .schedule-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.course-page .schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+  color: #111111;
+}
+
+.course-page .schedule-table thead th {
+  color: #b81d24;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0 0 0.55rem;
+  border: none;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.22);
+}
+
+.course-page .schedule-table thead th:first-child {
+  width: 28%;
+  padding-right: 1.5rem;
+}
+
+.course-page .schedule-table tbody tr {
+  border-bottom: 1px solid rgba(17, 17, 17, 0.22);
+}
+
+.course-page .schedule-table tbody td {
+  vertical-align: top;
+  text-align: left;
+  padding: 0.65rem 0;
+  border: none;
+  color: rgba(17, 17, 17, 0.78);
+}
+
+.course-page .schedule-table tbody td strong {
+  font-weight: 600;
+  color: #111111;
+}
+
+.course-page .schedule-table tbody td:first-child {
+  width: 28%;
+  padding-right: 1.5rem;
+  white-space: nowrap;
+  color: #111111;
+}
+
+@media (min-width: 960px) {
+  .course-page .schedule-table {
+    font-size: 1.12vw;
+  }
 }
 
 .course-page #schedule ol {
