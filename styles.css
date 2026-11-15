@@ -1386,6 +1386,16 @@ html:has(body.gallery-page) {
     0 0 3px rgba(116, 118, 120, 0.24);
 }
 
+.mobile-only-br {
+  display: inline;
+}
+
+@media (min-width: 960px) {
+  .mobile-only-br {
+    display: none;
+  }
+}
+
 .course-page .course-meta {
   margin: 0 0 1.25rem;
   font-size: 1.38rem;
