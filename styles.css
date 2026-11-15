@@ -1124,7 +1124,7 @@ body.gallery-page::before {
   max-width: none;
   width: 100%;
   margin: 0;
-  padding: 24px 25px 15px;
+  padding: 24px 25px calc(84px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
 
@@ -1254,7 +1254,7 @@ body.gallery-page::before {
 
 @media (max-width: 600px) {
   .gallery-page .content-wrapper.students-gallery-layout {
-    padding: 24px 25px 15px;
+    padding: 24px 25px calc(84px + env(safe-area-inset-bottom, 0px));
   }
   .students-gallery-layout .instagram-section,
   .students-gallery-layout footer {
@@ -1361,13 +1361,13 @@ html:has(body.gallery-page) {
 }
 
 .course-page .course-gallery-link,
-.course-page .course-ask-link {
+.gallery-page .course-ask-link {
   margin-left: 0;
   font-size: 1.38rem;
 }
 
 .course-page .course-gallery-link a,
-.course-page .course-ask-link a {
+.gallery-page .course-ask-link a {
   display: inline-block;
   text-decoration: none;
   border: 1.5px solid #1a1a1a;
@@ -1382,11 +1382,11 @@ html:has(body.gallery-page) {
   scroll-margin-top: 24px;
 }
 
-.course-page .course-enroll-mobile {
+.gallery-page .course-enroll-mobile {
   display: inline-block;
 }
 
-.course-page .course-ask-link {
+.gallery-page .course-ask-link {
   position: fixed;
   left: 0;
   right: 0;
@@ -1398,6 +1398,19 @@ html:has(body.gallery-page) {
   margin: 0;
   padding: 46px 25px calc(15px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to top, rgba(242, 235, 229, 0.96) 66%, rgba(242, 235, 229, 0) 100%);
+}
+
+@media (min-width: 960px) {
+  .gallery-page .course-ask-link {
+    background: none;
+    padding: 0 25px 15px;
+    pointer-events: none;
+  }
+  .gallery-page .course-ask-link a {
+    pointer-events: auto;
+    background-color: rgba(242, 235, 229, 0.96);
+    box-shadow: 0 0 22px 14px rgba(242, 235, 229, 0.96);
+  }
 }
 
 @media (max-width: 959px) {
