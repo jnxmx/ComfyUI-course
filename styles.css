@@ -1341,6 +1341,12 @@ html:has(body.gallery-page) {
   fill: #1a1a1a;
 }
 
+@media (max-width: 959px) {
+  .course-page .node-text {
+    font-size: 15px;
+  }
+}
+
 .course-page .course-gallery-link,
 .course-page .course-ask-link {
   margin-left: 0;
