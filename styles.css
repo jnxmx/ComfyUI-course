@@ -1252,6 +1252,7 @@ body.course-page::after {
 html:has(body.course-page),
 html:has(body.gallery-page) {
   font-size: 3.08vw;
+  scroll-behavior: smooth;
 }
 
 @media (min-width: 960px) {
@@ -1359,6 +1360,20 @@ html:has(body.gallery-page) {
   text-underline-offset: 3px;
 }
 
+.course-page #enroll-form {
+  scroll-margin-top: 24px;
+}
+
+.course-page .course-enroll-mobile {
+  display: inline-block;
+}
+
+@media (min-width: 960px) {
+  .course-page .course-enroll-mobile {
+    display: none;
+  }
+}
+
 @media (max-width: 959px) {
   .course-page .course-preview-video {
     margin-left: -25px;
@@ -1374,6 +1389,9 @@ html:has(body.gallery-page) {
     right: 0;
     bottom: 0;
     z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
     margin: 0;
     padding: 46px 25px calc(15px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, rgba(242, 235, 229, 0.96) 66%, rgba(242, 235, 229, 0) 100%);
