@@ -5,25 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Галерея студенческих работ | ComfyUI для работы с нейросетями</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=8">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="waitlist-page colloquium-page gallery-page">
     <div id="bg"></div>
     <div class="content-wrapper">
         <header class="site-header waitlist-header gallery-editorial-block gallery-editorial-block--01">
-            <span class="editorial-num">01</span>
             <a class="waitlist-link" href="index.html">← НАЗАД К ОПИСАНИЮ КУРСА<br>COMFYUI ДЛЯ РАБОТЫ С НЕЙРОСЕТЯМИ</a>
         </header>
 
         <main>
             <section class="waitlist-intro gallery-editorial-group">
                 <div class="gallery-editorial-block gallery-editorial-block--02">
-                    <span class="editorial-num">02</span>
                     <h1>ГАЛЕРЕЯ СТУДЕНЧЕСКИХ РАБОТ</h1>
                 </div>
                 <div class="gallery-editorial-block gallery-editorial-block--03">
-                    <span class="editorial-num">03</span>
                     <p>ЭКСПЕРИМЕНТАЛЬНЫЕ ПРОЕКТЫ И ЭТЮДЫ,<br>СОЗДАННЫЕ СТУДЕНТАМИ КУРСА</p>
                 </div>
             </section>
@@ -182,7 +179,6 @@
 
             <section class="instagram-section">
                 <div class="gallery-editorial-block gallery-editorial-block--02 instagram-heading-block">
-                    <span class="editorial-num">04</span>
                     <h3>РАБОТЫ В INSTAGRAM</h3>
                 </div>
                 <div class="instagram-list">
@@ -225,9 +221,9 @@
                         const grain = Math.pow(Math.random(), 1.35);
                         const alpha = Math.round(density * density * grain * 90);
                         const idx = (y * size + x) * 4;
-                        buf[idx] = 44;
-                        buf[idx + 1] = 48;
-                        buf[idx + 2] = 62;
+                        buf[idx] = 68;
+                        buf[idx + 1] = 82;
+                        buf[idx + 2] = 108;
                         buf[idx + 3] = alpha;
                     }
                 }
