@@ -1620,6 +1620,7 @@ html:has(body.gallery-page) {
   .course-page .schedule-columns {
     width: calc(200% + 50px);
     margin-left: calc(-100% - 50px);
+    margin-top: 7rem;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(9, auto);
     grid-auto-flow: column;
