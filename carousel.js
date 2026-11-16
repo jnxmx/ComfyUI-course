@@ -39,10 +39,17 @@ document.addEventListener('DOMContentLoaded', () => {
   trackEl.style.visibility = 'hidden';
   wrap.appendChild(trackEl);
 
-  const loaderEl = document.createElement('div');
-  loaderEl.className = 'course-carousel-loading';
-  loaderEl.textContent = 'видео загружаются';
-  wrap.appendChild(loaderEl);
+  const posterEl = document.createElement('img');
+  posterEl.className = 'course-carousel-poster';
+  posterEl.src = 'assets/video/carousel_poster.jpg';
+  posterEl.alt = '';
+  wrap.appendChild(posterEl);
+
+  const vellumEl = document.createElement('div');
+  vellumEl.className = 'vellum-overlay course-carousel-vellum';
+  vellumEl.innerHTML =
+    '<div class="vellum-info"><div class="vellum-credits"><span class="vellum-author">ВИДЕО ЗАГРУЖАЮТСЯ</span></div></div>';
+  wrap.appendChild(vellumEl);
 
   const entries = [];
   for (let i = 0; i < CAROUSEL_ITEMS.length; i++) {
@@ -92,8 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyTileGeometry(entry) {
-    entry.video.style.width = `${entry.width}px`;
-    entry.video.style.transform = `translate3d(${entry.offset}px, 0, 0)`;
+    // Overlap adjacent video tiles by 4px so subpixel/GPU rounding never opens a 1px seam
+    entry.video.style.width = `${entry.width + 4}px`;
+    entry.video.style.transform = `translate3d(${entry.offset - 2}px, 0, 0)`;
     const screenX = trackOffset + entry.offset;
     const visibleOnScreen = screenX + entry.width > -4 && screenX < cssWidth + 4;
     entry.video.style.visibility = visibleOnScreen ? 'visible' : 'hidden';
@@ -232,9 +240,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializeCarousel() {
     if (!isLoading) return;
     isLoading = false;
-    wrap.classList.add('is-ready');
     trackEl.style.visibility = 'visible';
-    loaderEl.remove();
+    wrap.classList.add('is-ready');
+    setTimeout(() => {
+      posterEl.remove();
+      vellumEl.remove();
+    }, 620);
     layoutTiles();
     startLoop();
     setTimeout(() => {
