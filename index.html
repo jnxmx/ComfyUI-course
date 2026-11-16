@@ -385,13 +385,42 @@
                 sidebar.style.paddingBottom = `${targetPad.toFixed(2)}px`;
             };
 
-            syncSidebarStop();
+            const resultsReqBox = document.querySelector('.course-results-requirements');
+            const carouselWrapEl = document.getElementById('course-carousel-wrap');
+            const resultsFirstP = document.querySelector('#results p');
+            const reqLastP = document.querySelector('#requirements p:last-of-type');
+
+            const syncCarouselDesktopBounds = () => {
+                if (!resultsReqBox || !carouselWrapEl || !resultsFirstP || !reqLastP) return;
+                if (!isDesktopLayout()) {
+                    carouselWrapEl.style.top = '';
+                    carouselWrapEl.style.height = '';
+                    return;
+                }
+                const boxRect = resultsReqBox.getBoundingClientRect();
+                const firstRect = resultsFirstP.getBoundingClientRect();
+                const lastRect = reqLastP.getBoundingClientRect();
+                const topPx = Math.max(0, firstRect.top - boxRect.top + 3);
+                const bottomPx = Math.max(topPx + 100, lastRect.bottom - boxRect.top - 2);
+                carouselWrapEl.style.top = `${topPx.toFixed(1)}px`;
+                carouselWrapEl.style.height = `${(bottomPx - topPx).toFixed(1)}px`;
+            };
+
+            const syncDesktopMetrics = () => {
+                syncSidebarStop();
+                syncCarouselDesktopBounds();
+            };
+
+            syncDesktopMetrics();
             if (document.fonts && document.fonts.ready) {
-                document.fonts.ready.then(syncSidebarStop);
+                document.fonts.ready.then(syncDesktopMetrics);
             }
-            window.addEventListener('resize', syncSidebarStop);
+            window.addEventListener('resize', syncDesktopMetrics);
             if (topBand && window.ResizeObserver) {
                 new ResizeObserver(syncSidebarStop).observe(topBand);
+            }
+            if (resultsReqBox && window.ResizeObserver) {
+                new ResizeObserver(syncCarouselDesktopBounds).observe(resultsReqBox);
             }
 
             // Hide bottom-right "ЗАПИСАТЬСЯ" button once "Записаться на курс" heading reaches vertical center;
