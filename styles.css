@@ -1323,7 +1323,7 @@ html:has(body.gallery-page) {
     position: sticky;
     top: 24px;
     align-self: start;
-    padding-bottom: 11.4rem;
+    padding-bottom: 10.8rem;
   }
   .course-page .course-main-column--bottom {
     grid-column: 2;
