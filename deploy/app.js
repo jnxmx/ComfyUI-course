@@ -1171,6 +1171,7 @@ function getOrCreatePodController(podId, initData = {}) {
       alert: null,
       logLines: [],
       logAbortController: null,
+      logRetryTimerId: null,
       cudaStagePassed: false,
       cudaFatalTriggered: false,
       pollTimerId: null
@@ -1195,6 +1196,10 @@ function stopPodController(ctrl) {
   if (ctrl.pollTimerId) {
     clearInterval(ctrl.pollTimerId);
     ctrl.pollTimerId = null;
+  }
+  if (ctrl.logRetryTimerId) {
+    clearTimeout(ctrl.logRetryTimerId);
+    ctrl.logRetryTimerId = null;
   }
   if (ctrl.logAbortController) {
     ctrl.logAbortController.abort();
@@ -1759,6 +1764,10 @@ function togglePodExpanded(ctrl, cardEl) {
   } else {
     // When collapsing, abort SSE logs stream to save network bandwidth,
     // but keep pollHealthForPod running so status remains live and accurate!
+    if (ctrl.logRetryTimerId) {
+      clearTimeout(ctrl.logRetryTimerId);
+      ctrl.logRetryTimerId = null;
+    }
     if (ctrl.logAbortController) {
       ctrl.logAbortController.abort();
       ctrl.logAbortController = null;
@@ -1767,26 +1776,55 @@ function togglePodExpanded(ctrl, cardEl) {
   updatePodCardElement(ctrl, cardEl);
 }
 
+function scheduleLogStreamRetry(ctrl, delayMs = 3000) {
+  if (ctrl.logRetryTimerId) {
+    clearTimeout(ctrl.logRetryTimerId);
+    ctrl.logRetryTimerId = null;
+  }
+  if (!ctrl.isExpanded || !state.podControllers.has(ctrl.podId)) return;
+  ctrl.logRetryTimerId = setTimeout(() => {
+    ctrl.logRetryTimerId = null;
+    if (ctrl.isExpanded && state.podControllers.has(ctrl.podId) && !ctrl.logAbortController) {
+      startLogStreamForPod(ctrl);
+    }
+  }, delayMs);
+}
+
 async function startLogStreamForPod(ctrl) {
+  if (ctrl.logRetryTimerId) {
+    clearTimeout(ctrl.logRetryTimerId);
+    ctrl.logRetryTimerId = null;
+  }
   if (ctrl.logAbortController) ctrl.logAbortController.abort();
   const abortController = new AbortController();
   ctrl.logAbortController = abortController;
-  ctrl.logLines = [];
+
+  let shouldRetry = false;
+  let retryDelayMs = 3000;
 
   try {
     const res = await fetch(`${RUNPOD_API_BASE}/pods/${encodeURIComponent(ctrl.podId)}/logs?tail=200`, {
       headers: { Authorization: `Bearer ${state.apiKey}` },
       signal: abortController.signal
     });
-    if (!res.ok || !res.body) return;
+    if (!res.ok || !res.body) {
+      shouldRetry = true;
+      retryDelayMs = 2500;
+      return;
+    }
 
+    // Reset only once a live stream opens so transient 404/503 retries don't wipe visible logs
+    ctrl.logLines = [];
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
 
     while (true) {
       const { value, done } = await reader.read();
-      if (done) break;
+      if (done) {
+        shouldRetry = true;
+        break;
+      }
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
@@ -1805,12 +1843,16 @@ async function startLogStreamForPod(ctrl) {
       }
     }
   } catch (err) {
-    if (err.name !== "AbortError" && ctrl.isExpanded) {
-      setTimeout(() => {
-        if (ctrl.isExpanded && state.podControllers.has(ctrl.podId)) {
-          startLogStreamForPod(ctrl);
-        }
-      }, 4000);
+    if (err.name !== "AbortError") {
+      shouldRetry = true;
+      retryDelayMs = 4000;
+    }
+  } finally {
+    if (ctrl.logAbortController === abortController) {
+      ctrl.logAbortController = null;
+    }
+    if (shouldRetry && !abortController.signal.aborted) {
+      scheduleLogStreamRetry(ctrl, retryDelayMs);
     }
   }
 }
@@ -2334,7 +2376,9 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         ctrl.isOurPod = true;
 
         await fetchActivePods();
-        startLogStreamForPod(ctrl);
+        if (!ctrl.logAbortController) {
+          startLogStreamForPod(ctrl);
+        }
 
         const newCard = document.querySelector(`.pod-card[data-pod-id="${newPodId}"]`);
         if (newCard) {
