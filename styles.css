@@ -1290,15 +1290,20 @@ body.gallery-page::before {
   color: rgba(17, 17, 17, 0.72);
 }
 
+.course-page {
+  overflow-x: clip;
+}
+
 .course-page footer {
   position: relative;
   z-index: 12;
   text-align: center;
   background-color: #b81d24;
+  box-shadow: 0 240px 0 0 #b81d24;
   color: rgba(242, 235, 229, 0.78);
   margin: 0 -25px;
   width: calc(100% + 50px);
-  padding: 2.5rem 25px calc(84px + env(safe-area-inset-bottom, 0px));
+  padding: 2rem 25px calc(16px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
 
@@ -1314,7 +1319,7 @@ body.gallery-page::before {
     grid-column: 1 / -1;
     width: 100%;
     margin: 0;
-    padding: 2.5rem 25px 15px;
+    padding: 1.15rem 25px 15px;
   }
 }
 
@@ -1633,8 +1638,8 @@ html:has(body.gallery-page) {
   }
   .course-page footer {
     margin-top: -2.25rem;
-    padding-top: 3rem;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    padding-top: 2.25rem;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -1959,7 +1964,7 @@ html:has(body.gallery-page) {
 .course-page .enroll-section {
   position: relative;
   z-index: 12;
-  padding: 3.25rem 0 0.75rem;
+  padding: 3.25rem 0 0;
   margin-bottom: 0 !important;
 }
 
