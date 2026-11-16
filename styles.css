@@ -1319,6 +1319,11 @@ body.gallery-page::before {
   .gallery-page .content-wrapper.students-gallery-layout {
     padding: 24px 25px calc(84px + env(safe-area-inset-bottom, 0px));
   }
+  .students-gallery-layout .gallery-list {
+    width: calc(100% + 50px);
+    margin-left: -25px;
+    margin-right: -25px;
+  }
   .students-gallery-layout .instagram-section,
   .students-gallery-layout footer {
     padding-left: 0;
