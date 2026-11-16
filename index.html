@@ -590,63 +590,74 @@
             let activeTouchId = null;
             let touchStartX = 0;
             let touchStartY = 0;
-            let replayingPointer = false;
+            let lastTouchX = 0;
+            let lastTouchY = 0;
+            const touchOffset = new THREE.Vector3();
+            const touchSpherical = new THREE.Spherical();
+
+            const rotateCameraByDelta = (deltaX, deltaY) => {
+                const scaleH = Math.max(200, hitbox.clientHeight || 300);
+                touchOffset.copy(camera.position).sub(controls.target);
+                touchSpherical.setFromVector3(touchOffset);
+                touchSpherical.theta -= (2 * Math.PI * deltaX) / scaleH;
+                touchSpherical.phi = Math.max(0.22, Math.min(Math.PI - 0.22, touchSpherical.phi - (2 * Math.PI * deltaY) / scaleH));
+                touchOffset.setFromSpherical(touchSpherical);
+                camera.position.copy(controls.target).add(touchOffset);
+                camera.lookAt(controls.target);
+            };
 
             hitbox.addEventListener('pointerdown', (e) => {
-                if (replayingPointer || e.pointerType !== 'touch') return;
+                if (e.pointerType !== 'touch') return;
+                e.stopPropagation();
                 if (activeTouchId !== null) return;
                 activeTouchId = e.pointerId;
                 touchMode = 'undecided';
                 touchStartX = e.clientX;
                 touchStartY = e.clientY;
-                e.stopPropagation();
+                lastTouchX = e.clientX;
+                lastTouchY = e.clientY;
             }, { capture: true });
 
             hitbox.addEventListener('pointermove', (e) => {
-                if (replayingPointer || e.pointerType !== 'touch' || e.pointerId !== activeTouchId) return;
-                if (touchMode === 'orbit') return;
-                if (touchMode === 'scroll') {
-                    e.stopPropagation();
-                    return;
-                }
-                const dx = Math.abs(e.clientX - touchStartX);
-                const dy = Math.abs(e.clientY - touchStartY);
-                if (Math.hypot(dx, dy) < 6) {
-                    e.stopPropagation();
-                    return;
-                }
-                if (dy > dx) {
-                    touchMode = 'scroll';
-                    e.stopPropagation();
-                    return;
-                }
-                touchMode = 'orbit';
+                if (e.pointerType !== 'touch') return;
                 e.stopPropagation();
-                replayingPointer = true;
-                try {
-                    hitbox.dispatchEvent(new PointerEvent('pointerdown', {
-                        pointerId: e.pointerId,
-                        pointerType: 'touch',
-                        clientX: e.clientX,
-                        clientY: e.clientY,
-                        button: 0,
-                        buttons: 1,
-                        bubbles: true,
-                        cancelable: true,
-                    }));
-                } finally {
-                    replayingPointer = false;
+                if (e.pointerId !== activeTouchId) return;
+
+                if (touchMode === 'scroll') return;
+
+                if (touchMode === 'undecided') {
+                    const absDx = Math.abs(e.clientX - touchStartX);
+                    const absDy = Math.abs(e.clientY - touchStartY);
+                    if (Math.hypot(absDx, absDy) < 6) return;
+                    if (absDy > absDx) {
+                        touchMode = 'scroll';
+                        return;
+                    }
+                    touchMode = 'orbit';
+                    controls.autoRotate = false;
+                    lastTouchX = e.clientX;
+                    lastTouchY = e.clientY;
+                    return;
+                }
+
+                if (touchMode === 'orbit') {
+                    const dx = e.clientX - lastTouchX;
+                    const dy = e.clientY - lastTouchY;
+                    lastTouchX = e.clientX;
+                    lastTouchY = e.clientY;
+                    rotateCameraByDelta(dx, dy);
                 }
             }, { capture: true });
 
             const finishTouchGesture = (e) => {
-                if (replayingPointer || e.pointerType !== 'touch' || e.pointerId !== activeTouchId) return;
-                const wasOrbit = touchMode === 'orbit';
+                if (e.pointerType !== 'touch') return;
+                e.stopPropagation();
+                if (e.pointerId !== activeTouchId) return;
+                if (touchMode === 'orbit') {
+                    controls.autoRotate = true;
+                }
                 touchMode = 'idle';
                 activeTouchId = null;
-                if (!wasOrbit) {
-                    e.stopPropagation();
-                }
             };
             hitbox.addEventListener('pointerup', finishTouchGesture, { capture: true });
             hitbox.addEventListener('pointercancel', finishTouchGesture, { capture: true });
