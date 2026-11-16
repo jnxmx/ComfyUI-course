@@ -1381,6 +1381,7 @@ html:has(body.gallery-page) {
     width: 100%;
     height: 100%;
     margin: 0;
+    z-index: 15;
   }
 }
 
@@ -1483,6 +1484,10 @@ html:has(body.gallery-page) {
   background: linear-gradient(to top, rgba(242, 235, 229, 0.96) 66%, rgba(242, 235, 229, 0) 100%);
 }
 
+.course-page .course-ask-backdrop {
+  display: none;
+}
+
 @media (min-width: 960px) {
   .gallery-page .course-ask-link {
     background: none;
@@ -1493,6 +1498,34 @@ html:has(body.gallery-page) {
     pointer-events: auto;
     background-color: rgba(242, 235, 229, 0.96);
     box-shadow: 0 0 22px 14px rgba(242, 235, 229, 0.96);
+  }
+  .course-page .course-ask-backdrop {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 0;
+    padding: 0 25px 15px;
+    font-size: 1.38rem;
+    pointer-events: none;
+    user-select: none;
+  }
+  .course-page .course-ask-backdrop span {
+    display: inline-block;
+    font-size: 1.38rem;
+    font-weight: 700;
+    line-height: 1.08;
+    color: transparent;
+    background-color: rgba(242, 235, 229, 0.96);
+    box-shadow: 0 0 22px 14px rgba(242, 235, 229, 0.96);
+  }
+  .course-page .course-ask-link a {
+    background-color: transparent;
+    box-shadow: none;
   }
 }
 
