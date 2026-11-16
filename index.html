@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=111">
+    <link rel="stylesheet" href="styles.css?v=112">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -454,6 +454,46 @@
             window.addEventListener('scroll', syncScrollOverlays, { passive: true });
             window.addEventListener('resize', syncScrollOverlays);
             syncScrollOverlays();
+
+            // Collapsible mobile schedule descriptions with circular chevron toggle
+            document.querySelectorAll('.schedule-item').forEach((item) => {
+                const topic = item.querySelector('.schedule-topic');
+                if (!topic) return;
+                const br = topic.querySelector('br');
+                if (br) {
+                    const sub = document.createElement('span');
+                    sub.className = 'schedule-sub';
+                    let node = br.nextSibling;
+                    while (node) {
+                        const next = node.nextSibling;
+                        sub.appendChild(node);
+                        node = next;
+                    }
+                    br.remove();
+                    if (sub.textContent.trim()) {
+                        topic.appendChild(sub);
+                    }
+                }
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'schedule-toggle';
+                btn.setAttribute('aria-expanded', 'false');
+                btn.setAttribute('aria-label', 'Показать описание занятия');
+                btn.innerHTML = '<svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 4.25L6 7.75L9.5 4.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                item.appendChild(btn);
+
+                const toggle = () => {
+                    if (window.innerWidth >= 960) return;
+                    const expanded = item.classList.toggle('is-expanded');
+                    btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                    syncScrollOverlays();
+                };
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('a')) return;
+                    toggle();
+                });
+            });
 
             // Native Tally-backed enroll form submission
             const nativeForm = document.getElementById('native-enroll-form');
