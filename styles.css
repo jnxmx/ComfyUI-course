@@ -1484,7 +1484,7 @@ html:has(body.gallery-page) {
 
 @media (max-width: 959px) {
   .course-page .course-nodes {
-    margin: 2.15rem 0 2.25rem;
+    margin: 3.6rem 0 3.75rem;
   }
   .course-page .node-text {
     font-size: 19.5px;
