@@ -1287,6 +1287,16 @@ body.gallery-page::before {
 
 .course-page footer {
   text-align: center;
+  background-color: #b81d24;
+  color: rgba(242, 235, 229, 0.78);
+  margin: 0 -25px;
+  width: calc(100% + 50px);
+  padding: 2.5rem 25px calc(84px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.course-page footer a {
+  color: rgba(242, 235, 229, 0.88);
 }
 
 @media (min-width: 960px) {
@@ -1296,7 +1306,8 @@ body.gallery-page::before {
   .course-page footer {
     grid-column: 1 / -1;
     width: 100%;
-    margin-left: 0;
+    margin: 0;
+    padding: 2.5rem 25px 15px;
   }
 }
 
@@ -1335,7 +1346,7 @@ html:has(body.gallery-page) {
   width: 100%;
   margin: 0;
   box-sizing: border-box;
-  padding: 24px 25px 15px;
+  padding: 24px 25px 0;
   color: #111111;
   display: grid;
   grid-template-columns: 1fr;
@@ -1363,7 +1374,7 @@ html:has(body.gallery-page) {
   .course-page .content-wrapper.course-layout {
     grid-template-columns: 50% 50%;
     gap: 0;
-    padding: 24px 0 15px;
+    padding: 24px 0 0;
     align-items: start;
   }
   .course-page .course-top-band {
@@ -1549,6 +1560,16 @@ html:has(body.gallery-page) {
   .course-page .course-ask-link a {
     background-color: transparent;
     box-shadow: none;
+    transition: color 0.15s ease;
+  }
+  .course-page .course-ask-link a.course-ask-btn.is-over-enroll {
+    color: #f2ebe5;
+  }
+  .course-page .course-ask-backdrop span.course-ask-backdrop-ask {
+    transition: opacity 0.15s ease;
+  }
+  .course-page .course-ask-backdrop span.course-ask-backdrop-ask.is-over-enroll {
+    opacity: 0;
   }
 }
 
@@ -1557,9 +1578,8 @@ html:has(body.gallery-page) {
     margin-left: -25px;
     margin-right: -25px;
   }
-  .course-page .content-wrapper,
   .course-page .content-wrapper.course-layout {
-    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
   }
 }
 
@@ -1823,7 +1843,7 @@ html:has(body.gallery-page) {
 .course-page .enroll-section {
   position: relative;
   z-index: 1;
-  padding: 3.25rem 0 3.5rem;
+  padding: 3.25rem 0 0.75rem;
   margin-bottom: 0 !important;
 }
 
