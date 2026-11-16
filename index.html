@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=115">
+    <link rel="stylesheet" href="styles.css?v=116">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -364,10 +364,12 @@
             const sidebar = document.querySelector('.course-sidebar');
             const galleryLink = document.querySelector('.course-gallery-link a');
             const scheduleH3 = document.querySelector('#schedule > h3');
+            const desktopLayoutMedia = window.matchMedia('(min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px)');
+            const isDesktopLayout = () => desktopLayoutMedia.matches;
 
             const syncSidebarStop = () => {
                 if (!topBand || !sidebar || !galleryLink || !scheduleH3) return;
-                if (window.innerWidth < 960) {
+                if (!isDesktopLayout()) {
                     sidebar.style.paddingBottom = '';
                     return;
                 }
@@ -406,7 +408,7 @@
             const syncScrollOverlays = () => {
                 if (!askBtn || !enrollSection || !enrollSubmit) return;
 
-                const isDesktop = window.innerWidth >= 960;
+                const isDesktop = isDesktopLayout();
                 if (!isDesktop) {
                     askBtn.style.transform = '';
                     askBtn.classList.remove('is-over-enroll');
@@ -480,7 +482,7 @@
                 item.appendChild(btn);
 
                 const toggle = () => {
-                    if (window.innerWidth >= 960) return;
+                    if (isDesktopLayout()) return;
                     const expanded = item.classList.toggle('is-expanded');
                     btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
                     syncScrollOverlays();
@@ -701,10 +703,11 @@
                     const halfW = Math.max(size.x, size.z) / 2;
                     const fitDistY = halfH / Math.tan(fovRad / 2);
                     const fitDistX = halfW / (Math.tan(fovRad / 2) * camera.aspect);
-                    const fitScale = window.innerWidth < 960 ? 1.54 : 1.48;
+                    const isDesktopSplat = window.matchMedia('(min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px)').matches;
+                    const fitScale = isDesktopSplat ? 1.48 : 1.54;
                     const dist = Math.max(fitDistY, fitDistX) * fitScale;
                     const visibleHeight = 2 * dist * Math.tan(fovRad / 2);
-                    const yShift = window.innerWidth < 960 ? -visibleHeight * 0.10 : 0;
+                    const yShift = isDesktopSplat ? 0 : -visibleHeight * 0.10;
                     camera.position.set(0, yShift, dist);
                     controls.target.set(0, yShift, 0);
                     controls.update();

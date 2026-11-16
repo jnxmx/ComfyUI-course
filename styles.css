@@ -1224,7 +1224,7 @@ body.gallery-page::before {
     0 0 3px rgba(116, 118, 120, 0.24);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .students-gallery-title h1 {
     font-size: 2.45cqi;
   }
@@ -1311,7 +1311,7 @@ body.gallery-page::before {
   color: rgba(242, 235, 229, 0.88);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .gallery-page .content-wrapper.students-gallery-layout {
     padding: 24px 25px 15px;
   }
@@ -1358,6 +1358,13 @@ html:has(body.gallery-page) {
   }
 }
 
+@media (max-width: 959px) and (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
+  html:has(body.course-page),
+  html:has(body.gallery-page) {
+    font-size: clamp(10.5px, 1.45vw, 13.5px);
+  }
+}
+
 .course-page .content-wrapper.course-layout {
   max-width: none;
   width: 100%;
@@ -1387,7 +1394,7 @@ html:has(body.gallery-page) {
   padding-top: 2.25rem;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .course-page .content-wrapper.course-layout {
     grid-template-columns: 50% 50%;
     gap: 0;
@@ -1481,6 +1488,15 @@ html:has(body.gallery-page) {
   }
   .course-page .node-text {
     font-size: 17px;
+  }
+}
+
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
+  .course-page .course-nodes {
+    margin: 0.25rem 0 1.25rem;
+  }
+  .course-page .node-text {
+    font-size: 11.5px;
   }
 }
 
@@ -1583,7 +1599,7 @@ html:has(body.gallery-page) {
   opacity: 0;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .gallery-page .course-ask-link {
     background: none;
     padding: 0 25px 15px;
@@ -1646,6 +1662,17 @@ html:has(body.gallery-page) {
   }
 }
 
+@media (max-width: 959px) and (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
+  .course-page .course-preview-video {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .course-page footer {
+    margin-top: 0;
+    padding: 1.15rem 25px 15px;
+  }
+}
+
 .course-page .course-main-column {
   min-width: 0;
 }
@@ -1677,7 +1704,7 @@ html:has(body.gallery-page) {
   display: inline;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .course-page .gallery-editorial-block--01 h1 {
     font-size: 4.85cqi;
   }
@@ -1749,7 +1776,7 @@ html:has(body.gallery-page) {
   text-transform: none;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .course-page {
     overflow-x: clip;
   }
@@ -1886,7 +1913,7 @@ html:has(body.gallery-page) {
   transform: rotate(180deg);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .course-page .schedule-columns {
     grid-column: 1 / -1;
     width: auto;
@@ -2169,7 +2196,7 @@ html:has(body.gallery-page) {
   cursor: grabbing;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .course-page .enroll-actions {
     justify-content: flex-end;
   }
