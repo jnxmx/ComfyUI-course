@@ -1563,6 +1563,10 @@ html:has(body.gallery-page) {
   border-radius: 0;
 }
 
+.course-page .course-preview-video {
+  margin-top: 1.5rem;
+}
+
 .course-page .course-preview-video video {
   display: block;
   width: 100%;
