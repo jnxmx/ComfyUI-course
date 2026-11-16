@@ -1956,23 +1956,24 @@ html:has(body.gallery-page) {
 
 .course-page .enroll-submit {
   display: inline-block;
-  background-color: #f2ebe5;
-  color: #b81d24;
+  background-color: #b81d24;
+  color: #f2ebe5;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-size: 1.38rem;
   font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.01em;
   text-transform: uppercase;
-  border: none;
+  border: 1.5px solid #f2ebe5;
   border-radius: 8px;
   padding: 0.55em 1.2em;
   cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .course-page .enroll-submit:hover {
-  background-color: #ffffff;
+  background-color: #f2ebe5;
+  color: #b81d24;
 }
 
 .course-page .enroll-submit:disabled {
