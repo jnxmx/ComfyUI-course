@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const trackEl = document.createElement('div');
   trackEl.className = 'course-carousel-track';
+  trackEl.style.visibility = 'hidden';
   wrap.appendChild(trackEl);
 
   const loaderEl = document.createElement('div');
@@ -232,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isLoading) return;
     isLoading = false;
     wrap.classList.add('is-ready');
+    trackEl.style.visibility = 'visible';
     loaderEl.remove();
     layoutTiles();
     startLoop();
