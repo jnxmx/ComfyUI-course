@@ -1476,6 +1476,9 @@ html:has(body.gallery-page) {
 }
 
 @media (max-width: 959px) {
+  .course-page .course-nodes {
+    margin: 2.15rem 0 2.25rem;
+  }
   .course-page .node-text {
     font-size: 17px;
   }
