@@ -2,12 +2,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const wrap = document.getElementById('course-carousel-wrap');
   if (!wrap) return;
 
-  const VIDEO_SOURCES = [
+  const BASE_VIDEOS = [
     'assets/video/Timeline 9.mp4',
     'assets/video/Timeline 8.mp4',
     'assets/video/Timeline 7.mp4',
     'assets/video/Timeline 5.mp4',
   ];
+  const INTERLEAVE_SRC = 'assets/video/some_new_footage.mp4';
+  const CAROUSEL_ITEMS = [];
+  for (let i = 0; i < BASE_VIDEOS.length; i++) {
+    CAROUSEL_ITEMS.push({ src: BASE_VIDEOS[i], startFraction: 0 });
+    CAROUSEL_ITEMS.push({
+      src: INTERLEAVE_SRC,
+      startFraction: i / BASE_VIDEOS.length,
+    });
+  }
   const SPEED_PX_PER_SEC = 50;
 
   let cssWidth = 0;
@@ -33,26 +42,44 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create native hardware-composited <video> tiles moved via translate3d
   // (no 2D canvas pixel copy per frame; only visible + 1 lookahead play concurrently).
   const entries = [];
-  for (let i = 0; i < VIDEO_SOURCES.length; i++) {
+  for (let i = 0; i < CAROUSEL_ITEMS.length; i++) {
+    const item = CAROUSEL_ITEMS[i];
     const video = document.createElement('video');
-    video.src = VIDEO_SOURCES[i];
+    video.src = item.src;
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
     video.disablePictureInPicture = true;
-    video.preload = 'auto';
+    video.preload = i < 4 ? 'auto' : 'metadata';
     video.className = 'course-carousel-tile';
     video.style.visibility = 'hidden';
     wrap.appendChild(video);
-    entries.push({
+    const entry = {
       index: i,
       video,
+      startFraction: item.startFraction,
+      initialSeekDone: item.startFraction === 0,
       aspect: 1,
       width: 0,
       x: 0,
       playingTarget: false,
-      loadedFull: true,
-    });
+      loadedFull: i < 4,
+    };
+    entries.push(entry);
+  }
+
+  function applyInitialSeek(entry) {
+    if (
+      entry.startFraction > 0 &&
+      !entry.initialSeekDone &&
+      entry.video.duration &&
+      Number.isFinite(entry.video.duration)
+    ) {
+      entry.initialSeekDone = true;
+      try {
+        entry.video.currentTime = entry.video.duration * entry.startFraction;
+      } catch {}
+    }
   }
 
   function getEntryAspect(entry) {
@@ -83,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!entry.playingTarget) {
           entry.playingTarget = true;
+          applyInitialSeek(entry);
           if (entry.video.paused) {
             entry.video.play().catch(() => {});
           }
@@ -186,6 +214,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loaderEl.remove();
     layoutTiles();
     startLoop();
+    setTimeout(() => {
+      for (let i = 4; i < entries.length; i++) {
+        if (!entries[i].loadedFull) {
+          entries[i].loadedFull = true;
+          entries[i].video.preload = 'auto';
+        }
+      }
+    }, 300);
   }
 
   // Horizontal pointer drag / swipe with threshold so vertical touch scrolling stays untouched
@@ -238,21 +274,26 @@ document.addEventListener('DOMContentLoaded', () => {
   wrap.addEventListener('pointerup', endDrag);
   wrap.addEventListener('pointercancel', endDrag);
 
-  // Wait for all carousel videos to have initial frames ready
+  // Wait for first 4 visible carousel videos to have initial frames ready (and seek offset applied)
+  const initialBatch = entries.slice(0, 4);
   Promise.all(
-    entries.map(
+    initialBatch.map(
       (entry) =>
         new Promise((resolve) => {
           const v = entry.video;
-          if (v.readyState >= 2 && v.videoWidth > 0) {
+          const finish = () => {
+            applyInitialSeek(entry);
             resolve();
+          };
+          if (v.readyState >= 2 && v.videoWidth > 0) {
+            finish();
             return;
           }
           let settled = false;
           const done = () => {
             if (settled) return;
             settled = true;
-            resolve();
+            finish();
           };
           v.addEventListener('loadeddata', done, { once: true });
           v.addEventListener('canplay', done, { once: true });
@@ -264,7 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
   ).then(initializeCarousel);
 
   for (let i = 0; i < entries.length; i++) {
-    entries[i].video.addEventListener('loadedmetadata', layoutTiles, { once: true });
+    entries[i].video.addEventListener('loadedmetadata', () => {
+      applyInitialSeek(entries[i]);
+      layoutTiles();
+    }, { once: true });
   }
 
   if (window.ResizeObserver) {
