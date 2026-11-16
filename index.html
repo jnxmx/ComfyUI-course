@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=97">
+    <link rel="stylesheet" href="styles.css?v=98">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -354,6 +354,78 @@
             controls.enablePan = false;
             controls.autoRotate = true;
             controls.autoRotateSpeed = 1.1;
+            // OrbitControls forces touchAction='none'; restore pan-y so vertical (>45deg) drags scroll the page natively
+            hitbox.style.touchAction = 'pan-y';
+
+            let touchMode = 'idle'; // 'idle' | 'undecided' | 'orbit' | 'scroll'
+            let activeTouchId = null;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let replayingPointer = false;
+
+            hitbox.addEventListener('pointerdown', (e) => {
+                if (replayingPointer || e.pointerType !== 'touch') return;
+                if (activeTouchId !== null) return;
+                activeTouchId = e.pointerId;
+                touchMode = 'undecided';
+                touchStartX = e.clientX;
+                touchStartY = e.clientY;
+                e.stopPropagation();
+            }, { capture: true });
+
+            hitbox.addEventListener('pointermove', (e) => {
+                if (replayingPointer || e.pointerType !== 'touch' || e.pointerId !== activeTouchId) return;
+                if (touchMode === 'orbit') return;
+                if (touchMode === 'scroll') {
+                    e.stopPropagation();
+                    return;
+                }
+                const dx = Math.abs(e.clientX - touchStartX);
+                const dy = Math.abs(e.clientY - touchStartY);
+                if (Math.hypot(dx, dy) < 6) {
+                    e.stopPropagation();
+                    return;
+                }
+                if (dy > dx) {
+                    touchMode = 'scroll';
+                    e.stopPropagation();
+                    return;
+                }
+                touchMode = 'orbit';
+                e.stopPropagation();
+                replayingPointer = true;
+                try {
+                    hitbox.dispatchEvent(new PointerEvent('pointerdown', {
+                        pointerId: e.pointerId,
+                        pointerType: 'touch',
+                        clientX: e.clientX,
+                        clientY: e.clientY,
+                        button: 0,
+                        buttons: 1,
+                        bubbles: true,
+                        cancelable: true,
+                    }));
+                } finally {
+                    replayingPointer = false;
+                }
+            }, { capture: true });
+
+            const finishTouchGesture = (e) => {
+                if (replayingPointer || e.pointerType !== 'touch' || e.pointerId !== activeTouchId) return;
+                const wasOrbit = touchMode === 'orbit';
+                touchMode = 'idle';
+                activeTouchId = null;
+                if (!wasOrbit) {
+                    e.stopPropagation();
+                }
+            };
+            hitbox.addEventListener('pointerup', finishTouchGesture, { capture: true });
+            hitbox.addEventListener('pointercancel', finishTouchGesture, { capture: true });
+            hitbox.addEventListener('touchmove', (e) => {
+                if (touchMode === 'orbit') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
 
             const splatMesh = new SplatMesh({ url: 'assets/instructor_idol.spz' });
             splatMesh.rotation.x = Math.PI;
@@ -391,8 +463,10 @@
                     const fitDistX = halfW / (Math.tan(fovRad / 2) * camera.aspect);
                     const fitScale = window.innerWidth < 960 ? 1.54 : 1.48;
                     const dist = Math.max(fitDistY, fitDistX) * fitScale;
-                    camera.position.set(0, 0, dist);
-                    controls.target.set(0, 0, 0);
+                    const visibleHeight = 2 * dist * Math.tan(fovRad / 2);
+                    const yShift = window.innerWidth < 960 ? -visibleHeight * 0.10 : 0;
+                    camera.position.set(0, yShift, dist);
+                    controls.target.set(0, yShift, 0);
                     controls.update();
                 }
             }).catch((err) => {

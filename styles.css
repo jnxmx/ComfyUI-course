@@ -1825,7 +1825,7 @@ html:has(body.gallery-page) {
   width: 64%;
   height: 80%;
   pointer-events: auto;
-  touch-action: none;
+  touch-action: pan-y;
   cursor: grab;
   z-index: 2;
 }
