@@ -436,7 +436,8 @@ iframe[data-tally-src] {
   background: #dcded6;
 }
 
-.course-page .course-carousel-poster {
+.course-page .course-carousel-poster,
+.course-page .course-preview-poster {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -449,13 +450,16 @@ iframe[data-tally-src] {
   z-index: 2;
 }
 
-.course-page .course-carousel-vellum {
+.course-page .course-carousel-vellum,
+.course-page .course-preview-vellum {
   z-index: 3;
   pointer-events: none;
 }
 
 .course-page .course-carousel-wrap.is-ready .course-carousel-poster,
-.course-page .course-carousel-wrap.is-ready .course-carousel-vellum {
+.course-page .course-carousel-wrap.is-ready .course-carousel-vellum,
+.course-page .course-preview-video.is-ready .course-preview-poster,
+.course-page .course-preview-video.is-ready .course-preview-vellum {
   opacity: 0;
 }
 
@@ -1726,11 +1730,24 @@ html:has(body.gallery-page) {
   border-radius: 0;
 }
 
+.course-page .course-preview-video {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1640 / 1080;
+  background: #dcded6;
+}
+
 .course-page .course-preview-video video {
   display: block;
   width: 100%;
   margin-top: 0;
   background: #dcded6;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.course-page .course-preview-video.is-ready video {
+  opacity: 1;
 }
 
 .course-page #schedule > p {

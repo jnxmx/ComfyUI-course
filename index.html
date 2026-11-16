@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=105">
+    <link rel="stylesheet" href="styles.css?v=106">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -90,10 +90,18 @@
         </aside>
         <div class="course-main-column course-main-column--top">
         <main>
-        <section class="course-preview-video">
+        <section class="course-preview-video" id="course-preview-video">
             <video src="assets/video_example.mp4" width="100%" muted autoplay loop playsinline aria-label="Preview of ComfyUI interface">
                  <img src="img/screenshot.png" width="100%" alt="Screenshot of ComfyUI interface">
             </video>
+            <img class="course-preview-poster" src="assets/video/preview_poster.jpg" alt="">
+            <div class="vellum-overlay course-preview-vellum" aria-hidden="true">
+                <div class="vellum-info">
+                    <div class="vellum-credits">
+                        <span class="vellum-author">ВИДЕО ЗАГРУЖАЕТСЯ</span>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="about">
@@ -331,6 +339,28 @@
                 }
                 noiseCtx.putImageData(imgData, 0, 0);
                 document.body.style.setProperty('--raster-noise-url', `url("${noiseCanvas.toDataURL('image/png')}")`);
+            }
+
+            const previewWrap = document.getElementById('course-preview-video');
+            const previewVideo = previewWrap ? previewWrap.querySelector('video') : null;
+            if (previewWrap && previewVideo) {
+                const revealPreview = () => {
+                    if (previewWrap.classList.contains('is-ready')) return;
+                    previewWrap.classList.add('is-ready');
+                    setTimeout(() => {
+                        const poster = previewWrap.querySelector('.course-preview-poster');
+                        const vellum = previewWrap.querySelector('.course-preview-vellum');
+                        if (poster) poster.remove();
+                        if (vellum) vellum.remove();
+                    }, 620);
+                };
+                if (previewVideo.readyState >= 2) {
+                    revealPreview();
+                } else {
+                    previewVideo.addEventListener('loadeddata', revealPreview, { once: true });
+                    previewVideo.addEventListener('canplay', revealPreview, { once: true });
+                    previewVideo.addEventListener('playing', revealPreview, { once: true });
+                }
             }
 
             const topBand = document.querySelector('.course-top-band');
