@@ -1133,7 +1133,6 @@ body.gallery-page::before {
 }
 
 .students-gallery-back a {
-  position: relative;
   display: inline-block;
   color: #b81d24;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
@@ -1143,14 +1142,15 @@ body.gallery-page::before {
   letter-spacing: -0.01em;
   text-transform: uppercase;
   text-decoration: none;
-  border: none;
-  border-radius: 10px;
   background: transparent;
-  padding: 0.32em 0.72em;
+  padding: 0;
 }
 
 .students-gallery-back a:hover {
-  opacity: 0.72;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: 1.5px;
+  opacity: 1;
 }
 
 .students-gallery-title {
@@ -1301,7 +1301,7 @@ html:has(body.gallery-page) {
   .course-page .content-wrapper.course-layout {
     grid-template-columns: 50% 50%;
     gap: 0;
-    padding: 24px 0 calc(84px + env(safe-area-inset-bottom, 0px));
+    padding: 24px 0 15px;
     align-items: start;
   }
   .course-page .course-sidebar,
@@ -1371,29 +1371,21 @@ html:has(body.gallery-page) {
 
 .course-page .course-gallery-link a,
 .gallery-page .course-ask-link a {
-  position: relative;
   display: inline-block;
   font-size: 1.38rem;
   font-weight: 700;
   text-decoration: none;
-  border: none;
-  border-radius: 10px;
   background: transparent;
-  padding: 0.32em 0.72em;
+  padding: 0;
   line-height: 1.08;
 }
 
-.course-page .course-gallery-link a::before,
-.gallery-page .course-ask-link a::before,
-.students-gallery-back a::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1.5px solid #1a1a1a;
-  border-radius: 10px;
-  background: transparent;
-  filter: url(#printer-noise-text);
-  pointer-events: none;
+.course-page .course-gallery-link a:hover,
+.gallery-page .course-ask-link a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: 1.5px;
+  opacity: 1;
 }
 
 .course-page #enroll-form {
