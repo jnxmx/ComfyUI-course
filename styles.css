@@ -420,14 +420,27 @@ iframe[data-tally-src] {
   cursor: grabbing;
 }
 
-.course-page .course-carousel-wrap canvas,
-.course-page #video-carousel {
-  display: block;
-  width: 100%;
+.course-page .course-carousel-tile {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
-  margin: 0;
-  min-height: 0;
-  background: transparent;
+  object-fit: cover;
+  pointer-events: none;
+  will-change: transform;
+  background: #dcded6;
+}
+
+.course-page .course-carousel-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #747678;
 }
 
 /* Контейнер основного контента */

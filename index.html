@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=91">
+    <link rel="stylesheet" href="styles.css?v=92">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -194,9 +194,7 @@
         <div class="course-main-column course-main-column--bottom">
         <main>
         <div class="course-results-requirements">
-            <div class="course-carousel-wrap" id="course-carousel-wrap" aria-label="Карусель видеоработ курса">
-                <canvas id="video-carousel"></canvas>
-            </div>
+            <div class="course-carousel-wrap" id="course-carousel-wrap" aria-label="Карусель видеоработ курса"></div>
             <section id="results">
                 <h3>Результаты обучения</h3>
                 <p>Вы освоите работу с любыми ИИ-моделями в ComfyUI и изучите возможности актуальных моделей для генерации и редактирования изображений, видео и звука — таких как Minimax H3, Moss, Flux и т.д.</p>
@@ -266,7 +264,7 @@
         <a class="waitlist-link course-enroll-mobile" href="#enroll-form">ЗАПИСАТЬСЯ</a>
     </div>
     </div>
-    <script src="carousel.js?v=3" defer></script>
+    <script src="carousel.js?v=4" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const noiseCanvas = document.createElement('canvas');
@@ -336,7 +334,8 @@
             camera.position.set(0, 0.15, 2.4);
 
             const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            const splatDprCap = window.innerWidth < 960 ? 1.25 : 2;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, splatDprCap));
             renderer.setSize(width, height);
             renderer.setClearColor(0x000000, 0);
             container.appendChild(renderer.domElement);
@@ -408,10 +407,19 @@
             });
             resizeObserver.observe(container);
 
-            renderer.setAnimationLoop(() => {
+            const renderSplat = () => {
                 controls.update();
                 renderer.render(scene, camera);
-            });
+            };
+
+            if ('IntersectionObserver' in window) {
+                new IntersectionObserver((obsEntries) => {
+                    const visible = obsEntries.some((entry) => entry.isIntersecting);
+                    renderer.setAnimationLoop(visible ? renderSplat : null);
+                }, { rootMargin: '200px 0px' }).observe(container);
+            } else {
+                renderer.setAnimationLoop(renderSplat);
+            }
         }
     </script>
 
