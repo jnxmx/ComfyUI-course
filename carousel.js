@@ -2,7 +2,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const wrap = document.getElementById('course-carousel-wrap');
   if (!wrap) return;
 
-  const VIDEO_COUNT = 10;
+  const VIDEO_SOURCES = [
+    'assets/video/Timeline 9.mp4',
+    'assets/video/Timeline 8.mp4',
+    'assets/video/Timeline 7.mp4',
+    'assets/video/Timeline 5.mp4',
+  ];
   const SPEED_PX_PER_SEC = 50;
 
   let cssWidth = 0;
@@ -28,25 +33,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create native hardware-composited <video> tiles moved via translate3d
   // (no 2D canvas pixel copy per frame; only visible + 1 lookahead play concurrently).
   const entries = [];
-  for (let i = 1; i <= VIDEO_COUNT; i++) {
+  for (let i = 0; i < VIDEO_SOURCES.length; i++) {
     const video = document.createElement('video');
-    video.src = `assets/video/Timeline ${i}.mp4`;
+    video.src = VIDEO_SOURCES[i];
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
     video.disablePictureInPicture = true;
-    video.preload = i <= 4 ? 'auto' : 'metadata';
+    video.preload = 'auto';
     video.className = 'course-carousel-tile';
     video.style.visibility = 'hidden';
     wrap.appendChild(video);
     entries.push({
-      index: i - 1,
+      index: i,
       video,
       aspect: 1,
       width: 0,
       x: 0,
       playingTarget: false,
-      loadedFull: i <= 4,
+      loadedFull: true,
     });
   }
 
@@ -181,15 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loaderEl.remove();
     layoutTiles();
     startLoop();
-    // Warm remaining video buffers in background without starting their decoders yet
-    setTimeout(() => {
-      for (let i = 4; i < entries.length; i++) {
-        if (!entries[i].loadedFull) {
-          entries[i].loadedFull = true;
-          entries[i].video.preload = 'auto';
-        }
-      }
-    }, 300);
   }
 
   // Horizontal pointer drag / swipe with threshold so vertical touch scrolling stays untouched
@@ -242,10 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
   wrap.addEventListener('pointerup', endDrag);
   wrap.addEventListener('pointercancel', endDrag);
 
-  // Wait only for initial visible videos (first 4) so mobile starts quickly without saturating decoders
-  const initialBatch = entries.slice(0, 4);
+  // Wait for all carousel videos to have initial frames ready
   Promise.all(
-    initialBatch.map(
+    entries.map(
       (entry) =>
         new Promise((resolve) => {
           const v = entry.video;
@@ -268,8 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     )
   ).then(initializeCarousel);
 
-  // Update aspect ratio when remaining metadata arrives
-  for (let i = 4; i < entries.length; i++) {
+  for (let i = 0; i < entries.length; i++) {
     entries[i].video.addEventListener('loadedmetadata', layoutTiles, { once: true });
   }
 
