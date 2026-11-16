@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=120">
+    <link rel="stylesheet" href="styles.css?v=121">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -430,7 +430,7 @@
 
                 const submitRect = enrollSubmit.getBoundingClientRect();
                 const askH = askBtn.offsetHeight || 20;
-                const fixedTop = window.innerHeight - 15 - askH;
+                const fixedTop = window.innerHeight - 26 - askH;
                 const fixedCenterY = fixedTop + askH * 0.5;
                 const targetTop = submitRect.top + submitRect.height * 0.5 - askH * 0.5;
                 const deltaY = Math.min(0, targetTop - fixedTop);

@@ -1616,7 +1616,7 @@ html:has(body.gallery-page) {
 @media (min-width: 960px), (orientation: landscape) and (min-width: 560px) and (max-height: 600px) {
   .gallery-page .course-ask-link {
     background: none;
-    padding: 0 25px 15px;
+    padding: 0 25px 26px;
     pointer-events: none;
   }
   .gallery-page .course-ask-link a {
@@ -1631,7 +1631,7 @@ html:has(body.gallery-page) {
     justify-content: space-between;
     align-items: baseline;
     margin: 0;
-    padding: 0 25px 15px;
+    padding: 0 25px 26px;
     font-size: 1.38rem;
     user-select: none;
   }
