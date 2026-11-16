@@ -1290,6 +1290,8 @@ body.gallery-page::before {
 }
 
 .course-page footer {
+  position: relative;
+  z-index: 12;
   text-align: center;
   background-color: #b81d24;
   color: rgba(242, 235, 229, 0.78);
@@ -1548,8 +1550,28 @@ html:has(body.gallery-page) {
   background: linear-gradient(to top, rgba(242, 235, 229, 0.96) 66%, rgba(242, 235, 229, 0) 100%);
 }
 
+.course-page .course-ask-link {
+  background: none;
+}
+
 .course-page .course-ask-backdrop {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(82px + env(safe-area-inset-bottom, 0px));
+  z-index: 10;
+  background: linear-gradient(to top, rgba(242, 235, 229, 0.96) 66%, rgba(242, 235, 229, 0) 100%);
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.course-page .course-ask-backdrop span {
   display: none;
+}
+
+.course-page .course-ask-backdrop.is-mobile-hidden {
+  opacity: 0;
 }
 
 @media (min-width: 960px) {
@@ -1564,18 +1586,14 @@ html:has(body.gallery-page) {
     box-shadow: 0 0 22px 14px rgba(242, 235, 229, 0.96);
   }
   .course-page .course-ask-backdrop {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
+    height: auto;
+    background: none;
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     margin: 0;
     padding: 0 25px 15px;
     font-size: 1.38rem;
-    pointer-events: none;
     user-select: none;
   }
   .course-page .course-ask-backdrop span {
@@ -1891,7 +1909,7 @@ html:has(body.gallery-page) {
 
 .course-page .enroll-section {
   position: relative;
-  z-index: 1;
+  z-index: 12;
   padding: 3.25rem 0 0.75rem;
   margin-bottom: 0 !important;
 }

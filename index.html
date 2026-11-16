@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=109">
+    <link rel="stylesheet" href="styles.css?v=110">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -416,14 +416,18 @@
                     askBtn.classList.remove('is-over-enroll');
                     if (askBackdrop) askBackdrop.classList.remove('is-over-enroll');
 
-                    // On mobile, hide both floating bottom buttons as soon as they touch the red block's top edge
+                    // On mobile, hide both floating bottom buttons and backdrop as soon as they touch the red block's top edge
                     const touchEnrollTop = enrollSection.getBoundingClientRect().top <= window.innerHeight - 15;
                     if (askBar) askBar.classList.toggle('is-mobile-hidden', touchEnrollTop);
+                    const fullBackdrop = document.querySelector('.course-ask-backdrop');
+                    if (fullBackdrop) fullBackdrop.classList.toggle('is-mobile-hidden', touchEnrollTop);
                     if (enrollCornerBtn) enrollCornerBtn.classList.toggle('is-enroll-hidden', touchEnrollTop);
                     if (enrollBackdrop) enrollBackdrop.classList.toggle('is-enroll-hidden', touchEnrollTop);
                     return;
                 }
 
+                const fullBackdrop = document.querySelector('.course-ask-backdrop');
+                if (fullBackdrop) fullBackdrop.classList.remove('is-mobile-hidden');
                 if (askBar) askBar.classList.remove('is-mobile-hidden');
 
                 const submitRect = enrollSubmit.getBoundingClientRect();
