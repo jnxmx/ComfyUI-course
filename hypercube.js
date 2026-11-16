@@ -30,15 +30,6 @@
         ]);
     }
 
-    // 32 edges of the tesseract
-    const edges = [];
-    for (let a = 0; a < 16; a++) {
-        for (let bit = 0; bit < 4; bit++) {
-            const b = a ^ (1 << bit);
-            if (a < b) edges.push([a, b]);
-        }
-    }
-
     // 24 square faces of the tesseract
     const faces = [];
     for (let axisA = 0; axisA < 4; axisA++) {
@@ -67,9 +58,9 @@
                         videoIndex: faces.length % TIMELINE_VIDEOS.length,
                         lastTime: 0,
                         wasVisible: false,
+                        clarity: 0,
                         frozenCanvas: null,
                         vellumCanvas: null,
-                        pendingGrab: false,
                     });
                 }
             }
@@ -121,17 +112,17 @@
         if (!oCtx) return out;
 
         oCtx.save();
-        oCtx.filter = 'blur(10px) saturate(0.84) contrast(0.92) brightness(0.98)';
-        oCtx.drawImage(sourceCanvas, -14, -14, size + 28, size + 28);
+        oCtx.filter = 'blur(14px) saturate(0.84) contrast(0.92) brightness(0.98)';
+        oCtx.drawImage(sourceCanvas, -16, -16, size + 32, size + 32);
         oCtx.restore();
 
         const grad = oCtx.createRadialGradient(
             size * 0.5, size * 0.48, size * 0.08,
             size * 0.5, size * 0.5, size * 0.72
         );
-        grad.addColorStop(0, 'rgba(206, 209, 200, 0.34)');
-        grad.addColorStop(0.65, 'rgba(192, 196, 187, 0.52)');
-        grad.addColorStop(1, 'rgba(182, 186, 177, 0.64)');
+        grad.addColorStop(0, 'rgba(206, 209, 200, 0.28)');
+        grad.addColorStop(0.65, 'rgba(192, 196, 187, 0.44)');
+        grad.addColorStop(1, 'rgba(182, 186, 177, 0.56)');
         oCtx.fillStyle = grad;
         oCtx.fillRect(0, 0, size, size);
 
@@ -156,90 +147,68 @@
         return out;
     }
 
-    // Active video element for the single largest visible face
-    const activeVideo = document.createElement('video');
-    activeVideo.muted = true;
-    activeVideo.playsInline = true;
-    activeVideo.loop = true;
-    activeVideo.preload = 'auto';
-    activeVideo.crossOrigin = 'anonymous';
+    // Preload all 10 carousel videos so the cube only appears once every video has a ready frame
+    const videoPool = TIMELINE_VIDEOS.map((src, idx) => {
+        const video = document.createElement('video');
+        video.src = src;
+        video.muted = true;
+        video.playsInline = true;
+        video.loop = true;
+        video.preload = 'auto';
+        video.crossOrigin = 'anonymous';
+        return {
+            index: idx,
+            video,
+            defaultFrozen: null,
+            defaultVellum: null,
+            ready: false,
+        };
+    });
+
+    function preloadVideoEntry(entry) {
+        return new Promise((resolve) => {
+            const v = entry.video;
+            let settled = false;
+            const finish = () => {
+                if (settled) return;
+                settled = true;
+                if (v.videoWidth > 0) {
+                    const snap = captureCoverFrame(v);
+                    if (snap) {
+                        entry.defaultFrozen = snap;
+                        entry.defaultVellum = bakeVellumFromFrame(snap);
+                    }
+                }
+                entry.ready = true;
+                resolve();
+            };
+
+            const onSeeked = () => {
+                v.removeEventListener('seeked', onSeeked);
+                finish();
+            };
+
+            const onLoadedData = () => {
+                v.removeEventListener('loadeddata', onLoadedData);
+                const dur = v.duration && Number.isFinite(v.duration) ? v.duration : 4;
+                const initialT = Math.min(dur * 0.25, Math.max(0.1, dur - 0.2));
+                v.addEventListener('seeked', onSeeked);
+                try {
+                    v.currentTime = initialT;
+                } catch {
+                    finish();
+                }
+            };
+
+            v.addEventListener('loadeddata', onLoadedData);
+            v.addEventListener('error', finish);
+            setTimeout(finish, 8000);
+            v.load();
+        });
+    }
 
     let activeFaceId = -1;
-    let activeVideoReady = false;
-
-    activeVideo.addEventListener('loadeddata', () => {
-        const face = faces[activeFaceId];
-        if (!face) return;
-        if (face.lastTime > 0 && activeVideo.duration && face.lastTime < activeVideo.duration - 0.1) {
-            activeVideo.currentTime = face.lastTime;
-        }
-        activeVideo.play().catch(() => {});
-        activeVideoReady = true;
-    });
-
-    activeVideo.addEventListener('canplay', () => {
-        activeVideoReady = true;
-        activeVideo.play().catch(() => {});
-    });
-
-    // Background frame grabber queue for newly appearing neighbor faces
-    const grabVideo = document.createElement('video');
-    grabVideo.muted = true;
-    grabVideo.playsInline = true;
-    grabVideo.preload = 'auto';
-    grabVideo.crossOrigin = 'anonymous';
-
-    const grabQueue = [];
-    let grabbingFace = null;
-
-    function processGrabQueue() {
-        if (grabbingFace || grabQueue.length === 0) return;
-        const face = grabQueue.shift();
-        if (!face) return;
-        grabbingFace = face;
-        grabVideo.src = TIMELINE_VIDEOS[face.videoIndex];
-        grabVideo.load();
-    }
-
-    grabVideo.addEventListener('loadeddata', () => {
-        if (!grabbingFace) return;
-        const dur = grabVideo.duration || 4;
-        const targetTime = grabbingFace.lastTime > 0
-            ? Math.min(grabbingFace.lastTime, Math.max(0, dur - 0.2))
-            : Math.min(dur * (0.15 + Math.random() * 0.65), Math.max(0, dur - 0.2));
-        grabbingFace.lastTime = targetTime;
-        try {
-            grabVideo.currentTime = targetTime;
-        } catch {
-            finalizeGrab();
-        }
-    });
-
-    function finalizeGrab() {
-        if (!grabbingFace) return;
-        const snap = captureCoverFrame(grabVideo);
-        if (snap) {
-            grabbingFace.frozenCanvas = snap;
-            grabbingFace.vellumCanvas = bakeVellumFromFrame(snap);
-        }
-        grabbingFace.pendingGrab = false;
-        grabbingFace = null;
-        processGrabQueue();
-    }
-
-    grabVideo.addEventListener('seeked', finalizeGrab);
-    grabVideo.addEventListener('error', () => {
-        if (grabbingFace) grabbingFace.pendingGrab = false;
-        grabbingFace = null;
-        processGrabQueue();
-    });
-
-    function scheduleGrab(face) {
-        if (face.pendingGrab) return;
-        face.pendingGrab = true;
-        grabQueue.push(face);
-        processGrabQueue();
-    }
+    let allVideosReady = false;
 
     function pickRandomVideoIndex(excludeSet) {
         const candidates = [];
@@ -256,29 +225,35 @@
         if (activeFaceId !== -1) {
             const prevFace = faces[activeFaceId];
             if (prevFace) {
-                if (activeVideoReady && activeVideo.videoWidth > 0) {
-                    const snap = captureCoverFrame(activeVideo);
+                const prevEntry = videoPool[prevFace.videoIndex];
+                if (prevEntry && prevEntry.video.videoWidth > 0) {
+                    const snap = captureCoverFrame(prevEntry.video);
                     if (snap) {
                         prevFace.frozenCanvas = snap;
                         prevFace.vellumCanvas = bakeVellumFromFrame(snap);
                     }
-                    prevFace.lastTime = activeVideo.currentTime || prevFace.lastTime;
+                    prevFace.lastTime = prevEntry.video.currentTime || prevFace.lastTime;
+                    prevEntry.video.pause();
                 }
             }
         }
 
         if (!nextFace) {
             activeFaceId = -1;
-            activeVideo.pause();
-            activeVideoReady = false;
             return;
         }
 
         activeFaceId = nextFace.id;
-        activeVideoReady = false;
-        activeVideo.src = TIMELINE_VIDEOS[nextFace.videoIndex];
-        activeVideo.load();
-        activeVideo.play().catch(() => {});
+        const nextEntry = videoPool[nextFace.videoIndex];
+        if (nextEntry) {
+            const v = nextEntry.video;
+            if (nextFace.lastTime > 0 && v.duration && nextFace.lastTime < v.duration - 0.1) {
+                try {
+                    v.currentTime = nextFace.lastTime;
+                } catch {}
+            }
+            v.play().catch(() => {});
+        }
     }
 
     // 4D & 3D rotation state
@@ -334,37 +309,31 @@
     function rotateAndProject(v, wPx, hPx) {
         let [x, y, z, w] = v;
 
-        // XW rotation
         let c = Math.cos(rotXW), s = Math.sin(rotXW);
         [x, w] = [x * c - w * s, x * s + w * c];
 
-        // YW rotation
         c = Math.cos(rotYW); s = Math.sin(rotYW);
         [y, w] = [y * c - w * s, y * s + w * c];
 
-        // XY rotation
         c = Math.cos(rotXY); s = Math.sin(rotXY);
         [x, y] = [x * c - y * s, x * s + y * c];
 
-        // XZ rotation
         c = Math.cos(rotXZ); s = Math.sin(rotXZ);
         [x, z] = [x * c - z * s, x * s + z * c];
 
-        // YZ rotation
         c = Math.cos(rotYZ); s = Math.sin(rotYZ);
         [y, z] = [y * c - z * s, y * s + z * c];
 
-        // 4D -> 3D perspective
-        const d4 = 3.15;
+        // Less wide-angle / more telephoto projection for gentler perspective distortion
+        const d4 = 5.4;
         const s4 = d4 / (d4 - w);
         const x3 = x * s4;
         const y3 = y * s4;
         const z3 = z * s4;
 
-        // 3D -> 2D perspective
-        const d3 = 4.35;
+        const d3 = 9.8;
         const s3 = d3 / (d3 - z3);
-        const scale = Math.min(wPx, hPx) * 0.295;
+        const scale = Math.min(wPx, hPx) * 0.32;
 
         return {
             x: wPx * 0.5 + x3 * s3 * scale,
@@ -406,7 +375,7 @@
         };
     }
 
-    function drawTriangleImage(src, sx, sy, sw, sh, d0, d1, d2, uv0, uv1, uv2, dpr) {
+    function drawTriangleImage(src, sx, sy, sw, sh, d0, d1, d2, uv0, uv1, uv2, alpha) {
         const u0 = sx + uv0[0] * sw;
         const v0 = sy + uv0[1] * sh;
         const u1 = sx + uv1[0] * sw;
@@ -430,6 +399,7 @@
         const f = d0.y - b * u0 - d * v0;
 
         ctx.save();
+        if (alpha < 1) ctx.globalAlpha = alpha;
         ctx.beginPath();
         ctx.moveTo(d0.x, d0.y);
         ctx.lineTo(d1.x, d1.y);
@@ -442,7 +412,8 @@
         ctx.restore();
     }
 
-    function drawTexturedQuad(src, pts, dpr) {
+    function drawTexturedQuad(src, pts, alpha = 1) {
+        if (!src || alpha <= 0.005) return;
         const srcW = src.videoWidth || src.width;
         const srcH = src.videoHeight || src.height;
         if (!srcW || !srcH) return;
@@ -465,8 +436,8 @@
                 const q11 = bilerp(p0, p1, p2, p3, uB, vB);
                 const q01 = bilerp(p0, p1, p2, p3, uA, vB);
 
-                drawTriangleImage(src, sx, sy, side, side, q00, q10, q11, [uA, vA], [uB, vA], [uB, vB], dpr);
-                drawTriangleImage(src, sx, sy, side, side, q00, q11, q01, [uA, vA], [uB, vB], [uA, vB], dpr);
+                drawTriangleImage(src, sx, sy, side, side, q00, q10, q11, [uA, vA], [uB, vA], [uB, vB], alpha);
+                drawTriangleImage(src, sx, sy, side, side, q00, q11, q01, [uA, vA], [uB, vB], [uA, vB], alpha);
             }
         }
     }
@@ -492,6 +463,11 @@
         const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
         lastFrameTime = now;
 
+        if (!allVideosReady) {
+            requestAnimationFrame(render);
+            return;
+        }
+
         if (!isDragging) {
             rotXZ += velX + dt * 0.22;
             rotYZ += velY + dt * 0.09;
@@ -501,14 +477,12 @@
             velY *= 0.93;
         }
 
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const wPx = canvas.width;
         const hPx = canvas.height;
         ctx.clearRect(0, 0, wPx, hPx);
 
         const projected = vertices4D.map((v) => rotateAndProject(v, wPx, hPx));
 
-        // Compute face metrics
         const faceMetrics = faces.map((face) => {
             const pts = face.indices.map((idx) => projected[idx]);
             const area = quadArea(pts);
@@ -523,7 +497,6 @@
             if (m.area > maxArea) maxArea = m.area;
         }
 
-        // Determine the single largest face toward the viewer (with slight hysteresis)
         let largestMetric = null;
         let bestScore = -1;
         for (const m of faceMetrics) {
@@ -535,7 +508,6 @@
             }
         }
 
-        // Determine which faces are currently visible (not edge-on, not hidden behind the largest playing face)
         const minAreaThreshold = maxArea * 0.16;
         const visibleSet = new Set();
         for (const m of faceMetrics) {
@@ -553,7 +525,6 @@
             }
         }
 
-        // Assign random videos to newly appearing faces that were hidden
         const activeVideosInUse = new Set();
         for (const m of faceMetrics) {
             if (m.face.wasVisible && visibleSet.has(m.face.id)) {
@@ -566,67 +537,78 @@
             if (isVis && !m.face.wasVisible) {
                 m.face.videoIndex = pickRandomVideoIndex(activeVideosInUse);
                 activeVideosInUse.add(m.face.videoIndex);
-                m.face.lastTime = 0;
-                m.face.frozenCanvas = null;
-                m.face.vellumCanvas = null;
-                if (!largestMetric || m.face.id !== largestMetric.face.id) {
-                    scheduleGrab(m.face);
-                }
+                const poolEntry = videoPool[m.face.videoIndex];
+                m.face.lastTime = poolEntry ? poolEntry.video.currentTime : 0;
+                m.face.frozenCanvas = poolEntry ? poolEntry.defaultFrozen : null;
+                m.face.vellumCanvas = poolEntry ? poolEntry.defaultVellum : null;
+                m.face.clarity = 0;
             }
             m.face.wasVisible = isVis;
         }
 
         if (largestMetric) {
             setActiveFace(largestMetric.face);
-            largestMetric.face.lastTime = activeVideo.currentTime || largestMetric.face.lastTime;
+            const activeEntry = videoPool[largestMetric.face.videoIndex];
+            if (activeEntry) {
+                largestMetric.face.lastTime = activeEntry.video.currentTime || largestMetric.face.lastTime;
+            }
         }
 
-        // Draw visible neighbor faces back-to-front with vellum overlay
-        const visibleMetrics = faceMetrics
+        // Smoothly animate vellum dissipation (matching gallery's 0.55s cubic-bezier fade)
+        const clarityRate = dt / 0.55;
+        for (const m of faceMetrics) {
+            const isLargest = largestMetric && m.face.id === largestMetric.face.id;
+            if (isLargest) {
+                m.face.clarity = Math.min(1, m.face.clarity + clarityRate);
+            } else {
+                m.face.clarity = Math.max(0, m.face.clarity - clarityRate);
+            }
+        }
+
+        // Draw visible neighbor faces back-to-front
+        const visibleNeighbors = faceMetrics
             .filter((m) => visibleSet.has(m.face.id) && (!largestMetric || m.face.id !== largestMetric.face.id))
             .sort((a, b) => a.avgZ - b.avgZ);
 
-        for (const m of visibleMetrics) {
-            if (m.face.vellumCanvas) {
-                drawTexturedQuad(m.face.vellumCanvas, m.pts, dpr);
-            } else {
-                // Soft vellum placeholder while initial frame is loading
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(m.pts[0].x, m.pts[0].y);
-                for (let i = 1; i < 4; i++) ctx.lineTo(m.pts[i].x, m.pts[i].y);
-                ctx.closePath();
-                ctx.fillStyle = 'rgba(206, 209, 200, 0.36)';
-                ctx.fill();
-                ctx.restore();
+        for (const m of visibleNeighbors) {
+            const entry = videoPool[m.face.videoIndex];
+            const frozen = m.face.frozenCanvas || (entry && entry.defaultFrozen);
+            const vellum = m.face.vellumCanvas || (entry && entry.defaultVellum);
+
+            if (m.face.clarity > 0.01 && frozen) {
+                drawTexturedQuad(frozen, m.pts, 1);
+                if (vellum) drawTexturedQuad(vellum, m.pts, 1 - m.face.clarity);
+            } else if (vellum) {
+                drawTexturedQuad(vellum, m.pts, 1);
             }
         }
 
-        // Draw the largest face toward the viewer with live playing video
+        // Draw the largest face toward the viewer with live video + smooth vellum dissipation
         if (largestMetric) {
-            if (activeVideoReady && activeVideo.videoWidth > 0) {
-                drawTexturedQuad(activeVideo, largestMetric.pts, dpr);
-            } else if (largestMetric.face.frozenCanvas) {
-                drawTexturedQuad(largestMetric.face.frozenCanvas, largestMetric.pts, dpr);
+            const entry = videoPool[largestMetric.face.videoIndex];
+            const liveVideo = entry && entry.video.videoWidth > 0 ? entry.video : null;
+            const frozen = largestMetric.face.frozenCanvas || (entry && entry.defaultFrozen);
+            const vellum = largestMetric.face.vellumCanvas || (entry && entry.defaultVellum);
+
+            if (liveVideo) {
+                drawTexturedQuad(liveVideo, largestMetric.pts, 1);
+            } else if (frozen) {
+                drawTexturedQuad(frozen, largestMetric.pts, 1);
+            }
+
+            const vellumAlpha = 1 - largestMetric.face.clarity;
+            if (vellum && vellumAlpha > 0.01) {
+                drawTexturedQuad(vellum, largestMetric.pts, vellumAlpha);
             }
         }
-
-        // Draw all 32 edges of the tesseract in crisp black ink
-        ctx.save();
-        ctx.strokeStyle = '#141414';
-        ctx.lineWidth = Math.max(1.8, 2.2 * dpr);
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.beginPath();
-        for (const [a, b] of edges) {
-            ctx.moveTo(projected[a].x, projected[a].y);
-            ctx.lineTo(projected[b].x, projected[b].y);
-        }
-        ctx.stroke();
-        ctx.restore();
 
         requestAnimationFrame(render);
     }
+
+    Promise.all(videoPool.map(preloadVideoEntry)).then(() => {
+        allVideosReady = true;
+        container.classList.add('is-ready');
+    });
 
     requestAnimationFrame(render);
 })();

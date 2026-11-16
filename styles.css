@@ -1689,6 +1689,12 @@ html:has(body.gallery-page) {
   position: relative;
   touch-action: none;
   cursor: grab;
+  opacity: 0;
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.course-page .about-hypercube.is-ready {
+  opacity: 1;
 }
 
 .course-page .about-hypercube:active {
