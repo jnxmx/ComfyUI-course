@@ -1805,7 +1805,7 @@ html:has(body.gallery-page) {
 .course-page .instructor-splat {
   width: calc(100% + 50px);
   max-width: none;
-  aspect-ratio: 1 / 1.05;
+  aspect-ratio: 1 / 0.92;
   margin: 0 -25px 0.25rem;
   position: relative;
   pointer-events: none;
