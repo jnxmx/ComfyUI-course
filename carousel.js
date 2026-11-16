@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     CAROUSEL_ITEMS.push({ src: BASE_VIDEOS[i], startFraction: 0 });
     CAROUSEL_ITEMS.push({
       src: INTERLEAVE_SRC,
-      startFraction: i / BASE_VIDEOS.length,
+      startFraction: i % 2 === 0 ? 0 : 0.5,
     });
   }
   const SPEED_PX_PER_SEC = 50;
