@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=106">
+    <link rel="stylesheet" href="styles.css?v=107">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -402,34 +402,41 @@
             const enrollSubmit = document.querySelector('#native-enroll-form .enroll-submit');
             const enrollCornerBtn = document.querySelector('.course-enroll-mobile');
             const enrollBackdrop = document.querySelector('.course-ask-backdrop-enroll');
+            const askBar = document.querySelector('.course-ask-link');
             const askBtn = document.querySelector('.course-ask-btn');
             const askBackdrop = document.querySelector('.course-ask-backdrop-ask');
 
             const syncScrollOverlays = () => {
-                if (enrollHeading && enrollCornerBtn) {
-                    const shouldHideEnroll = enrollHeading.getBoundingClientRect().top <= window.innerHeight * 0.5;
+                if (!askBtn || !enrollSection || !enrollSubmit) return;
+
+                const isDesktop = window.innerWidth >= 960;
+                const submitRect = enrollSubmit.getBoundingClientRect();
+                const askH = askBtn.offsetHeight || 20;
+                const fixedTop = window.innerHeight - 15 - askH;
+                const fixedCenterY = fixedTop + askH * 0.5;
+
+                // Desktop: "ЗАДАТЬ ВОПРОС" locks level with form submit button.
+                // Mobile: "ЗАДАТЬ ВОПРОС" stops right below the form submit button.
+                const targetTop = isDesktop
+                    ? (submitRect.top + submitRect.height * 0.5 - askH * 0.5)
+                    : (submitRect.bottom + 14);
+                const deltaY = Math.min(0, targetTop - fixedTop);
+
+                askBtn.style.transform = deltaY < -0.5 ? `translate3d(0, ${deltaY.toFixed(2)}px, 0)` : '';
+
+                const currentAskCenterY = fixedCenterY + deltaY;
+                const isOverEnroll = enrollSection.getBoundingClientRect().top <= currentAskCenterY;
+
+                askBtn.classList.toggle('is-over-enroll', isOverEnroll);
+                if (askBar) askBar.classList.toggle('is-over-enroll', isOverEnroll);
+                if (askBackdrop) askBackdrop.classList.toggle('is-over-enroll', isOverEnroll);
+
+                if (enrollCornerBtn) {
+                    const shouldHideEnroll = isDesktop
+                        ? isOverEnroll
+                        : (enrollHeading ? enrollHeading.getBoundingClientRect().top <= window.innerHeight * 0.5 : isOverEnroll);
                     enrollCornerBtn.classList.toggle('is-enroll-hidden', shouldHideEnroll);
                     if (enrollBackdrop) enrollBackdrop.classList.toggle('is-enroll-hidden', shouldHideEnroll);
-                }
-
-                if (askBtn && enrollSection && enrollSubmit) {
-                    if (window.innerWidth < 960) {
-                        askBtn.style.transform = '';
-                        askBtn.classList.remove('is-over-enroll');
-                        if (askBackdrop) askBackdrop.classList.remove('is-over-enroll');
-                        return;
-                    }
-                    const fixedCenterY = window.innerHeight - 15 - askBtn.offsetHeight * 0.5;
-                    const submitRect = enrollSubmit.getBoundingClientRect();
-                    const submitCenterY = submitRect.top + submitRect.height * 0.5;
-                    const deltaY = Math.min(0, submitCenterY - fixedCenterY);
-
-                    askBtn.style.transform = deltaY < -0.5 ? `translate3d(0, ${deltaY.toFixed(2)}px, 0)` : '';
-
-                    const currentAskCenterY = fixedCenterY + deltaY;
-                    const isOverEnroll = enrollSection.getBoundingClientRect().top <= currentAskCenterY;
-                    askBtn.classList.toggle('is-over-enroll', isOverEnroll);
-                    if (askBackdrop) askBackdrop.classList.toggle('is-over-enroll', isOverEnroll);
                 }
             };
             window.addEventListener('scroll', syncScrollOverlays, { passive: true });

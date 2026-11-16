@@ -1502,6 +1502,18 @@ html:has(body.gallery-page) {
   transition: opacity 0.25s ease;
 }
 
+.course-page .course-ask-link.is-over-enroll {
+  background: none;
+}
+
+.course-page .course-ask-link a.course-ask-btn {
+  transition: color 0.15s ease;
+}
+
+.course-page .course-ask-link a.course-ask-btn.is-over-enroll {
+  color: #f2ebe5;
+}
+
 .course-page .course-enroll-mobile.is-enroll-hidden,
 .course-page .course-ask-backdrop span.is-enroll-hidden {
   opacity: 0;
@@ -1588,7 +1600,8 @@ html:has(body.gallery-page) {
   }
   .course-page footer {
     margin-top: -2.25rem;
-    padding-top: 4.5rem;
+    padding-top: 5.5rem;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -2046,6 +2059,11 @@ html:has(body.gallery-page) {
 }
 
 @media (min-width: 960px) {
+  .course-page .enroll-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
   .course-page .enroll-section::before {
     left: calc(-100% - 75px);
     right: -25px;
