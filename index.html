@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=90">
+    <link rel="stylesheet" href="styles.css?v=91">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -193,17 +193,22 @@
 
         <div class="course-main-column course-main-column--bottom">
         <main>
-        <section id="results">
-            <h3>Результаты обучения</h3>
-            <p>Вы освоите работу с любыми ИИ-моделями в ComfyUI и изучите возможности актуальных моделей для генерации и редактирования изображений, видео и звука — таких как Minimax H3, Moss, Flux и т.д.</p>
-            <p>Вы научитесь обучать модели на собственных данных и запускать работу на облачных GPU. После курса у вас останутся настроенный облачный аккаунт и библиотека готовых воркфлоу для решения широкого спектра генеративных задач.</p>
-            <p>Курс адресован в первую очередь независимым авторам для обогащения их художественной практики, предполагающей свободу, понимание используемых инструментов и отсутствие ограничений. Курс поможет выработать собственный подход, выполнять с помощью ИИ бóльшую область работы, свободно экспериментировать и выводить результат за рамки концептуализации.</p>
-        </section>
+        <div class="course-results-requirements">
+            <div class="course-carousel-wrap" id="course-carousel-wrap" aria-label="Карусель видеоработ курса">
+                <canvas id="video-carousel"></canvas>
+            </div>
+            <section id="results">
+                <h3>Результаты обучения</h3>
+                <p>Вы освоите работу с любыми ИИ-моделями в ComfyUI и изучите возможности актуальных моделей для генерации и редактирования изображений, видео и звука — таких как Minimax H3, Moss, Flux и т.д.</p>
+                <p>Вы научитесь обучать модели на собственных данных и запускать работу на облачных GPU. После курса у вас останутся настроенный облачный аккаунт и библиотека готовых воркфлоу для решения широкого спектра генеративных задач.</p>
+                <p>Курс адресован в первую очередь независимым авторам для обогащения их художественной практики, предполагающей свободу, понимание используемых инструментов и отсутствие ограничений. Курс поможет выработать собственный подход, выполнять с помощью ИИ бóльшую область работы, свободно экспериментировать и выводить результат за рамки концептуализации.</p>
+            </section>
 
-        <section id="requirements">
-            <h3>Требования</h3>
-            <p>Если вы будете проходить курс из РФ, удостоверьтесь, что ваш VPN-сервис (например, WickVPN) позволяет открывать сайт для аренды облачных вычислений <a href="https://runpod.io/?ref=x9hq16nj" target="_blank">runpod.com</a> (для регистрации используйте мою <a href="https://runpod.io/?ref=x9hq16nj" target="_blank">реферальную ссылку</a>). Помимо runpod мы будем использовать на занятиях Zoom и Telegram.</p>
-        </section>
+            <section id="requirements">
+                <h3>Требования</h3>
+                <p>Если вы будете проходить курс из РФ, удостоверьтесь, что ваш VPN-сервис (например, WickVPN) позволяет открывать сайт для аренды облачных вычислений <a href="https://runpod.io/?ref=x9hq16nj" target="_blank">runpod.com</a> (для регистрации используйте мою <a href="https://runpod.io/?ref=x9hq16nj" target="_blank">реферальную ссылку</a>). Помимо runpod мы будем использовать на занятиях Zoom и Telegram.</p>
+            </section>
+        </div>
 
 
 
@@ -261,7 +266,7 @@
         <a class="waitlist-link course-enroll-mobile" href="#enroll-form">ЗАПИСАТЬСЯ</a>
     </div>
     </div>
-    <!-- <script src="carousel.js"></script> -->
+    <script src="carousel.js?v=2" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const noiseCanvas = document.createElement('canvas');
