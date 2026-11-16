@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let cssWidth = 0;
   let cssHeight = 0;
+  let trackOffset = 0;
   let tiles = [];
   let isLoading = true;
   let isNearView = true;
@@ -31,16 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastPointerX = 0;
   let dragVelocity = 0;
 
-  // Remove any legacy canvas inside wrap if present
   wrap.innerHTML = '';
+
+  const trackEl = document.createElement('div');
+  trackEl.className = 'course-carousel-track';
+  wrap.appendChild(trackEl);
 
   const loaderEl = document.createElement('div');
   loaderEl.className = 'course-carousel-loading';
   loaderEl.textContent = 'видео загружаются';
   wrap.appendChild(loaderEl);
 
-  // Create native hardware-composited <video> tiles moved via translate3d
-  // (no 2D canvas pixel copy per frame; only visible + 1 lookahead play concurrently).
   const entries = [];
   for (let i = 0; i < CAROUSEL_ITEMS.length; i++) {
     const item = CAROUSEL_ITEMS[i];
@@ -53,19 +55,18 @@ document.addEventListener('DOMContentLoaded', () => {
     video.preload = i < 4 ? 'auto' : 'metadata';
     video.className = 'course-carousel-tile';
     video.style.visibility = 'hidden';
-    wrap.appendChild(video);
-    const entry = {
+    trackEl.appendChild(video);
+    entries.push({
       index: i,
       video,
       startFraction: item.startFraction,
       initialSeekDone: item.startFraction === 0,
       aspect: 1,
       width: 0,
-      x: 0,
+      offset: 0,
       playingTarget: false,
       loadedFull: i < 4,
-    };
-    entries.push(entry);
+    });
   }
 
   function applyInitialSeek(entry) {
@@ -90,18 +91,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyTileGeometry(entry) {
-    const drawW = Math.ceil(entry.width) + 1;
-    entry.video.style.width = `${drawW}px`;
-    entry.video.style.transform = `translate3d(${entry.x.toFixed(2)}px, 0, 0)`;
-    const visibleOnScreen = entry.x + entry.width > -4 && entry.x < cssWidth + 4;
+    entry.video.style.width = `${entry.width}px`;
+    entry.video.style.transform = `translate3d(${entry.offset}px, 0, 0)`;
+    const screenX = trackOffset + entry.offset;
+    const visibleOnScreen = screenX + entry.width > -4 && screenX < cssWidth + 4;
     entry.video.style.visibility = visibleOnScreen ? 'visible' : 'hidden';
+  }
+
+  function applyTrackTransform() {
+    // Move the entire tile strip as a single composited layer so tile seams never jitter by 1px
+    trackEl.style.transform = `translate3d(${trackOffset.toFixed(2)}px, 0, 0)`;
   }
 
   function syncActiveDecoders() {
     for (let i = 0; i < tiles.length; i++) {
       const entry = tiles[i];
-      // Play only tiles inside viewport + 1 tile lookahead on the right (max ~3-4 decoders active)
-      const inPlayZone = isNearView && !isLoading && entry.x + entry.width > -20 && entry.x < cssWidth + entry.width * 1.15;
+      const screenX = trackOffset + entry.offset;
+      const inPlayZone = isNearView && !isLoading && screenX + entry.width > -20 && screenX < cssWidth + entry.width * 1.15;
 
       if (inPlayZone) {
         if (!entry.loadedFull) {
@@ -130,54 +136,69 @@ document.addEventListener('DOMContentLoaded', () => {
     cssHeight = Math.max(1, rect.height);
 
     if (tiles.length === 0) {
-      let cursorX = 0;
+      let cursor = 0;
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
-        entry.width = cssHeight * getEntryAspect(entry);
-        entry.x = cursorX;
-        cursorX += entry.width;
+        entry.width = Math.round(cssHeight * getEntryAspect(entry));
+        entry.offset = cursor;
+        cursor += entry.width;
         tiles.push(entry);
         applyTileGeometry(entry);
       }
+      trackOffset = 0;
     } else {
-      let cursorX = tiles[0].x;
+      let cursor = tiles[0].offset;
       for (let i = 0; i < tiles.length; i++) {
         const entry = tiles[i];
-        entry.width = cssHeight * getEntryAspect(entry);
-        entry.x = cursorX;
-        cursorX += entry.width;
+        entry.width = Math.round(cssHeight * getEntryAspect(entry));
+        entry.offset = cursor;
+        cursor += entry.width;
         applyTileGeometry(entry);
       }
     }
 
+    applyTrackTransform();
     syncActiveDecoders();
   }
 
   function shiftTrackBy(dx) {
     if (tiles.length === 0 || cssHeight <= 0) return;
 
-    for (let i = 0; i < tiles.length; i++) {
-      tiles[i].x += dx;
-    }
+    trackOffset += dx;
+    let recycled = false;
 
-    // Recycle first tile past left edge to the far right end
-    while (tiles.length > 1 && tiles[0].x + tiles[0].width <= -2) {
+    while (tiles.length > 1 && trackOffset + tiles[0].offset + tiles[0].width <= -2) {
       const moved = tiles.shift();
       const last = tiles[tiles.length - 1];
-      moved.x = last.x + last.width;
+      moved.offset = last.offset + last.width;
       tiles.push(moved);
+      recycled = true;
     }
 
-    // Recycle last tile past right edge if dragged backward (to the right)
-    while (tiles.length > 1 && tiles[0].x > 2) {
+    while (tiles.length > 1 && trackOffset + tiles[0].offset > 2) {
       const moved = tiles.pop();
       const first = tiles[0];
-      moved.x = first.x - moved.width;
+      moved.offset = first.offset - moved.width;
       tiles.unshift(moved);
+      recycled = true;
     }
 
-    for (let i = 0; i < tiles.length; i++) {
-      applyTileGeometry(tiles[i]);
+    applyTrackTransform();
+
+    if (recycled) {
+      for (let i = 0; i < tiles.length; i++) {
+        applyTileGeometry(tiles[i]);
+      }
+    } else {
+      for (let i = 0; i < tiles.length; i++) {
+        const entry = tiles[i];
+        const screenX = trackOffset + entry.offset;
+        const visibleOnScreen = screenX + entry.width > -4 && screenX < cssWidth + 4;
+        const nextVis = visibleOnScreen ? 'visible' : 'hidden';
+        if (entry.video.style.visibility !== nextVis) {
+          entry.video.style.visibility = nextVis;
+        }
+      }
     }
 
     syncActiveDecoders();
@@ -224,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300);
   }
 
-  // Horizontal pointer drag / swipe with threshold so vertical touch scrolling stays untouched
   let dragStarted = false;
   let startPointerX = 0;
   let startPointerY = 0;
@@ -274,7 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
   wrap.addEventListener('pointerup', endDrag);
   wrap.addEventListener('pointercancel', endDrag);
 
-  // Wait for first 4 visible carousel videos to have initial frames ready (and seek offset applied)
   const initialBatch = entries.slice(0, 4);
   Promise.all(
     initialBatch.map(

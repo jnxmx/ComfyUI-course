@@ -420,6 +420,12 @@ iframe[data-tally-src] {
   cursor: grabbing;
 }
 
+.course-page .course-carousel-track {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
 .course-page .course-carousel-tile {
   position: absolute;
   top: 0;
@@ -427,7 +433,6 @@ iframe[data-tally-src] {
   height: 100%;
   object-fit: cover;
   pointer-events: none;
-  will-change: transform;
   background: #dcded6;
 }
 
