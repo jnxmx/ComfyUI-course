@@ -1301,6 +1301,10 @@ html:has(body.gallery-page) {
   display: contents;
 }
 
+.course-page .course-main-column--bottom {
+  padding-top: 2.25rem;
+}
+
 @media (min-width: 960px) {
   .course-page .content-wrapper.course-layout {
     grid-template-columns: 50% 50%;
@@ -1327,7 +1331,7 @@ html:has(body.gallery-page) {
   }
   .course-page .course-main-column--bottom {
     grid-column: 2;
-    padding-top: 2.5rem;
+    padding-top: 4.5rem;
   }
 }
 
@@ -1524,8 +1528,24 @@ html:has(body.gallery-page) {
   margin-bottom: 4.5rem;
 }
 
+.course-page main section#about {
+  margin-bottom: 1.75rem;
+}
+
+.course-page main section#about p:last-child {
+  margin-bottom: 0;
+}
+
+.course-page main section#schedule {
+  margin-bottom: 0;
+}
+
 .course-page main section:last-child {
   margin-bottom: 1.5rem;
+}
+
+.course-page main section#schedule:last-child {
+  margin-bottom: 0;
 }
 
 .course-page main section > h3 {
@@ -1592,7 +1612,7 @@ html:has(body.gallery-page) {
 }
 
 .course-page #schedule > p {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
 }
 
 .course-page .schedule-columns {
@@ -1637,7 +1657,7 @@ html:has(body.gallery-page) {
   .course-page .schedule-columns {
     grid-column: 1 / -1;
     width: auto;
-    margin: 2.25rem 25px 0;
+    margin: 1.25rem 25px 0;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(9, auto);
     grid-auto-flow: column;
