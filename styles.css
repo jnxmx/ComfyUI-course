@@ -1615,14 +1615,6 @@ html:has(body.gallery-page) {
   margin-bottom: 4.5rem;
 }
 
-.course-page main section#about {
-  margin-bottom: 1.75rem;
-}
-
-.course-page main section#about p:last-child {
-  margin-bottom: 0;
-}
-
 .course-page main section#schedule {
   margin-bottom: 0;
 }
