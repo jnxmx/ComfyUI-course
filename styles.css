@@ -420,6 +420,10 @@ iframe[data-tally-src] {
   cursor: grabbing;
 }
 
+.course-page .course-carousel-wrap.is-ready {
+  background: #141414;
+}
+
 .course-page .course-carousel-track {
   position: absolute;
   inset: 0;
@@ -428,12 +432,12 @@ iframe[data-tally-src] {
 
 .course-page .course-carousel-tile {
   position: absolute;
-  top: 0;
+  top: -1px;
   left: 0;
-  height: 100%;
+  height: calc(100% + 2px);
   object-fit: cover;
   pointer-events: none;
-  background: #dcded6;
+  background: transparent;
 }
 
 .course-page .course-carousel-poster,

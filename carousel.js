@@ -108,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyTrackTransform() {
-    // Move the entire tile strip as a single composited layer so tile seams never jitter by 1px
-    trackEl.style.transform = `translate3d(${trackOffset.toFixed(2)}px, 0, 0)`;
+    // Snap track translation to integer pixels so composited video layers never jitter by 1px on subpixels
+    trackEl.style.transform = `translate3d(${Math.round(trackOffset)}px, 0, 0)`;
   }
 
   function syncActiveDecoders() {
