@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=98">
+    <link rel="stylesheet" href="styles.css?v=99">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -247,9 +247,53 @@
             <h3>Стоимость курса:</h3>
             <p>для РФ: 65000 рублей (картой через СБП)<br>для ЕС: 650€ банковским переводом (SEPA) по инвойсу<br>(или 670€ картой / Apple Pay / PayPal)<br>При оплате от организации/юридического лица: 75 000 рублей</p>
             <p>Задать вопрос по курсу или оплате можно <a href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">в Telegram-боте курса</a>.</p>
-        
-            <iframe id="enroll-form" data-tally-src="https://tally.so/embed/GxXNBo?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="745" frameborder="0" marginheight="0" marginwidth="0" title="5"></iframe>
-            <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.querySelector('script[src="'+w+'"]')==null){var s=d.createElement("script");s.src=w,s.onload=v,s.onerror=v,d.body.appendChild(s);}</script>
+        </section>
+
+        <section id="enroll-form" class="enroll-section">
+            <h3 id="enroll-heading">Записаться на&nbsp;курс</h3>
+            <form id="native-enroll-form" class="enroll-form" novalidate>
+                <div class="enroll-field">
+                    <input type="text" name="efa51c7c-98ce-429d-86bf-5d4e99fccb86" placeholder="Имя и фамилия (для счёта) *" required autocomplete="name">
+                </div>
+                <div class="enroll-field">
+                    <input type="text" name="fa3d0dea-b13a-4311-b4a4-88aec7c9fac6" placeholder="Telegram *" required>
+                </div>
+                <div class="enroll-field">
+                    <input type="email" name="33c54ea6-33f8-4a36-aa01-c3be3e427fc1" placeholder="Email *" required autocomplete="email">
+                </div>
+                <div class="enroll-field">
+                    <label class="enroll-label" for="enroll-about">Расскажите о себе и почему вас заинтересовал курс</label>
+                    <textarea id="enroll-about" name="9be70708-849b-42f7-bc9e-52593aab5616" rows="3"></textarea>
+                </div>
+                <div class="enroll-field">
+                    <label class="enroll-label" for="enroll-questions">Вопросы</label>
+                    <textarea id="enroll-questions" name="351468dd-b861-4a20-b441-613000f33790" rows="2"></textarea>
+                </div>
+                <div class="enroll-field">
+                    <label class="enroll-label" for="enroll-payment">Форма оплаты *</label>
+                    <div class="enroll-select-wrap">
+                        <select id="enroll-payment" name="a07a238b-01ea-4bd1-872b-619235a4233b" required>
+                            <option value="13675a97-4278-427b-936f-e38928c10080">69000 рублей (СБП, включая 50$ на ваш аккаунт RunPod)</option>
+                            <option value="e695a8be-9f99-4222-aecd-7e05cf45ce36">65000 рублей (СБП, для РФ)</option>
+                            <option value="ec1ab22c-e5e5-4474-b07a-791c9cf9b23c">650 € (прямой банковский перевод SEPA по IBAN — со скидкой)</option>
+                            <option value="8fbd833e-a5ed-4ae5-82ea-7490e04f25cc">75000 рублей (оплата от юридического лица по счёту)</option>
+                            <option value="25d8ade4-55b5-4b6e-afdb-dd0c9b1adca3">670 € (карта / Apple Pay / PayPal)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="enroll-field">
+                    <input type="text" name="c48b2d5a-8e4f-41b3-9a67-2b5f8e1a9d3c" placeholder="ИНН организации (если оплата от юрлица)">
+                </div>
+                <div class="enroll-actions">
+                    <button type="submit" class="enroll-submit">Записаться</button>
+                    <p class="enroll-error" id="enroll-error" role="alert" hidden></p>
+                </div>
+            </form>
+            <div id="enroll-success" class="enroll-success" hidden>
+                <h3>Спасибо!</h3>
+                <p>В течение 24 часов я напишу вам в telegram с акаунта @jnxmx с информацией о способах оплаты.</p>
+                <p>Также сообщение будет продублировано на ваш email.</p>
+            </div>
         </section>
     </main>
         </div>
@@ -260,7 +304,7 @@
     </footer>
     <div class="course-ask-backdrop gallery-editorial-block" aria-hidden="true">
         <span>ЗАДАТЬ ВОПРОС</span>
-        <span>ЗАПИСАТЬСЯ</span>
+        <span class="course-ask-backdrop-enroll">ЗАПИСАТЬСЯ</span>
     </div>
     <div class="course-ask-link gallery-editorial-block">
         <a class="waitlist-link" href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">ЗАДАТЬ ВОПРОС</a>
@@ -319,6 +363,80 @@
             window.addEventListener('resize', syncSidebarStop);
             if (topBand && window.ResizeObserver) {
                 new ResizeObserver(syncSidebarStop).observe(topBand);
+            }
+
+            // Hide bottom-right "ЗАПИСАТЬСЯ" button once "Записаться на курс" heading reaches vertical center
+            const enrollHeading = document.getElementById('enroll-heading');
+            const enrollCornerBtn = document.querySelector('.course-enroll-mobile');
+            const enrollBackdrop = document.querySelector('.course-ask-backdrop-enroll');
+            const syncEnrollBtnVisibility = () => {
+                if (!enrollHeading || !enrollCornerBtn) return;
+                const shouldHide = enrollHeading.getBoundingClientRect().top <= window.innerHeight * 0.5;
+                enrollCornerBtn.classList.toggle('is-enroll-hidden', shouldHide);
+                if (enrollBackdrop) enrollBackdrop.classList.toggle('is-enroll-hidden', shouldHide);
+            };
+            window.addEventListener('scroll', syncEnrollBtnVisibility, { passive: true });
+            window.addEventListener('resize', syncEnrollBtnVisibility);
+            syncEnrollBtnVisibility();
+
+            // Native Tally-backed enroll form submission
+            const nativeForm = document.getElementById('native-enroll-form');
+            const enrollError = document.getElementById('enroll-error');
+            const enrollSuccess = document.getElementById('enroll-success');
+            if (nativeForm) {
+                nativeForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (enrollError) {
+                        enrollError.hidden = true;
+                        enrollError.textContent = '';
+                    }
+                    if (!nativeForm.reportValidity()) return;
+
+                    const submitBtn = nativeForm.querySelector('.enroll-submit');
+                    const origText = submitBtn ? submitBtn.textContent : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Отправка…';
+                    }
+
+                    const fd = new FormData(nativeForm);
+                    const responses = {
+                        'efa51c7c-98ce-429d-86bf-5d4e99fccb86': String(fd.get('efa51c7c-98ce-429d-86bf-5d4e99fccb86') || '').trim(),
+                        'fa3d0dea-b13a-4311-b4a4-88aec7c9fac6': String(fd.get('fa3d0dea-b13a-4311-b4a4-88aec7c9fac6') || '').trim(),
+                        '33c54ea6-33f8-4a36-aa01-c3be3e427fc1': String(fd.get('33c54ea6-33f8-4a36-aa01-c3be3e427fc1') || '').trim(),
+                        '9be70708-849b-42f7-bc9e-52593aab5616': String(fd.get('9be70708-849b-42f7-bc9e-52593aab5616') || '').trim(),
+                        '351468dd-b861-4a20-b441-613000f33790': String(fd.get('351468dd-b861-4a20-b441-613000f33790') || '').trim(),
+                        'a07a238b-01ea-4bd1-872b-619235a4233b': [String(fd.get('a07a238b-01ea-4bd1-872b-619235a4233b') || '')],
+                        'c48b2d5a-8e4f-41b3-9a67-2b5f8e1a9d3c': String(fd.get('c48b2d5a-8e4f-41b3-9a67-2b5f8e1a9d3c') || '').trim(),
+                    };
+
+                    const genId = () => (crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+                    try {
+                        const res = await fetch('https://api.tally.so/forms/GxXNBo/respond', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                sessionUuid: genId(),
+                                respondentUuid: genId(),
+                                responses,
+                                captchas: {},
+                                isCompleted: true,
+                            }),
+                        });
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        nativeForm.hidden = true;
+                        if (enrollSuccess) enrollSuccess.hidden = false;
+                    } catch (err) {
+                        if (enrollError) {
+                            enrollError.innerHTML = 'Не удалось отправить форму. Вы можете <a href="https://tally.so/r/GxXNBo" target="_blank" rel="noopener">записаться по прямой ссылке</a> или написать <a href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">в Telegram-бот</a>.';
+                            enrollError.hidden = false;
+                        }
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = origText;
+                        }
+                    }
+                });
             }
         });
     </script>

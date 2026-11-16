@@ -1473,6 +1473,13 @@ html:has(body.gallery-page) {
 
 .gallery-page .course-enroll-mobile {
   display: inline-block;
+  transition: opacity 0.25s ease;
+}
+
+.course-page .course-enroll-mobile.is-enroll-hidden,
+.course-page .course-ask-backdrop span.is-enroll-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .gallery-page .course-ask-link {
@@ -1800,6 +1807,128 @@ html:has(body.gallery-page) {
 .course-page main .faq-answer p {
   font-weight: 400;
   margin-bottom: 0.55rem;
+}
+
+.course-page .enroll-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.course-page .enroll-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.course-page .enroll-label {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.32;
+  letter-spacing: -0.01em;
+  color: rgba(17, 17, 17, 0.72);
+  margin-bottom: 0.35rem;
+}
+
+.course-page .enroll-field input,
+.course-page .enroll-field textarea,
+.course-page .enroll-field select {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.38rem;
+  font-weight: 400;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+  color: #111111;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.22);
+  border-radius: 0;
+  padding: 0.45rem 0;
+  margin: 0;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.course-page .enroll-field textarea {
+  resize: vertical;
+  min-height: 3.2rem;
+}
+
+.course-page .enroll-field input::placeholder,
+.course-page .enroll-field textarea::placeholder {
+  color: rgba(17, 17, 17, 0.48);
+}
+
+.course-page .enroll-field input:focus,
+.course-page .enroll-field textarea:focus,
+.course-page .enroll-field select:focus {
+  border-bottom-color: #b81d24;
+}
+
+.course-page .enroll-select-wrap {
+  position: relative;
+}
+
+.course-page .enroll-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 0.25rem;
+  top: 50%;
+  width: 0.48rem;
+  height: 0.48rem;
+  border-right: 1.5px solid #111111;
+  border-bottom: 1.5px solid #111111;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.course-page .enroll-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 1.5rem;
+  cursor: pointer;
+}
+
+.course-page .enroll-actions {
+  margin-top: 0.5rem;
+}
+
+.course-page .enroll-submit {
+  display: inline-block;
+  background-color: #b81d24;
+  color: #f2ebe5;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.38rem;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55em 1.2em;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.course-page .enroll-submit:hover {
+  background-color: #97171d;
+}
+
+.course-page .enroll-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.course-page .enroll-error {
+  margin: 0.85rem 0 0;
+  color: #b81d24;
+  font-size: 1.02rem;
+}
+
+.course-page .enroll-success p {
+  margin-bottom: 0.85rem;
 }
 
 .course-page .instructor-splat {
