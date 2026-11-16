@@ -1578,8 +1578,13 @@ html:has(body.gallery-page) {
     margin-left: -25px;
     margin-right: -25px;
   }
+  .course-page .content-wrapper,
   .course-page .content-wrapper.course-layout {
     padding-bottom: 0;
+  }
+  .course-page footer {
+    margin-top: -2.25rem;
+    padding-top: 4.5rem;
   }
 }
 
