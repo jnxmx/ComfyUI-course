@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('video-carousel');
   if (!wrap || !canvas) return;
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
 
   const VIDEO_COUNT = 10;
@@ -14,30 +14,38 @@ document.addEventListener('DOMContentLoaded', () => {
   let dpr = 1;
   let tiles = [];
   let isLoading = true;
-  let isInView = true;
+  let isNearView = true;
   let rafId = null;
   let lastFrameTime = performance.now();
 
-  // Drag / inertia state so users can also scrub the reel horizontally if they grab it
   let isDragging = false;
   let lastPointerX = 0;
   let dragVelocity = 0;
+
+  // Keep video elements inside a tiny non-zero-opacity host in the viewport so Chromium/WebKit
+  // never throttles their hardware decode pipeline.
+  const videoHost = document.createElement('div');
+  videoHost.setAttribute('aria-hidden', 'true');
+  videoHost.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0.001;pointer-events:none;overflow:hidden;z-index:-1;';
+  document.body.appendChild(videoHost);
 
   const entries = [];
   for (let i = 1; i <= VIDEO_COUNT; i++) {
     const video = document.createElement('video');
     video.src = `assets/video/Timeline ${i}.mp4`;
+    video.autoplay = true;
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
     video.preload = 'auto';
     video.crossOrigin = 'anonymous';
+    video.style.cssText = 'width:2px;height:2px;display:block;';
+    videoHost.appendChild(video);
     entries.push({
       index: i - 1,
       video,
       aspect: 1,
       ready: false,
-      failed: false,
     });
   }
 
@@ -51,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function buildTrack() {
     if (cssWidth <= 0 || cssHeight <= 0) return;
 
-    // Preserve current scroll offset cleanly on resize if already built
     const prevLeadOffset = tiles.length > 0 ? tiles[0].x : 0;
     const prevStartIndex = tiles.length > 0 ? tiles[0].index : 0;
 
@@ -60,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let idx = prevStartIndex;
     let guard = 0;
 
-    // Normalize negative offset if height shrunk sharply on resize
     const firstWidth = cssHeight * getEntryAspect(entries[idx % VIDEO_COUNT]);
     while (cursorX + firstWidth <= 0 && guard < 100) {
       cursorX += firstWidth;
@@ -87,11 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function shiftTrackBy(dx) {
     if (tiles.length === 0 || cssHeight <= 0) return;
 
-    for (const tile of tiles) {
-      tile.x += dx;
+    for (let i = 0; i < tiles.length; i++) {
+      tiles[i].x += dx;
     }
 
-    // Recycle tiles moving off the left edge to the right end
     while (tiles.length > 0 && tiles[0].x + tiles[0].width <= 0) {
       tiles.shift();
       const last = tiles[tiles.length - 1];
@@ -106,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Recycle tiles moving off the right edge if user drags forward/right
     while (tiles.length > 0 && tiles[0].x > 0) {
       const first = tiles[0];
       const prevIdx = (first.index - 1 + VIDEO_COUNT) % VIDEO_COUNT;
@@ -125,24 +129,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function syncVideoPlayback() {
-    const activeIndices = new Set();
-    if (isInView && !isLoading) {
-      for (const tile of tiles) {
-        // Keep visible tiles + 1-tile lookahead warm and playing
-        if (tile.x + tile.width > -cssHeight && tile.x < cssWidth + cssHeight) {
-          activeIndices.add(tile.index);
+  function setAllVideosPlaying(shouldPlay) {
+    for (let i = 0; i < entries.length; i++) {
+      const v = entries[i].video;
+      if (shouldPlay) {
+        if (v.paused && v.readyState >= 2) {
+          v.play().catch(() => {});
         }
-      }
-    }
-
-    for (const entry of entries) {
-      if (activeIndices.has(entry.index)) {
-        if (entry.video.paused && entry.video.readyState >= 2) {
-          entry.video.play().catch(() => {});
-        }
-      } else if (!entry.video.paused) {
-        entry.video.pause();
+      } else if (!v.paused) {
+        v.pause();
       }
     }
   }
@@ -161,7 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function resizeCanvas() {
     const rect = wrap.getBoundingClientRect();
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Source videos are 720px square; cap DPR at 1.5 so GPU never oversamples past native source resolution
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     cssWidth = Math.max(1, rect.width);
     cssHeight = Math.max(1, rect.height);
 
@@ -172,8 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
       canvas.height = targetH;
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
 
     buildTrack();
     if (isLoading) {
@@ -183,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function animate(now) {
     rafId = null;
-    if (isLoading || !isInView) return;
+    if (isLoading || !isNearView) return;
 
     const dt = Math.min(0.05, Math.max(0, (now - lastFrameTime) / 1000));
     lastFrameTime = now;
@@ -195,12 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (Math.abs(dragVelocity) < 0.5) dragVelocity = 0;
     }
 
-    syncVideoPlayback();
-
     ctx.fillStyle = '#dcded6';
     ctx.fillRect(0, 0, cssWidth, cssHeight);
 
-    for (const tile of tiles) {
+    for (let i = 0; i < tiles.length; i++) {
+      const tile = tiles[i];
       if (tile.x < cssWidth && tile.x + tile.width > 0) {
         const v = tile.entry.video;
         if (v.readyState >= 2 && v.videoWidth > 0) {
@@ -213,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startLoop() {
-    if (!isLoading && isInView && rafId === null) {
+    if (!isLoading && isNearView && rafId === null) {
       lastFrameTime = performance.now();
       rafId = requestAnimationFrame(animate);
     }
@@ -224,11 +217,10 @@ document.addEventListener('DOMContentLoaded', () => {
     isLoading = false;
     wrap.classList.add('is-ready');
     buildTrack();
-    syncVideoPlayback();
+    setAllVideosPlaying(isNearView);
     startLoop();
   }
 
-  // Horizontal pointer scrub support
   canvas.addEventListener('pointerdown', (e) => {
     isDragging = true;
     lastPointerX = e.clientX;
@@ -254,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
 
-  // Preload videos cleanly without hanging on readyState quirks
   Promise.all(
     entries.map(
       (entry) =>
@@ -266,17 +257,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
           }
           let settled = false;
-          const done = (failed = false) => {
+          const done = () => {
             if (settled) return;
             settled = true;
-            entry.ready = !failed;
-            entry.failed = failed;
+            entry.ready = true;
             resolve();
           };
-          v.addEventListener('loadeddata', () => done(false), { once: true });
-          v.addEventListener('canplay', () => done(false), { once: true });
-          v.addEventListener('error', () => done(true), { once: true });
-          setTimeout(() => done(v.readyState < 2), 6000);
+          v.addEventListener('loadeddata', done, { once: true });
+          v.addEventListener('canplay', done, { once: true });
+          v.addEventListener('error', done, { once: true });
+          setTimeout(done, 6000);
           v.load();
         })
     )
@@ -290,16 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.IntersectionObserver) {
     new IntersectionObserver(
       (obsEntries) => {
-        isInView = obsEntries.some((item) => item.isIntersecting);
-        syncVideoPlayback();
-        if (isInView) {
-          startLoop();
-        } else if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
+        isNearView = obsEntries.some((item) => item.isIntersecting);
+        if (!isLoading) {
+          setAllVideosPlaying(isNearView);
+          if (isNearView) {
+            startLoop();
+          } else if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+          }
         }
       },
-      { threshold: 0.01 }
+      { rootMargin: '400px 0px' }
     ).observe(wrap);
   }
 
