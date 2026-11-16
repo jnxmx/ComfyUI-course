@@ -1820,6 +1820,30 @@ html:has(body.gallery-page) {
   margin-bottom: 0.55rem;
 }
 
+.course-page .enroll-section {
+  position: relative;
+  z-index: 1;
+  padding: 3.25rem 0 3.5rem;
+  margin-bottom: 0 !important;
+}
+
+.course-page .enroll-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -25px;
+  right: -25px;
+  background-color: #b81d24;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.course-page .enroll-section > h3,
+.course-page .enroll-success h3 {
+  color: #f2ebe5;
+}
+
 .course-page .enroll-form {
   display: flex;
   flex-direction: column;
@@ -1837,8 +1861,8 @@ html:has(body.gallery-page) {
   font-weight: 500;
   line-height: 1.32;
   letter-spacing: -0.01em;
-  color: rgba(17, 17, 17, 0.72);
-  margin-bottom: 0.35rem;
+  color: rgba(242, 235, 229, 0.92);
+  margin-bottom: 0.45rem;
 }
 
 .course-page .enroll-field input,
@@ -1852,30 +1876,29 @@ html:has(body.gallery-page) {
   line-height: 1.38;
   letter-spacing: -0.01em;
   color: #111111;
-  background: transparent;
+  background-color: #f2ebe5;
   border: none;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.22);
-  border-radius: 0;
-  padding: 0.45rem 0;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
   margin: 0;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
 
 .course-page .enroll-field textarea {
   resize: vertical;
-  min-height: 3.2rem;
+  min-height: 3.8rem;
 }
 
 .course-page .enroll-field input::placeholder,
 .course-page .enroll-field textarea::placeholder {
-  color: rgba(17, 17, 17, 0.48);
+  color: rgba(17, 17, 17, 0.52);
 }
 
 .course-page .enroll-field input:focus,
 .course-page .enroll-field textarea:focus,
 .course-page .enroll-field select:focus {
-  border-bottom-color: #b81d24;
+  box-shadow: 0 0 0 2px rgba(242, 235, 229, 0.45);
 }
 
 .course-page .enroll-select-wrap {
@@ -1885,7 +1908,7 @@ html:has(body.gallery-page) {
 .course-page .enroll-select-wrap::after {
   content: "";
   position: absolute;
-  right: 0.25rem;
+  right: 0.85rem;
   top: 50%;
   width: 0.48rem;
   height: 0.48rem;
@@ -1898,7 +1921,7 @@ html:has(body.gallery-page) {
 .course-page .enroll-field select {
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 1.5rem;
+  padding-right: 2.25rem;
   cursor: pointer;
 }
 
@@ -1908,8 +1931,8 @@ html:has(body.gallery-page) {
 
 .course-page .enroll-submit {
   display: inline-block;
-  background-color: #b81d24;
-  color: #f2ebe5;
+  background-color: #f2ebe5;
+  color: #b81d24;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-size: 1.38rem;
   font-weight: 700;
@@ -1924,21 +1947,26 @@ html:has(body.gallery-page) {
 }
 
 .course-page .enroll-submit:hover {
-  background-color: #97171d;
+  background-color: #ffffff;
 }
 
 .course-page .enroll-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: wait;
 }
 
 .course-page .enroll-error {
   margin: 0.85rem 0 0;
-  color: #b81d24;
+  color: #f2ebe5;
   font-size: 1.02rem;
 }
 
+.course-page .enroll-error a {
+  color: #f2ebe5;
+}
+
 .course-page .enroll-success p {
+  color: #f2ebe5;
   margin-bottom: 0.85rem;
 }
 
@@ -1975,6 +2003,10 @@ html:has(body.gallery-page) {
 }
 
 @media (min-width: 960px) {
+  .course-page .enroll-section::before {
+    left: calc(-100% - 75px);
+    right: -25px;
+  }
   .course-page #instructor {
     position: relative;
   }
