@@ -1681,6 +1681,26 @@ html:has(body.gallery-page) {
   margin-bottom: 0.55rem;
 }
 
+.course-page .about-hypercube {
+  width: calc(100% + 50px);
+  max-width: none;
+  aspect-ratio: 1 / 0.86;
+  margin: 0 -25px 0.75rem;
+  position: relative;
+  touch-action: none;
+  cursor: grab;
+}
+
+.course-page .about-hypercube:active {
+  cursor: grabbing;
+}
+
+.course-page .about-hypercube canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .course-page .instructor-splat {
   width: calc(100% + 50px);
   max-width: none;
@@ -1714,6 +1734,19 @@ html:has(body.gallery-page) {
 }
 
 @media (min-width: 960px) {
+  .course-page #about {
+    position: relative;
+  }
+  .course-page .about-hypercube {
+    position: absolute;
+    right: calc(100% + 50px);
+    top: -1.5rem;
+    width: 100%;
+    max-width: none;
+    height: clamp(360px, 52vh, 540px);
+    aspect-ratio: auto;
+    margin: 0;
+  }
   .course-page #instructor {
     position: relative;
   }
