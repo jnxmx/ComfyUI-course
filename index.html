@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=107">
+    <link rel="stylesheet" href="styles.css?v=108">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -293,9 +293,10 @@
                     <input type="text" name="c48b2d5a-8e4f-41b3-9a67-2b5f8e1a9d3c" placeholder="ИНН организации (если оплата от юрлица)">
                 </div>
                 <div class="enroll-actions">
+                    <a class="enroll-ask-inline" href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">ЗАДАТЬ ВОПРОС</a>
                     <button type="submit" class="enroll-submit">Записаться</button>
-                    <p class="enroll-error" id="enroll-error" role="alert" hidden></p>
                 </div>
+                <p class="enroll-error" id="enroll-error" role="alert" hidden></p>
             </form>
             <div id="enroll-success" class="enroll-success" hidden>
                 <h3>Спасибо!</h3>
@@ -410,16 +411,26 @@
                 if (!askBtn || !enrollSection || !enrollSubmit) return;
 
                 const isDesktop = window.innerWidth >= 960;
+                if (!isDesktop) {
+                    askBtn.style.transform = '';
+                    askBtn.classList.remove('is-over-enroll');
+                    if (askBackdrop) askBackdrop.classList.remove('is-over-enroll');
+
+                    // On mobile, hide both floating bottom buttons as soon as they touch the red block's top edge
+                    const touchEnrollTop = enrollSection.getBoundingClientRect().top <= window.innerHeight - 15;
+                    if (askBar) askBar.classList.toggle('is-mobile-hidden', touchEnrollTop);
+                    if (enrollCornerBtn) enrollCornerBtn.classList.toggle('is-enroll-hidden', touchEnrollTop);
+                    if (enrollBackdrop) enrollBackdrop.classList.toggle('is-enroll-hidden', touchEnrollTop);
+                    return;
+                }
+
+                if (askBar) askBar.classList.remove('is-mobile-hidden');
+
                 const submitRect = enrollSubmit.getBoundingClientRect();
                 const askH = askBtn.offsetHeight || 20;
                 const fixedTop = window.innerHeight - 15 - askH;
                 const fixedCenterY = fixedTop + askH * 0.5;
-
-                // Desktop: "ЗАДАТЬ ВОПРОС" locks level with form submit button.
-                // Mobile: "ЗАДАТЬ ВОПРОС" stops right below the form submit button.
-                const targetTop = isDesktop
-                    ? (submitRect.top + submitRect.height * 0.5 - askH * 0.5)
-                    : (submitRect.bottom + 14);
+                const targetTop = submitRect.top + submitRect.height * 0.5 - askH * 0.5;
                 const deltaY = Math.min(0, targetTop - fixedTop);
 
                 askBtn.style.transform = deltaY < -0.5 ? `translate3d(0, ${deltaY.toFixed(2)}px, 0)` : '';
@@ -432,11 +443,8 @@
                 if (askBackdrop) askBackdrop.classList.toggle('is-over-enroll', isOverEnroll);
 
                 if (enrollCornerBtn) {
-                    const shouldHideEnroll = isDesktop
-                        ? isOverEnroll
-                        : (enrollHeading ? enrollHeading.getBoundingClientRect().top <= window.innerHeight * 0.5 : isOverEnroll);
-                    enrollCornerBtn.classList.toggle('is-enroll-hidden', shouldHideEnroll);
-                    if (enrollBackdrop) enrollBackdrop.classList.toggle('is-enroll-hidden', shouldHideEnroll);
+                    enrollCornerBtn.classList.toggle('is-enroll-hidden', isOverEnroll);
+                    if (enrollBackdrop) enrollBackdrop.classList.toggle('is-enroll-hidden', isOverEnroll);
                 }
             };
             window.addEventListener('scroll', syncScrollOverlays, { passive: true });
