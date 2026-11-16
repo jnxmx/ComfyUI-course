@@ -1323,6 +1323,7 @@ html:has(body.gallery-page) {
     position: sticky;
     top: 24px;
     align-self: start;
+    padding-bottom: 6.5rem;
   }
   .course-page .course-main-column--bottom {
     grid-column: 2;
@@ -1636,7 +1637,7 @@ html:has(body.gallery-page) {
   .course-page .schedule-columns {
     grid-column: 1 / -1;
     width: auto;
-    margin: 1.5rem 25px 0;
+    margin: 2.25rem 25px 0;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(9, auto);
     grid-auto-flow: column;
