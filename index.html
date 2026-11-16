@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=83">
+    <link rel="stylesheet" href="styles.css?v=84">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -36,6 +36,7 @@
     <div id="bg"></div>
     <!-- <canvas id="video-carousel"></canvas> -->
     <div class="content-wrapper course-layout">
+        <div class="course-top-band">
         <aside class="course-sidebar">
             <div class="gallery-editorial-block gallery-editorial-block--01">
                 <h1>COMFYUI ДЛЯ РАБОТЫ<br class="mobile-only-br"> С&nbsp;НЕЙРОСЕТЯМИ:<br>ИЗОБРАЖЕНИЕ,<br class="mobile-only-br"> АНИМАЦИЯ, ЗВУК</h1>
@@ -86,23 +87,20 @@
             <div class="course-gallery-link gallery-editorial-block">
                 <a class="waitlist-link" href="students_gallery.html">ГАЛЕРЕЯ СТУДЕНЧЕСКИХ РАБОТ →</a>
             </div>
-            <section class="course-preview-video">
-                <video src="assets/video_example.mp4" width="100%" muted autoplay loop playsinline aria-label="Preview of ComfyUI interface">
-                     <img src="img/screenshot.png" width="100%" alt="Screenshot of ComfyUI interface">
-                </video>
-            </section>
-            <div class="course-ask-link gallery-editorial-block">
-                <a class="waitlist-link" href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">ЗАДАТЬ ВОПРОС</a>
-                <a class="waitlist-link course-enroll-mobile" href="#enroll-form">ЗАПИСАТЬСЯ</a>
-            </div>
         </aside>
-        <div class="course-main-column">
+        <div class="course-main-column course-main-column--top">
         <main>
 
         <section id="about">
             <h3>О&nbsp;курсе</h3>
             <p>Курс учит работе в ComfyUI (<a href="https://comfy.org/" target="_blank">https://comfy.org/</a>) — самом продвинутом интерфейсе для работы с генеративным ИИ, предоставляющим наглядный и глубокий технический контроль над генеративными моделями. Благодаря изучению ComfyUI вы сможете работать с нейросетями более творчески и свободно, а также с фундаментальным пониманием процессов «под капотом».</p>
             <p>На курсе мы будем работать со свободно распространяемыми моделями. В отличие от коммерческих веб-сервисов с ними можно работать без ограничений, подписок и модерации. Разобравшись с основами, вы сможете работать в ComfyUI с новыми ИИ моделями любого типа в дальнейшем.</p>
+        </section>
+
+        <section class="course-preview-video">
+            <video src="assets/video_example.mp4" width="100%" muted autoplay loop playsinline aria-label="Preview of ComfyUI interface">
+                 <img src="img/screenshot.png" width="100%" alt="Screenshot of ComfyUI interface">
+            </video>
         </section>
 
         <section id="cloud">
@@ -114,7 +112,11 @@
         <section id="schedule">
             <h3>Расписание и&nbsp;программа курса</h3>
             <p>2 раза в неделю в Zoom.<br>По средам: 18:00 — 21:00<br>По субботам: 12:00 — 15:00<br>Онлайн-поддержка: чат с преподавателем и однокурсниками для вопросов и обсуждений между занятиями.</p>
-            <div class="schedule-columns">
+        </section>
+        </main>
+        </div>
+        </div>
+        <div class="schedule-columns">
                 <div class="schedule-item">
                     <div class="schedule-date">13 января (ср)<br>18:00–21:00</div>
                     <div class="schedule-topic"><strong>Знакомство с ComfyUI и друг с другом</strong><br>Локальные модели ИИ, в чём отличие от сервисов, и как с ними работать. Интерфейс ComfyUI: воркфлоу, ноды, соединения.</div>
@@ -188,9 +190,9 @@
                     <div class="schedule-topic"><strong>Неделя самостоятельной работы и презентация итогового проекта</strong><br>Просмотр и обсуждение финальных проектов, заключительная общая консультация.</div>
                 </div>
             </div>
-        </section>
 
-
+        <div class="course-main-column course-main-column--bottom">
+        <main>
         <section id="results">
             <h3>Результаты обучения</h3>
             <p>Вы освоите работу с любыми ИИ-моделями в ComfyUI и изучите возможности актуальных моделей для генерации и редактирования изображений, видео и звука — таких как Minimax H3, Moss, Flux и т.д.</p>
@@ -248,12 +250,16 @@
             <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.querySelector('script[src="'+w+'"]')==null){var s=d.createElement("script");s.src=w,s.onload=v,s.onerror=v,d.body.appendChild(s);}</script>
         </section>
     </main>
+        </div>
 
     <footer>
         <p>2026 Иван Якушев <a href="docs/public_offer.pdf">Договор-офферта</a></p>
         <div id="contacts"></div>
     </footer>
-        </div>
+    <div class="course-ask-link gallery-editorial-block">
+        <a class="waitlist-link" href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">ЗАДАТЬ ВОПРОС</a>
+        <a class="waitlist-link course-enroll-mobile" href="#enroll-form">ЗАПИСАТЬСЯ</a>
+    </div>
     </div>
     <!-- <script src="carousel.js"></script> -->
     <script>
