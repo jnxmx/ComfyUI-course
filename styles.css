@@ -1330,6 +1330,15 @@ html:has(body.gallery-page) {
   display: contents;
 }
 
+.course-page .course-results-requirements {
+  margin-bottom: 4.5rem;
+}
+
+.course-page .course-results-requirements #requirements,
+.course-page .course-results-requirements #requirements > p:last-child {
+  margin-bottom: 0;
+}
+
 .course-page .course-main-column--bottom {
   padding-top: 2.25rem;
 }
@@ -1364,11 +1373,6 @@ html:has(body.gallery-page) {
   }
   .course-page .course-results-requirements {
     position: relative;
-    margin-bottom: 4.5rem;
-  }
-  .course-page .course-results-requirements #requirements,
-  .course-page .course-results-requirements #requirements > p:last-child {
-    margin-bottom: 0;
   }
   .course-page .course-carousel-wrap {
     position: absolute;
@@ -1771,7 +1775,7 @@ html:has(body.gallery-page) {
 .course-page .instructor-splat {
   width: calc(100% + 50px);
   max-width: none;
-  aspect-ratio: 1 / 0.86;
+  aspect-ratio: 1 / 1.05;
   margin: 0 -25px 0.25rem;
   position: relative;
   pointer-events: none;
