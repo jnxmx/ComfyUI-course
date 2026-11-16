@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=88">
+    <link rel="stylesheet" href="styles.css?v=89">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -281,6 +281,38 @@
                 }
                 noiseCtx.putImageData(imgData, 0, 0);
                 document.body.style.setProperty('--raster-noise-url', `url("${noiseCanvas.toDataURL('image/png')}")`);
+            }
+
+            const topBand = document.querySelector('.course-top-band');
+            const sidebar = document.querySelector('.course-sidebar');
+            const galleryLink = document.querySelector('.course-gallery-link a');
+            const scheduleH3 = document.querySelector('#schedule > h3');
+
+            const syncSidebarStop = () => {
+                if (!topBand || !sidebar || !galleryLink || !scheduleH3) return;
+                if (window.innerWidth < 960) {
+                    sidebar.style.paddingBottom = '';
+                    return;
+                }
+                const currentPad = parseFloat(getComputedStyle(sidebar).paddingBottom) || 0;
+                const sidebarRect = sidebar.getBoundingClientRect();
+                const topBandRect = topBand.getBoundingClientRect();
+                const galleryRect = galleryLink.getBoundingClientRect();
+                const h3Rect = scheduleH3.getBoundingClientRect();
+
+                const belowGalleryWithoutPad = (sidebarRect.bottom - currentPad) - galleryRect.top;
+                const rightDistanceFromH3 = topBandRect.bottom - h3Rect.top;
+                const targetPad = Math.max(0, rightDistanceFromH3 - belowGalleryWithoutPad);
+                sidebar.style.paddingBottom = `${targetPad.toFixed(2)}px`;
+            };
+
+            syncSidebarStop();
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(syncSidebarStop);
+            }
+            window.addEventListener('resize', syncSidebarStop);
+            if (topBand && window.ResizeObserver) {
+                new ResizeObserver(syncSidebarStop).observe(topBand);
             }
         });
     </script>
