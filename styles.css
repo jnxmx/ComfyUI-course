@@ -1477,7 +1477,7 @@ html:has(body.gallery-page) {
 
 @media (max-width: 959px) {
   .course-page .node-text {
-    font-size: 15px;
+    font-size: 17px;
   }
 }
 
