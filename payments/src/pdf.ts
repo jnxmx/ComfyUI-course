@@ -235,7 +235,7 @@ export async function buildEuInvoicePdf(env: Env, o: Order, paid: boolean): Prom
   line(18);
 
   if (!paid && Number(env.PRICE_EUR_CARD) > amountMinor) {
-    text(`Tarif standard (carte / PayPal) : ${money(Number(env.PRICE_EUR_CARD), 'EUR')}`, { size: 9, color: [0.35, 0.35, 0.35] }); line(13);
+    text(`Tarif standard (carte / PayPal / crypto) : ${money(Number(env.PRICE_EUR_CARD), 'EUR')}`, { size: 9, color: [0.35, 0.35, 0.35] }); line(13);
     text(`Remise virement bancaire SEPA : −${money(Number(env.PRICE_EUR_CARD) - amountMinor, 'EUR')}`, { size: 9, color: [0.1, 0.45, 0.2] }); line(14);
   }
   hr();

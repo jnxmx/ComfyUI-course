@@ -88,7 +88,7 @@ export function renderOrderPage(env: Env, o: Order): Response {
         <h1>Оплата курса (EUR)</h1>
         ${claimedBanner}
         <div class="card">
-          <h2>Вариант 1 — Карта / Apple Pay / PayPal · ${cardEur}</h2>
+          <h2>Вариант 1 — Карта / Apple Pay / PayPal / Криптовалюта · ${cardEur}</h2>
           <p class="hint">Мгновенное подтверждение, автоматический счёт (facture) и доступ к группе сразу после оплаты.</p>
           ${env.STRIPE_SECRET_KEY
             ? `<form method="POST" action="/p/${o.token}/stripe"><button class="btn" type="submit">Оплатить ${cardEur} онлайн →</button></form>`
