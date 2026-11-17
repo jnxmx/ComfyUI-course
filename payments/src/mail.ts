@@ -113,7 +113,7 @@ export function orderCreatedMail(env: Env, o: Order): { subject: string; body: s
     body: [
       hello(o),
       `Спасибо за регистрацию на курс «${env.COURSE_TITLE}» (${env.COURSE_STREAM}). Место за вами закреплено до ${dl}.`,
-      `Есть два способа оплаты:\n• ${money(Number(env.PRICE_EUR_CARD), 'EUR')} — картой, Apple Pay / Google Pay, PayPal, криптовалютой (мгновенно).\n• ${money(Number(env.PRICE_EUR_IBAN), 'EUR')} — банковским переводом SEPA (скидка). Реквизиты и проформа-инвойс во вложении, референс платежа: ${o.code}.`,
+      `Есть два способа оплаты:\n• ${money(Number(env.PRICE_EUR_CARD), 'EUR')} — картой, Apple Pay / Google Pay, PayPal (мгновенно).\n• ${money(Number(env.PRICE_EUR_IBAN), 'EUR')} — банковским переводом SEPA (скидка). Реквизиты и проформа-инвойс во вложении, референс платежа: ${o.code}.`,
       `Выбрать способ и оплатить: [страница заказа](${page}).`,
       sign(env),
     ],
