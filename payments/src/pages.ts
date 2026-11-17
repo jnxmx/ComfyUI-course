@@ -50,7 +50,7 @@ export function renderOrderPage(env: Env, o: Order): Response {
           <div class="kv"><span>Телефон (СБП)</span><b>${h(env.RU_SBP_PHONE)}</b> <button class="copy" data-copy="${h(env.RU_SBP_PHONE)}">Скопировать</button></div>
           <div class="kv"><span>Банк получателя</span><b>${h(env.RU_SBP_BANK)}</b></div>
           <div class="kv"><span>Получатель</span><b>${h(env.RU_PAYEE_NAME)}</b></div>
-          <div class="kv"><span>Комментарий к переводу</span><b class="code">${h(o.code)}</b> <button class="copy" data-copy="${h(o.code)}">Скопировать</button></div>
+          <div class="kv"><span>Комментарий к переводу</span><b class="code">Оплата курса по ComfyUI</b> <button class="copy" data-copy="Оплата курса по ComfyUI">Скопировать</button></div>
         </div>
         <p class="hint">Переведите точную сумму в приложении вашего банка через Систему быстрых платежей (комиссия 0 ₽) и укажите код <b>${h(o.code)}</b> в сообщении получателю.</p>
         ${o.status === 'pending' ? `<form method="POST" action="/p/${o.token}/claim"><button class="btn" type="submit">Я перевёл(а) ${money(o.amount, 'RUB')}</button></form>` : ''}

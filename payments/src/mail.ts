@@ -90,7 +90,7 @@ export function orderCreatedMail(env: Env, o: Order): { subject: string; body: s
       body: [
         hello(o),
         `Спасибо за регистрацию на курс «${env.COURSE_TITLE}» (${env.COURSE_STREAM}). Место за вами закреплено до ${dl}.`,
-        `Как оплатить — перевод по СБП:\n• Сумма: ${money(o.amount, 'RUB')}\n• Номер телефона: ${env.RU_SBP_PHONE}\n• Банк получателя: ${env.RU_SBP_BANK}\n• Получатель: ${env.RU_PAYEE_NAME}\n• Комментарий к переводу: ${o.code}`,
+        `Как оплатить — перевод по СБП:\n• Сумма: ${money(o.amount, 'RUB')}\n• Номер телефона: ${env.RU_SBP_PHONE}\n• Банк получателя: ${env.RU_SBP_BANK}\n• Получатель: ${env.RU_PAYEE_NAME}\n• Комментарий к переводу: Оплата курса по ComfyUI`,
         `После перевода нажмите «Я оплатил(а)» на [странице заказа](${page}). Как только я подтвержу поступление, вам придёт письмо со ссылкой на группу курса в Telegram и чек.`,
         sign(env),
       ],
