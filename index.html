@@ -262,31 +262,31 @@
             <h3 id="enroll-heading">Запись на&nbsp;курс</h3>
             <form id="native-enroll-form" class="enroll-form" novalidate>
                 <div class="enroll-field">
-                    <input type="text" name="efa51c7c-98ce-429d-86bf-5d4e99fccb86" placeholder="Имя и фамилия (для счёта) *" required autocomplete="name">
+                    <input type="text" name="8eb73bfc-99ec-48e6-bb1e-cfa23968f5aa" placeholder="Имя и фамилия (для счёта) *" required autocomplete="name">
                 </div>
                 <div class="enroll-field">
-                    <input type="text" name="fa3d0dea-b13a-4311-b4a4-88aec7c9fac6" placeholder="Telegram *" required>
+                    <input type="text" name="39b90825-dc9b-49ad-8788-9c62ed20032c" placeholder="Telegram *" required>
                 </div>
                 <div class="enroll-field">
-                    <input type="email" name="33c54ea6-33f8-4a36-aa01-c3be3e427fc1" placeholder="Email *" required autocomplete="email">
+                    <input type="email" name="4d6f6672-6ef2-4ed8-9b4f-11967e455884" placeholder="Email *" required autocomplete="email">
                 </div>
                 <div class="enroll-field">
                     <label class="enroll-label" for="enroll-about">Расскажите о себе и почему вас заинтересовал курс</label>
-                    <textarea id="enroll-about" name="9be70708-849b-42f7-bc9e-52593aab5616" rows="3"></textarea>
+                    <textarea id="enroll-about" name="0f0832fb-e3d6-47b0-b773-09cf31a3e524" rows="3"></textarea>
                 </div>
                 <div class="enroll-field">
                     <label class="enroll-label" for="enroll-payment">Форма оплаты *</label>
                     <div class="enroll-select-wrap">
                         <select id="enroll-payment" name="a07a238b-01ea-4bd1-872b-619235a4233b" required>
-                            <option value="e695a8be-9f99-4222-aecd-7e05cf45ce36">65000 рублей (СБП, для РФ)</option>
-                            <option value="ec1ab22c-e5e5-4474-b07a-791c9cf9b23c">650 € (прямой банковский перевод SEPA по IBAN — со скидкой)</option>
-                            <option value="25d8ade4-55b5-4b6e-afdb-dd0c9b1adca3">670 € (карта / Apple Pay / PayPal)</option>
+                            <option value="13675a97-4278-427b-936f-e38928c10080">65000 рублей (СБП, для РФ)</option>
+                            <option value="e695a8be-9f99-4222-aecd-7e05cf45ce36">650 € (прямой банковский перевод SEPA по IBAN — со скидкой)</option>
+                            <option value="ec1ab22c-e5e5-4474-b07a-791c9cf9b23c">670 € (карта / Apple Pay / PayPal)</option>
                             <option value="8fbd833e-a5ed-4ae5-82ea-7490e04f25cc">75000 рублей (оплата от юридического лица по счёту)</option>
                         </select>
                     </div>
                 </div>
                 <div class="enroll-field">
-                    <input type="text" name="c48b2d5a-8e4f-41b3-9a67-2b5f8e1a9d3c" placeholder="ИНН организации (если оплата от юрлица)">
+                    <input type="text" name="b72e4c91-5d3a-4f82-8c19-6a3d7e2b4f10" placeholder="ИНН организации (если оплата от юрлица)">
                 </div>
                 <div class="enroll-actions">
                     <a class="enroll-ask-inline" href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">ЗАДАТЬ ВОПРОС</a>
@@ -554,12 +554,12 @@
 
                     const fd = new FormData(nativeForm);
                     const responses = {
-                        'efa51c7c-98ce-429d-86bf-5d4e99fccb86': String(fd.get('efa51c7c-98ce-429d-86bf-5d4e99fccb86') || '').trim(),
-                        'fa3d0dea-b13a-4311-b4a4-88aec7c9fac6': String(fd.get('fa3d0dea-b13a-4311-b4a4-88aec7c9fac6') || '').trim(),
-                        '33c54ea6-33f8-4a36-aa01-c3be3e427fc1': String(fd.get('33c54ea6-33f8-4a36-aa01-c3be3e427fc1') || '').trim(),
-                        '9be70708-849b-42f7-bc9e-52593aab5616': String(fd.get('9be70708-849b-42f7-bc9e-52593aab5616') || '').trim(),
+                        '8eb73bfc-99ec-48e6-bb1e-cfa23968f5aa': String(fd.get('8eb73bfc-99ec-48e6-bb1e-cfa23968f5aa') || '').trim(),
+                        '39b90825-dc9b-49ad-8788-9c62ed20032c': String(fd.get('39b90825-dc9b-49ad-8788-9c62ed20032c') || '').trim(),
+                        '4d6f6672-6ef2-4ed8-9b4f-11967e455884': String(fd.get('4d6f6672-6ef2-4ed8-9b4f-11967e455884') || '').trim(),
+                        '0f0832fb-e3d6-47b0-b773-09cf31a3e524': String(fd.get('0f0832fb-e3d6-47b0-b773-09cf31a3e524') || '').trim(),
                         'a07a238b-01ea-4bd1-872b-619235a4233b': [String(fd.get('a07a238b-01ea-4bd1-872b-619235a4233b') || '')],
-                        'c48b2d5a-8e4f-41b3-9a67-2b5f8e1a9d3c': String(fd.get('c48b2d5a-8e4f-41b3-9a67-2b5f8e1a9d3c') || '').trim(),
+                        'b72e4c91-5d3a-4f82-8c19-6a3d7e2b4f10': String(fd.get('b72e4c91-5d3a-4f82-8c19-6a3d7e2b4f10') || '').trim(),
                     };
 
                     const genId = () => (crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
