@@ -2207,6 +2207,88 @@ html:has(body.gallery-page) {
   margin-bottom: 0.85rem;
 }
 
+.course-page .enroll-thankyou-screen[hidden] {
+  display: none !important;
+}
+
+.course-page .enroll-thankyou-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background-color: #b81d24;
+  color: #f2ebe5;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 25px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.course-page .enroll-thankyou-top {
+  flex: 0 0 auto;
+}
+
+.course-page .enroll-thankyou-back {
+  display: inline-block;
+  color: #f2ebe5;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 1.38rem;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: transparent;
+  padding: 0;
+}
+
+.course-page .enroll-thankyou-back:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: 1.5px;
+  opacity: 1;
+}
+
+.course-page .enroll-thankyou-center {
+  margin: auto;
+  width: 100%;
+  max-width: 36rem;
+  padding: 2rem 0;
+  font-size: 1.38rem;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+}
+
+.course-page .enroll-thankyou-center h3 {
+  color: #f2ebe5;
+  margin-bottom: 1.25rem;
+}
+
+.course-page .enroll-thankyou-center p {
+  color: #f2ebe5;
+  margin: 0 0 1.25rem;
+}
+
+.course-page .enroll-thankyou-center p.enroll-thankyou-sign {
+  margin-bottom: 0;
+}
+
+.course-page .enroll-thankyou-center a {
+  color: #f2ebe5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+body.is-enroll-submitted {
+  overflow: hidden;
+  background-color: #b81d24;
+}
+
+body.is-enroll-submitted .course-ask-link,
+body.is-enroll-submitted .course-ask-backdrop {
+  display: none !important;
+}
+
 .course-page .instructor-splat {
   width: calc(100% + 50px);
   max-width: none;

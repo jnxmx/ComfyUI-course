@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico?v=2" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=125">
+    <link rel="stylesheet" href="styles.css?v=126">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -311,6 +311,16 @@
         <span class="course-ask-backdrop-ask">ЗАДАТЬ ВОПРОС</span>
         <span class="course-ask-backdrop-enroll">ЗАПИСАТЬСЯ</span>
     </div>
+    <div id="enroll-thankyou-screen" class="enroll-thankyou-screen" hidden>
+        <div class="enroll-thankyou-top">
+            <a class="waitlist-link enroll-thankyou-back" href="index.html">← НАЗАД К ОПИСАНИЮ КУРСА</a>
+        </div>
+        <div class="enroll-thankyou-center">
+            <h3>Ура!</h3>
+            <p>Вам на почту от <a href="mailto:course@yakushev.fr">course@yakushev.fr</a> и в телеграм от аккаунта <a href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">comfyui_course_jnx_bot</a> придёт информация по выбранному способу оплаты.</p>
+            <p class="enroll-thankyou-sign">Иван Якушев</p>
+        </div>
+    </div>
     <div class="course-ask-link gallery-editorial-block">
         <a class="waitlist-link course-ask-btn" href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">ЗАДАТЬ ВОПРОС</a>
         <a class="waitlist-link course-enroll-mobile" href="#enroll-form">ЗАПИСАТЬСЯ</a>
@@ -536,7 +546,27 @@
             const nativeForm = document.getElementById('native-enroll-form');
             const enrollError = document.getElementById('enroll-error');
             const enrollSuccess = document.getElementById('enroll-success');
+            const enrollThankYouScreen = document.getElementById('enroll-thankyou-screen');
+            const enrollThankYouBack = document.querySelector('.enroll-thankyou-back');
             if (nativeForm) {
+                let lastSubmitBtn = null;
+                let lastOrigText = '';
+                if (enrollThankYouBack) {
+                    enrollThankYouBack.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        document.body.classList.remove('is-enroll-submitted');
+                        if (enrollThankYouScreen) enrollThankYouScreen.hidden = true;
+                        if (enrollSuccess) enrollSuccess.hidden = true;
+                        nativeForm.reset();
+                        nativeForm.hidden = false;
+                        if (lastSubmitBtn) {
+                            lastSubmitBtn.disabled = false;
+                            lastSubmitBtn.textContent = lastOrigText || 'Записаться';
+                        }
+                        window.scrollTo({ top: 0, behavior: 'instant' });
+                        syncScrollOverlays();
+                    });
+                }
                 nativeForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     if (enrollError) {
@@ -547,6 +577,8 @@
 
                     const submitBtn = nativeForm.querySelector('.enroll-submit');
                     const origText = submitBtn ? submitBtn.textContent : '';
+                    lastSubmitBtn = submitBtn;
+                    lastOrigText = origText;
                     if (submitBtn) {
                         submitBtn.disabled = true;
                         submitBtn.textContent = 'Отправка…';
@@ -577,7 +609,12 @@
                         });
                         if (!res.ok) throw new Error('HTTP ' + res.status);
                         nativeForm.hidden = true;
-                        if (enrollSuccess) enrollSuccess.hidden = false;
+                        if (enrollThankYouScreen) {
+                            enrollThankYouScreen.hidden = false;
+                            document.body.classList.add('is-enroll-submitted');
+                        } else if (enrollSuccess) {
+                            enrollSuccess.hidden = false;
+                        }
                         syncScrollOverlays();
                     } catch (err) {
                         if (enrollError) {
