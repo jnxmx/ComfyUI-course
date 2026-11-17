@@ -1859,7 +1859,7 @@ html:has(body.gallery-page) {
 
 .course-page .schedule-item {
   display: grid;
-  grid-template-columns: 8.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 9.2rem minmax(0, 1fr) auto;
   column-gap: 0.85rem;
   align-items: start;
   padding: 0.55rem 0;
@@ -1880,18 +1880,12 @@ html:has(body.gallery-page) {
 }
 
 .course-page .schedule-day {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5em;
-  height: 1.5em;
-  margin-left: 0.25em;
-  border-radius: 999px;
-  border: 1.15px solid rgba(17, 17, 17, 0.48);
-  font-size: 0.78em;
-  line-height: 1;
-  vertical-align: 0.06em;
-  text-transform: lowercase;
+  position: relative;
+  top: -0.42em;
+  margin-left: 0.22em;
+  font-size: 0.68em;
+  line-height: 0;
+  color: rgba(17, 17, 17, 0.62);
 }
 
 .course-page .schedule-topic {
@@ -1953,7 +1947,7 @@ html:has(body.gallery-page) {
     column-gap: 50px;
   }
   .course-page .schedule-item {
-    grid-template-columns: 10rem minmax(0, 1fr);
+    grid-template-columns: 10.6rem minmax(0, 1fr);
     column-gap: 1.25rem;
     cursor: default;
   }
