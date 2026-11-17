@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ComfyUI для работы с нейросетями: изображение, анимация, звук</title>
     <link rel="icon" href="favicon.ico?v=2" type="image/x-icon">
-    <link rel="stylesheet" href="styles.css?v=123">
+    <link rel="stylesheet" href="styles.css?v=124">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script type="importmap">
     {
@@ -578,6 +578,7 @@
                         if (!res.ok) throw new Error('HTTP ' + res.status);
                         nativeForm.hidden = true;
                         if (enrollSuccess) enrollSuccess.hidden = false;
+                        syncScrollOverlays();
                     } catch (err) {
                         if (enrollError) {
                             enrollError.innerHTML = 'Не удалось отправить форму. Вы можете <a href="https://tally.so/r/GxXNBo" target="_blank" rel="noopener">записаться по прямой ссылке</a> или написать <a href="https://t.me/comfyui_course_jnx_bot" target="_blank" rel="noopener">в Telegram-бот</a>.';

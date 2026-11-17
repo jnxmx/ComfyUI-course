@@ -2044,6 +2044,12 @@ html:has(body.gallery-page) {
   gap: 1.35rem;
 }
 
+.course-page .enroll-form[hidden],
+.course-page .enroll-success[hidden],
+.course-page .enroll-error[hidden] {
+  display: none !important;
+}
+
 .course-page .enroll-field {
   display: flex;
   flex-direction: column;
