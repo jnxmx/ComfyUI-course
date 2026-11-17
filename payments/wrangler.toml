@@ -1,0 +1,55 @@
+name = "comfyui-course-payments"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+rules = [
+  { type = "Data", globs = ["**/*.ttf"], fallthrough = true }
+]
+
+[triggers]
+crons = ["15 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "comfyui-course-db"
+database_id = "0952fba1-2e0a-4f40-abaf-0e2ce4431919"
+
+[vars]
+PUBLIC_URL = "https://comfyui-course-payments.yakushev-course.workers.dev"
+SITE_URL = "https://course.yakushev.fr"
+COURSE_TITLE = "ComfyUI для работы с нейросетями: изображение, анимация, звук"
+COURSE_STREAM = "13 января — 17 марта 2027"
+BOT_USERNAME = "comfyui_course_jnx_bot"
+ADMIN_CHAT_ID = "142081600"
+GROUP_CHAT_ID = "-5595805460"
+MAIL_FROM_NAME = "Иван Якушев"
+MAIL_FROM = "course@yakushev.fr"
+MAIL_REPLY_TO = "ivan.yakushev@gmail.com"
+PAYMENT_TTL_HOURS = "48"
+COMPANY_TTL_HOURS = "168"
+REMIND_AFTER_HOURS = "24"
+
+# Цены в минорных единицах (копейки / евроценты)
+PRICE_RUB_PERSON = "6500000"
+PRICE_RUB_COMPANY = "7500000"
+PRICE_EUR_CARD = "67000"
+PRICE_EUR_IBAN = "65000"
+
+# Реквизиты РФ (самозанятый, Райффайзенбанк)
+RU_PAYEE_NAME = "Якушев Иван Евгеньевич"
+RU_INN = "773605438286"
+RU_SBP_PHONE = "+7 916 244-54-76"
+RU_SBP_BANK = "Райффайзенбанк"
+RU_ACCOUNT = "40817810601006964174"
+RU_BANK_NAME = "АО «Райффайзенбанк»"
+RU_BIC = "044525700"
+RU_CORR_ACCOUNT = "30101810200000000700"
+
+# Реквизиты Франция (micro-entrepreneur)
+FR_NAME = "Ivan Yakushev"
+FR_SIRET = "988752575500011"
+FR_ADDRESS = ""
+FR_IBAN = "FR92 2004 1010 1011 2190 8T03 126"
+FR_BIC = "PSSTFRPPXXX"
+FR_BANK_NAME = "LA BANQUE POSTALE"
