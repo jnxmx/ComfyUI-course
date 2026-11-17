@@ -4,6 +4,8 @@ import {
   getOrderByCode,
   getOrderById,
   getOrderByToken,
+  getPaidOrderByInviteLink,
+  getPaidOrderByTgHandle,
   getPaidOrderByTgUser,
   listOpenOrders,
   listPaidOrders,
@@ -18,23 +20,79 @@ import { actMail, cancelledMail, paidMail, receiptMail, sendMail, type Attachmen
 import { buildEuInvoicePdf, buildRuCompanyActPdf } from './pdf';
 import { createJoinLink, kb, sendAdmin, sendDocument, sendMessage, tg } from './telegram';
 import type { Env, Method, Order } from './types';
-import { botStartUrl, escapeHtml, fmtDate, money, now, orderLabel, payUrl, SERVICE_NAME_RU } from './util';
+import { botStartUrl, cleanTgHandle, escapeHtml, fmtDate, money, now, orderLabel, payUrl, SERVICE_NAME_RU } from './util';
 
 const h = escapeHtml;
 
-export function adminOrderKb(o: Order) {
-  if (o.status === 'paid') {
-    const row: { text: string; data?: string; url?: string }[] = [];
-    if (o.payer_type === 'company') row.push({ text: '📄 Отправить акт', data: `act:${o.id}` });
-    return row.length ? kb([row]) : {};
+export function personalConfirmationText(env: Env, o: Order): string {
+  const name = o.name ? ` ${o.name}` : '';
+  const groupLink = o.invite_link || botStartUrl(env, o);
+  const lines = [
+    `Здравствуйте${name}!`,
+    `Оплата по курсу ComfyUI (заказ ${o.code}) подтверждена ✅`,
+    ``,
+    `Ссылка для входа в закрытую группу курса в Telegram:`,
+    groupLink,
+  ];
+
+  if (o.currency === 'EUR') {
+    lines.push(``, `Счёт / Facture (PDF):`, `${env.PUBLIC_URL}/p/${o.token}/invoice.pdf`);
+  } else if (o.payer_type === 'company') {
+    lines.push(``, `Счёт-договор (PDF):`, `${env.PUBLIC_URL}/p/${o.token}/invoice.pdf`);
+    lines.push(`Акт (PDF):`, `${env.PUBLIC_URL}/p/${o.token}/act.pdf`);
+  } else if (o.receipt_url) {
+    lines.push(``, `Чек ФНС «Мой налог»:`, o.receipt_url);
   }
-  if (o.status === 'cancelled') return {};
-  return kb([
-    [
-      { text: `✅ Оплачено (${money(o.amount, o.currency)})`, data: `paid:${o.id}` },
-      { text: '❌ Отменить', data: `cancel:${o.id}` },
-    ],
+
+  lines.push(
+    ``,
+    `Пожалуйста, перед первым занятием зарегистрируйте аккаунты на сайтах:`,
+    `• https://runpod.io?ref=x9hq16nj (моя реферальная ссылка)`,
+    `• https://huggingface.co/join`,
+    `• https://civitai.com/login`,
+    ``,
+    `Если возникнут вопросы — пишите прямо сюда!`,
+  );
+  return lines.join('\n');
+}
+
+export function personalOrderText(env: Env, o: Order): string {
+  const name = o.name ? ` ${o.name}` : '';
+  return [
+    `Здравствуйте${name}!`,
+    `Это Иван Якушев по поводу курса «ComfyUI для работы с нейросетями».`,
+    `Ваша заявка № ${o.code} принята.`,
+    ``,
+    `Страница оплаты и реквизиты:`,
+    payUrl(env, o),
+    ``,
+    `Если возникнут вопросы — пишите!`,
+  ].join('\n');
+}
+
+export function adminOrderKb(env: Env, o: Order) {
+  const handle = cleanTgHandle(o.telegram);
+  const rows: { text: string; data?: string; url?: string }[][] = [];
+
+  if (handle) {
+    const text = o.status === 'paid' ? personalConfirmationText(env, o) : personalOrderText(env, o);
+    const label = o.status === 'paid' ? '💬 Отправить подтверждение лично' : '💬 Написать клиенту лично';
+    rows.push([{ text: label, url: `https://t.me/${handle}?text=${encodeURIComponent(text)}` }]);
+  }
+
+  if (o.status === 'paid') {
+    const actRow: { text: string; data?: string; url?: string }[] = [];
+    if (o.payer_type === 'company') actRow.push({ text: '📄 Отправить акт', data: `act:${o.id}` });
+    if (actRow.length) rows.push(actRow);
+    return rows.length ? kb(rows) : {};
+  }
+  if (o.status === 'cancelled') return rows.length ? kb(rows) : {};
+
+  rows.push([
+    { text: `✅ Оплачено (${money(o.amount, o.currency)})`, data: `paid:${o.id}` },
+    { text: '❌ Отменить', data: `cancel:${o.id}` },
   ]);
+  return kb(rows);
 }
 
 export function adminOrderText(env: Env, o: Order, title = '🆕 Заявка'): string {
@@ -76,8 +134,8 @@ export async function confirmOrderPaid(
 
   const updated = (await getOrderById(env, o.id))!;
 
-  // 1. Ссылка в группу (если Telegram уже привязан)
-  if (updated.tg_user_id && !updated.invite_link) {
+  // 1. Ссылка в группу (всегда генерируем при подтверждении оплаты, чтобы можно было подставить в личное сообщение и на страницу)
+  if (!updated.invite_link) {
     const link = await createJoinLink(env, `${updated.code} ${updated.name ?? updated.email}`);
     if (link) {
       await updateOrder(env, updated.id, { invite_link: link });
@@ -103,7 +161,7 @@ export async function confirmOrderPaid(
   const m = paidMail(env, updated);
   await sendMail(env, updated.email, m.subject, m.body, attachments);
 
-  // 3. Тебе в админ-чат: карточка для «Мой налог» (RUB) или отбивка + PDF (EUR)
+  // 3. Тебе в админ-чат: карточка для «Мой налог» (RUB) или отбивка + PDF (EUR) с кнопкой для отправки подтверждения
   if (updated.currency === 'RUB') {
     const npdLines = [
       `🧾 <b>Пробей чек в «Мой налог»</b> для заказа <b>${h(updated.code)}</b>:`,
@@ -114,12 +172,13 @@ export async function confirmOrderPaid(
       '',
       'Ответь (Reply) на это сообщение ссылкой на чек из «Мой налог» — я сам отправлю её студенту на почту и в Telegram.',
     ];
-    const sent = await sendAdmin(env, npdLines.join('\n'), adminOrderKb(updated));
+    const sent = await sendAdmin(env, npdLines.join('\n'), adminOrderKb(env, updated));
     if (sent.ok && sent.result) await saveAdminMsg(env, sent.result.message_id, 'receipt', updated.id);
   } else {
     await sendAdmin(
       env,
       `✅ Оплачен <b>${h(updated.code)}</b> (${updated.method === 'stripe' ? 'Stripe' : 'SEPA IBAN'} · ${money(amountPaid, 'EUR')}, facture <b>${h(updated.invoice_number)}</b>)\nКлиент: ${h(updated.name ?? '')} · <code>${h(updated.email)}</code>`,
+      adminOrderKb(env, updated),
     );
     if (attachments[0]) await sendDocument(env, env.ADMIN_CHAT_ID, attachments[0].filename, attachments[0].bytes);
   }
@@ -138,7 +197,20 @@ async function handleJoinRequest(env: Env, req: any): Promise<void> {
   const userId: number = req.from?.id;
   if (chatId !== String(env.GROUP_CHAT_ID) || !userId) return;
 
-  const paid = await getPaidOrderByTgUser(env, userId);
+  let paid = await getPaidOrderByTgUser(env, userId);
+  if (!paid && req.invite_link?.invite_link) {
+    paid = await getPaidOrderByInviteLink(env, req.invite_link.invite_link);
+    if (paid) {
+      await updateOrder(env, paid.id, { tg_user_id: userId });
+    }
+  }
+  if (!paid && req.from?.username) {
+    paid = await getPaidOrderByTgHandle(env, req.from.username);
+    if (paid) {
+      await updateOrder(env, paid.id, { tg_user_id: userId });
+    }
+  }
+
   if (paid) {
     await tg(env, 'approveChatJoinRequest', { chat_id: chatId, user_id: userId });
     await updateOrder(env, paid.id, { joined_group_at: now() });
@@ -220,7 +292,7 @@ export async function markOrderClaimed(env: Env, o: Order, source: string): Prom
   const changed = await transitionStatus(env, o.id, ['pending'], 'claimed', { claimed_at: now() });
   if (changed) {
     const updated = (await getOrderById(env, o.id))!;
-    await sendAdmin(env, adminOrderText(env, updated, `💸 Клиент отметил оплату (${source})`), adminOrderKb(updated));
+    await sendAdmin(env, adminOrderText(env, updated, `💸 Клиент отметил оплату (${source})`), adminOrderKb(env, updated));
   }
   return changed;
 }
@@ -367,7 +439,7 @@ async function handleAdminMessage(env: Env, msg: any): Promise<void> {
     const o = await getOrderByCode(env, mOrder[2]);
     if (!o) return void (await sendAdmin(env, 'Заказ не найден.'));
     if (cmd === 'order') {
-      await sendAdmin(env, adminOrderText(env, o, '📋 Заказ'), adminOrderKb(o));
+      await sendAdmin(env, adminOrderText(env, o, '📋 Заказ'), adminOrderKb(env, o));
     } else if (cmd === 'paid') {
       await confirmOrderPaid(env, o);
     } else if (cmd === 'act') {

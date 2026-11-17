@@ -16,11 +16,18 @@ export function renderOrderPage(env: Env, o: Order): Response {
       docs.push(`<a class="btn sec" href="/p/${o.token}/act.pdf">Акт (PDF)</a>`);
     }
     if (o.receipt_url) docs.push(`<a class="btn sec" href="${h(o.receipt_url)}" target="_blank" rel="noopener">Чек ФНС «Мой налог»</a>`);
+
+    const groupAction = o.invite_link
+      ? `<p><a class="btn" href="${h(o.invite_link)}">Войти в закрытую группу курса в Telegram →</a></p>
+         <p class="hint">Если хотите задать вопрос преподавателю или подключить бота курса: <a href="${h(botUrl)}">открыть бота</a>.</p>`
+      : `<p>Чтобы получить персональное приглашение в Telegram-группу курса, откройте бота:</p>
+         <p><a class="btn" href="${h(botUrl)}">Открыть бота и войти в группу →</a></p>`;
+
     main = `
       <div class="badge ok">Оплачено · ${money(o.amount_paid ?? o.amount, o.currency)}</div>
       <h1>Спасибо, оплата получена!</h1>
-      <p>Заказ <b>${h(o.code)}</b> подтверждён. Чтобы получить персональное приглашение в Telegram-группу курса, откройте бота:</p>
-      <p><a class="btn" href="${h(botUrl)}">Открыть бота и войти в группу →</a></p>
+      <p>Заказ <b>${h(o.code)}</b> подтверждён.</p>
+      ${groupAction}
       <p>Пожалуйста, перед первым занятием зарегистрируйте аккаунты на сайтах runpod, huggingface и civitai:<br>
         <a href="https://runpod.io?ref=x9hq16nj" target="_blank" rel="noopener">https://runpod.io?ref=x9hq16nj</a> (моя реферальная ссылка)<br>
         <a href="https://huggingface.co/join" target="_blank" rel="noopener">https://huggingface.co/join</a><br>

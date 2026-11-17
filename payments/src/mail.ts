@@ -121,12 +121,16 @@ export function orderCreatedMail(env: Env, o: Order): { subject: string; body: s
 }
 
 export function paidMail(env: Env, o: Order): { subject: string; body: string[] } {
+  const groupAction = o.invite_link
+    ? `Ссылка для входа в закрытую группу курса в Telegram:\n${o.invite_link}\n\nТакже вы можете подключить [Telegram-бота курса](${botStartUrl(env, o)}) для получения персональных уведомлений и связи с преподавателем.`
+    : `Чтобы попасть в группу курса в Telegram, откройте бота по [этой ссылке](${botStartUrl(env, o)}) и нажмите «Start» — он сразу пришлёт приглашение в группу. Ссылка персональная, не пересылайте её.`;
+
   return {
     subject: `Оплата получена — добро пожаловать на курс! (${o.code})`,
     body: [
       hello(o),
       `Оплата ${money(o.amount_paid ?? o.amount, o.currency)} по заказу ${o.code} получена. Спасибо!`,
-      `Чтобы попасть в группу курса в Telegram, откройте бота по [этой ссылке](${botStartUrl(env, o)}) и нажмите «Start» — он сразу пришлёт приглашение в группу. Ссылка персональная, не пересылайте её.`,
+      groupAction,
       'Пожалуйста, перед первым занятием зарегистрируйте аккаунты на сайтах runpod, huggingface и civitai\nhttps://runpod.io?ref=x9hq16nj (моя реферальная ссылка)\nhttps://huggingface.co/join\nhttps://civitai.com/login',
       o.currency === 'RUB'
         ? 'Чек самозанятого из «Мой налог» пришлю отдельным письмом.'
