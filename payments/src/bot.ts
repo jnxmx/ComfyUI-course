@@ -439,6 +439,13 @@ async function handleAdminMessage(env: Env, msg: any): Promise<void> {
     const o = await getOrderByCode(env, mOrder[2]);
     if (!o) return void (await sendAdmin(env, 'Заказ не найден.'));
     if (cmd === 'order') {
+      if (o.status === 'paid' && !o.invite_link) {
+        const link = await createJoinLink(env, `${o.code} ${o.name ?? o.email}`);
+        if (link) {
+          await updateOrder(env, o.id, { invite_link: link });
+          o.invite_link = link;
+        }
+      }
       await sendAdmin(env, adminOrderText(env, o, '📋 Заказ'), adminOrderKb(env, o));
     } else if (cmd === 'paid') {
       await confirmOrderPaid(env, o);
