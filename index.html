@@ -484,7 +484,8 @@
             syncScrollOverlays();
 
             // Collapsible mobile schedule descriptions with circular chevron toggle
-            document.querySelectorAll('.schedule-item').forEach((item) => {
+            const scheduleItems = Array.from(document.querySelectorAll('.schedule-item'));
+            scheduleItems.forEach((item) => {
                 const topic = item.querySelector('.schedule-topic');
                 if (!topic) return;
                 const br = topic.querySelector('br');
@@ -513,8 +514,17 @@
 
                 const toggle = () => {
                     if (isDesktopLayout()) return;
-                    const expanded = item.classList.toggle('is-expanded');
-                    btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                    const beforeTop = btn.getBoundingClientRect().top;
+                    const nextExpanded = !item.classList.contains('is-expanded');
+                    scheduleItems.forEach((el) => {
+                        el.classList.toggle('is-expanded', nextExpanded);
+                        const elBtn = el.querySelector('.schedule-toggle');
+                        if (elBtn) elBtn.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+                    });
+                    const deltaY = btn.getBoundingClientRect().top - beforeTop;
+                    if (Math.abs(deltaY) > 0.5) {
+                        window.scrollBy({ top: deltaY, behavior: 'instant' });
+                    }
                     syncScrollOverlays();
                 };
                 item.addEventListener('click', (e) => {
