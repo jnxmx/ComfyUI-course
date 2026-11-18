@@ -2426,15 +2426,15 @@ async function pollHealthForPod(ctrl) {
       return;
     }
 
-    if (pod.status === "ERROR" || pod.status === "EXITED") {
-      const wasHealthy = ctrl.cudaStagePassed || ctrl.stages.ready === "done";
-      if (pod.status === "EXITED" && wasHealthy) {
-        // Остановка/удаление на стороне RunPod или срабатывание таймера автовыключения — не сбой старта
-        ctrl.subtitle = "Под остановлен или удалён (EXITED).";
-        const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
-        if (card) updatePodCardElement(ctrl, card);
-        return;
-      }
+    if (pod.status === "EXITED") {
+      // Ручная остановка/удаление в консоли RunPod или таймер автовыключения переводят под в EXITED
+      ctrl.subtitle = "Под остановлен или удалён (EXITED).";
+      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+      if (card) updatePodCardElement(ctrl, card);
+      return;
+    }
+
+    if (pod.status === "ERROR") {
       if (!ctrl.cudaFatalTriggered) {
         ctrl.cudaFatalTriggered = true;
         triggerRedeploy(ctrl.podId, `Статус пода: ${pod.status}`);
