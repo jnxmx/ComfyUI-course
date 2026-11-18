@@ -2701,6 +2701,8 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         });
         ctrl.isExpanded = true;
         ctrl.isOurPod = true;
+        ctrl.launchMode = isSingleCandidate ? "single" : "queue";
+        ctrl.launchCandidate = candidate;
 
         await fetchActivePods();
         if (!ctrl.logAbortController) {
@@ -2780,12 +2782,51 @@ async function triggerRedeploy(badPodId, reason) {
   const ctrl = state.podControllers.get(badPodId);
   if (ctrl) {
     ctrl.cudaFatalTriggered = true;
+  }
+
+  // Авто-перезапуск только при ошибке деплоя (пока под ещё не дошёл до готовности ComfyUI)
+  const alreadyDeployed = Boolean(ctrl && (ctrl.cudaStagePassed || ctrl.stages.ready === "done"));
+  const autoRetryDeploy = document.getElementById("opt-auto-redeploy")?.checked;
+
+  if (alreadyDeployed || !autoRetryDeploy) {
+    if (ctrl) {
+      ctrl.alert = {
+        msg: alreadyDeployed
+          ? `Ошибка работающего пода (${reason}). Авто-перезапуск после успешного деплоя отключён.`
+          : `Ошибка деплоя (${reason}). Повторные попытки отключены.`,
+        level: "error"
+      };
+      const card = document.querySelector(`.pod-card[data-pod-id="${badPodId}"]`);
+      if (card) updatePodCardElement(ctrl, card);
+    }
+    return;
+  }
+
+  state.heldBadPodIds.add(badPodId);
+  if (ctrl) {
     ctrl.alert = {
-      msg: `Ошибка пода (${reason}). Авто-перезапуск при сбое отключён.`,
-      level: "error"
+      msg: `Ошибка деплоя (${reason}). Перезапуск пода...`,
+      level: "warn"
     };
     const card = document.querySelector(`.pod-card[data-pod-id="${badPodId}"]`);
     if (card) updatePodCardElement(ctrl, card);
+  }
+
+  if (state.redeployInProgress || state.currentDeploySessionId !== null) {
+    return;
+  }
+
+  state.redeployInProgress = true;
+  try {
+    if (ctrl?.launchMode === "single" && ctrl?.launchCandidate) {
+      await startDeploymentSequence([ctrl.launchCandidate], badPodId, { singleGpuOnly: true });
+    } else {
+      await fetchGpuCatalog(true);
+      const queue = getSelectedCandidatesQueue();
+      await startDeploymentSequence(queue, badPodId, { singleGpuOnly: false });
+    }
+  } finally {
+    state.redeployInProgress = false;
   }
 }
 
