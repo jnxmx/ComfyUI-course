@@ -1984,7 +1984,7 @@ async function startLogStreamForPod(ctrl) {
         retryDelayMs = 10000;
         setLogPlaceholderMessage(
           ctrl,
-          `[HTTP ${res.status}] Нет доступа к логам пода ${ctrl.podId}. Проверьте права API-ключа RunPod (в REST API нужны права Pods: Read & Write).\n`
+          `[HTTP ${res.status}] Нет доступа к логам пода ${ctrl.podId}. Проверьте права API-ключа RunPod (нужны REST API → Pods: Read & Write и GraphQL API → Read only).\n`
         );
       } else {
         retryDelayMs = 2500;
