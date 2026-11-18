@@ -41,8 +41,8 @@ const DEFAULT_TEMPLATE = Object.freeze({
  * 9. Pro 4500 / SE
  * 10. Pro 4000
  * 11. 5000 Ada (ниже чем pro 4000)
- * 12. RTX A6000 (выше чем 3090)
- * 13. RTX 3090 / Ti
+ * 12. RTX 3090 / Ti (выше чем A6000)
+ * 13. RTX A6000 / A40
  * 14. RTX 3080 Ti / 3080 (выше 3070)
  * 15. RTX 3070
  * 99. Все остальные видеокарты с CUDA >= 13.0
@@ -130,17 +130,20 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 12,
-    key: "rtx-a6000",
-    label: "RTX A6000",
-    gpuIds: ["NVIDIA RTX A6000"]
-  },
-  {
-    rank: 13,
     key: "rtx-3090-ti",
     label: "RTX 3090 / Ti",
     gpuIds: [
       "NVIDIA GeForce RTX 3090 Ti",
       "NVIDIA GeForce RTX 3090"
+    ]
+  },
+  {
+    rank: 13,
+    key: "rtx-a6000",
+    label: "RTX A6000 / A40",
+    gpuIds: [
+      "NVIDIA RTX A6000",
+      "NVIDIA A40"
     ]
   },
   {
