@@ -208,7 +208,8 @@ const state = {
   catalogFetchStartedAt: 0,
   catalogLastFetchedAt: 0,
   catalogRefreshTimerId: null,
-  ipGeoCache: new Map()
+  ipGeoCache: new Map(),
+  apiKeyPermissionErrors: new Map()
 };
 
 /* ==========================================================================
@@ -377,6 +378,66 @@ function getPodTcpPort(pod, internalPort) {
    2. RunPod API Client & Account Info
    ========================================================================== */
 
+function getScopeLabelForPath(path) {
+  if (path.startsWith("/account/secrets")) return "Secrets (Read)";
+  if (path.startsWith("/templates/")) return "Templates (Read)";
+  if (path.startsWith("/catalog/")) return "Catalog (Read)";
+  if (path.startsWith("/pods")) return "Pods (Read + Write)";
+  return "REST API";
+}
+
+function updateApiKeyRequirementsBanner() {
+  const box = document.getElementById("api-key-requirements");
+  const titleEl = document.getElementById("api-key-req-title");
+  const errorsEl = document.getElementById("api-key-req-errors");
+  if (!box || !titleEl || !errorsEl) return;
+
+  if (!state.apiKey) {
+    box.hidden = false;
+    box.classList.remove("is-error");
+    titleEl.textContent = "Требования к API-ключу RunPod";
+    errorsEl.hidden = true;
+    errorsEl.textContent = "";
+    return;
+  }
+
+  if (state.apiKeyPermissionErrors.size > 0) {
+    box.hidden = false;
+    box.classList.add("is-error");
+    const has401 = Array.from(state.apiKeyPermissionErrors.values()).some((code) => code === 401);
+    titleEl.textContent = has401
+      ? "API-ключ RunPod недействителен или отклонён (HTTP 401)"
+      : "У API-ключа RunPod не хватает разрешений";
+    const missingList = Array.from(state.apiKeyPermissionErrors.entries())
+      .map(([scope, code]) => `${scope} (HTTP ${code})`)
+      .join(", ");
+    errorsEl.textContent = `Отсутствует доступ: ${missingList}`;
+    errorsEl.hidden = false;
+    return;
+  }
+
+  box.hidden = true;
+  box.classList.remove("is-error");
+  errorsEl.hidden = true;
+  errorsEl.textContent = "";
+}
+
+function setApiKeyPermissionError(scope, status) {
+  if (!scope) return;
+  const prev = state.apiKeyPermissionErrors.get(scope);
+  if (prev !== status) {
+    state.apiKeyPermissionErrors.set(scope, status);
+    updateApiKeyRequirementsBanner();
+  }
+}
+
+function clearApiKeyPermissionError(scope) {
+  if (!scope) return;
+  if (state.apiKeyPermissionErrors.delete(scope)) {
+    updateApiKeyRequirementsBanner();
+  }
+}
+
 async function runpodFetch(path, options = {}) {
   if (!state.apiKey) {
     throw new Error("Не указан RunPod API Secret Key.");
@@ -415,7 +476,11 @@ async function runpodFetch(path, options = {}) {
     clearTimeout(timerId);
   }
 
+  const scopeLabel = getScopeLabelForPath(path);
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      setApiKeyPermissionError(scopeLabel, response.status);
+    }
     let detail = `HTTP ${response.status}`;
     try {
       const errJson = await response.json();
@@ -426,6 +491,7 @@ async function runpodFetch(path, options = {}) {
     throw new Error(`Ошибка RunPod (${response.status}): ${detail}`);
   }
 
+  clearApiKeyPermissionError(scopeLabel);
   if (response.status === 204) return null;
   return response.json();
 }
@@ -1914,6 +1980,7 @@ async function startLogStreamForPod(ctrl) {
     if (!res.ok || !res.body) {
       shouldRetry = true;
       if (res.status === 401 || res.status === 403) {
+        setApiKeyPermissionError("Логи подов (/pods/{id}/logs)", res.status);
         retryDelayMs = 10000;
         setLogPlaceholderMessage(
           ctrl,
@@ -1928,6 +1995,8 @@ async function startLogStreamForPod(ctrl) {
       }
       return;
     }
+
+    clearApiKeyPermissionError("Логи подов (/pods/{id}/logs)");
 
     // Reset only once a live stream opens so transient 404/503 retries don't wipe visible logs
     ctrl.logLines = [];
@@ -2742,8 +2811,10 @@ async function init() {
   // Forget Key Button
   document.getElementById("forget-key-btn").addEventListener("click", () => {
     state.apiKey = "";
+    state.apiKeyPermissionErrors.clear();
     keyInput.value = "";
     localStorage.removeItem(STORAGE_KEYS.API_KEY);
+    updateApiKeyRequirementsBanner();
     document.getElementById("account-info-panel").hidden = true;
     document.getElementById("pods-section").hidden = true;
     document.getElementById("pods-list").replaceChildren();
@@ -2762,7 +2833,9 @@ async function init() {
     const entered = keyInput.value.trim();
     if (entered.length >= 20 && entered !== state.apiKey) {
       state.apiKey = entered;
+      state.apiKeyPermissionErrors.clear();
       localStorage.setItem(STORAGE_KEYS.API_KEY, entered);
+      updateApiKeyRequirementsBanner();
       await Promise.all([fetchAccountInfo(), fetchActivePods(), fetchGpuCatalog()]);
     }
   };
@@ -2882,9 +2955,12 @@ async function init() {
   if (savedKey) {
     state.apiKey = savedKey;
     keyInput.value = savedKey;
+    updateApiKeyRequirementsBanner();
     fetchAccountInfo();
     fetchActivePods();
     fetchGpuCatalog();
+  } else {
+    updateApiKeyRequirementsBanner();
   }
 }
 

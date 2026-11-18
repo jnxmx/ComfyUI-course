@@ -42,6 +42,18 @@
           </button>
         </div>
 
+        <!-- API Key Requirements (shown when key is missing or lacks permissions) -->
+        <div id="api-key-requirements" class="api-key-requirements" role="status">
+          <div id="api-key-req-title" class="api-key-req-title">
+            Требования к API-ключу RunPod
+          </div>
+          <div id="api-key-req-errors" class="api-key-req-errors" hidden></div>
+          <ul class="api-key-req-list">
+            <li><strong>Рекомендуется:</strong> создать ключ со всеми правами (отметить все галочки в <em>REST API</em>, <em>GraphQL API</em> и <em>Serverless</em>) — только такой ключ гарантированно даёт доступ к потоковым логам подов.</li>
+            <li><strong>Минимум в REST API:</strong> <code>Pods (Read + Write)</code>, <code>Templates (Read)</code>, <code>Secrets (Read)</code>, <code>Catalog (Read)</code> <em>(у ключей типа Restricted RunPod может возвращать HTTP 403 на логи)</em>.</li>
+          </ul>
+        </div>
+
         <!-- Account Info Panel (Secrets Status) -->
         <div id="account-info-panel" class="account-info-panel" hidden>
           <div class="account-info-row">

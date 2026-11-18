@@ -1291,3 +1291,45 @@ progress.loading-spinner:indeterminate {
   color: var(--text-secondary);
   font-size: 0.8rem;
 }
+
+.api-key-requirements {
+  margin-top: 0.85rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 8px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.api-key-requirements.is-error {
+  border-color: rgba(220, 38, 38, 0.45);
+  background-color: rgba(220, 38, 38, 0.06);
+  color: var(--text-primary);
+}
+
+.api-key-req-title {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.api-key-requirements.is-error .api-key-req-title {
+  color: #dc2626;
+}
+
+.api-key-req-errors {
+  margin-bottom: 0.45rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.api-key-req-list {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.api-key-req-list li + li {
+  margin-top: 0.25rem;
+}
