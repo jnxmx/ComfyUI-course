@@ -851,6 +851,7 @@ async function fetchGpuCatalog(silent = false) {
             price: Number(price),
             availability: gpu.availability || "NONE",
             maxCount: cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0),
+            vramGb: Number.isFinite(gpu.memory) ? gpu.memory : null,
             minRam: Number.isFinite(gpu.minRam) ? gpu.minRam : null,
             cudaVersions: cuda13List,
             tierRank: tier ? tier.rank : 99,
@@ -1105,6 +1106,14 @@ function renderGpuTable() {
     titleSpan.className = "gpu-title gpu-title-text";
     titleSpan.textContent = row.displayName;
     titleWrap.appendChild(titleSpan);
+
+    if (Number.isFinite(row.vramGb) && row.vramGb > 0) {
+      const vramSup = document.createElement("sup");
+      vramSup.className = "vram-sup";
+      vramSup.textContent = `${Math.round(row.vramGb)} GB`;
+      vramSup.title = "Видеопамять (VRAM) видеокарты";
+      titleWrap.appendChild(vramSup);
+    }
 
     const arch = getGpuArchitecture(row.gpuId, row.displayName);
     if (arch) {

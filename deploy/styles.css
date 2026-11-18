@@ -572,6 +572,18 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   font-weight: 600;
 }
 
+.vram-sup {
+  display: inline-block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #000000;
+  margin-left: 0.28rem;
+  vertical-align: 0.42em;
+  white-space: nowrap;
+}
+
 .arch-pill {
   display: inline-block;
   font-size: 0.55rem;
