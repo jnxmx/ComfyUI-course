@@ -2777,46 +2777,15 @@ async function triggerRedeploy(badPodId, reason) {
   if (state.redeployTriggeredPodIds.has(badPodId)) return;
   state.redeployTriggeredPodIds.add(badPodId);
 
-  const autoRedeploy = document.getElementById("opt-auto-redeploy")?.checked;
   const ctrl = state.podControllers.get(badPodId);
   if (ctrl) {
     ctrl.cudaFatalTriggered = true;
-  }
-
-  if (!autoRedeploy) {
-    if (ctrl) {
-      ctrl.alert = {
-        msg: `Ошибка пода (${reason}). Повторные попытки отключены.`,
-        level: "error"
-      };
-      const card = document.querySelector(`.pod-card[data-pod-id="${badPodId}"]`);
-      if (card) updatePodCardElement(ctrl, card);
-    }
-    return;
-  }
-
-  state.heldBadPodIds.add(badPodId);
-  if (ctrl) {
     ctrl.alert = {
-      msg: `Обнаружена проблема: ${reason}. Перезапуск пода...`,
-      level: "warn"
+      msg: `Ошибка пода (${reason}). Авто-перезапуск при сбое отключён.`,
+      level: "error"
     };
     const card = document.querySelector(`.pod-card[data-pod-id="${badPodId}"]`);
     if (card) updatePodCardElement(ctrl, card);
-  }
-
-  // If a deploy/redeploy session is already active, it will hold and clean up this pod ID too
-  if (state.redeployInProgress || state.currentDeploySessionId !== null) {
-    return;
-  }
-
-  state.redeployInProgress = true;
-  try {
-    await fetchGpuCatalog(true);
-    const queue = getSelectedCandidatesQueue();
-    await startDeploymentSequence(queue, badPodId, { singleGpuOnly: false });
-  } finally {
-    state.redeployInProgress = false;
   }
 }
 
