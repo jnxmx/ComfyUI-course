@@ -1022,38 +1022,38 @@ function renderGpuTable() {
       tbody.appendChild(divTr);
     }
 
-    // Разделитель "Другие видеокарты" в подходящем блоке
+    // Разделитель "Нерекомендуемые но возможные варианты" в подходящем блоке
     if (!failsFilter && row.tierRank === 99 && !inOtherSection) {
       inOtherSection = true;
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = "Другие видеокарты с поддержкой CUDA ≥ 13.0";
+      divTd.textContent = "Нерекомендуемые но возможные варианты";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
 
-    // Разделитель "Другие видеокарты" в блоке RAM
+    // Разделитель "Нерекомендуемые но возможные варианты" в блоке RAM
     if (!exceedsPrice && failsRam && row.tierRank === 99 && !inOtherRamSection) {
       inOtherRamSection = true;
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = `Другие видеокарты (RAM < ${minRamGb} ГБ, CUDA ≥ 13.0)`;
+      divTd.textContent = `Нерекомендуемые но возможные варианты (RAM < ${minRamGb} ГБ)`;
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
 
-    // Разделитель "Другие видеокарты" в блоке дороже цены
+    // Разделитель "Нерекомендуемые но возможные варианты" в блоке дороже цены
     if (exceedsPrice && row.tierRank === 99 && !inOtherOverpricedSection) {
       inOtherOverpricedSection = true;
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = "Другие видеокарты (> лимита цены, CUDA ≥ 13.0)";
+      divTd.textContent = "Нерекомендуемые но возможные варианты (> лимита цены)";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
