@@ -564,10 +564,8 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 
 .gpu-title-wrap {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  display: inline;
+  line-height: 1.35;
 }
 
 .gpu-title-text {
@@ -575,15 +573,15 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 
 .arch-pill {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.64rem;
+  display: inline-block;
+  font-size: 0.55rem;
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: 0.02em;
-  padding: 0.14rem 0.42rem;
-  border-radius: 4px;
-  vertical-align: middle;
+  line-height: 1;
+  letter-spacing: 0.015em;
+  padding: 0.09rem 0.28rem;
+  border-radius: 3px;
+  margin-left: 0.28rem;
+  vertical-align: 0.42em;
   white-space: nowrap;
 }
 

@@ -1108,7 +1108,7 @@ function renderGpuTable() {
 
     const arch = getGpuArchitecture(row.gpuId, row.displayName);
     if (arch) {
-      const archPill = document.createElement("span");
+      const archPill = document.createElement("sup");
       archPill.className = `arch-pill ${arch.tierClass}`;
       archPill.textContent = arch.label;
       archPill.title = arch.title;
@@ -1590,15 +1590,6 @@ function createPodCardElement(ctrl) {
   gpuBadge.className = "badge badge-warn pod-gpu-badge";
   gpuBadge.textContent = `${ctrl.gpuName} · ${ctrl.cloud}`;
 
-  const podArch = getGpuArchitecture(ctrl.pod?.gpu?.id, ctrl.gpuName);
-  let podArchBadge = null;
-  if (podArch) {
-    podArchBadge = document.createElement("span");
-    podArchBadge.className = `arch-pill ${podArch.tierClass} pod-arch-badge`;
-    podArchBadge.textContent = podArch.label;
-    podArchBadge.title = podArch.title;
-  }
-
   const specsBadge = document.createElement("span");
   specsBadge.className = "badge badge-subtle pod-specs-badge";
   const specsText = formatPodSpecsText(ctrl);
@@ -1609,9 +1600,7 @@ function createPodCardElement(ctrl) {
   statusBadge.className = "badge pod-status-badge";
   statusBadge.textContent = ctrl.status;
 
-  summary.append(chevron, title, idCode, gpuBadge);
-  if (podArchBadge) summary.append(podArchBadge);
-  summary.append(specsBadge, statusBadge);
+  summary.append(chevron, title, idCode, gpuBadge, specsBadge, statusBadge);
 
   const quickActions = document.createElement("div");
   quickActions.className = "pod-card-quick-actions";
