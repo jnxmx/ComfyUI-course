@@ -2418,7 +2418,23 @@ async function pollHealthForPod(ctrl) {
       return;
     }
 
+    if (pod.status === "TERMINATED") {
+      stopPodController(ctrl);
+      unmarkPodAsOurs(ctrl.podId);
+      state.podControllers.delete(ctrl.podId);
+      renderPodsList();
+      return;
+    }
+
     if (pod.status === "ERROR" || pod.status === "EXITED") {
+      const wasHealthy = ctrl.cudaStagePassed || ctrl.stages.ready === "done";
+      if (pod.status === "EXITED" && wasHealthy) {
+        // Остановка/удаление на стороне RunPod или срабатывание таймера автовыключения — не сбой старта
+        ctrl.subtitle = "Под остановлен или удалён (EXITED).";
+        const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+        if (card) updatePodCardElement(ctrl, card);
+        return;
+      }
       if (!ctrl.cudaFatalTriggered) {
         ctrl.cudaFatalTriggered = true;
         triggerRedeploy(ctrl.podId, `Статус пода: ${pod.status}`);
@@ -2547,7 +2563,17 @@ async function deleteHeldBadPods(excludePodId = null) {
  * и только после успешного создания глушатся старые сбойные поды, чтобы не попасть на тот же сбойный хост!
  */
 async function startDeploymentSequence(candidates, oldBadPodId = null, { singleGpuOnly = false } = {}) {
-  if (state.deployCreateInFlight) return;
+  if (singleGpuOnly && !state.deployCreateInFlight) {
+    // Явный запуск конкретной GPU прерывает старый цикл авто-повтора
+    state.currentDeploySessionId = null;
+    state.redeployInProgress = false;
+  }
+  if (state.deployCreateInFlight) {
+    if (singleGpuOnly) {
+      alert("Сейчас уже выполняется запрос создания пода. Подождите пару секунд и нажмите снова.");
+    }
+    return;
+  }
 
   const podsSection = document.getElementById("pods-section");
   if (podsSection) podsSection.hidden = false;
