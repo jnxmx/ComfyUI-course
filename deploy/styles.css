@@ -563,8 +563,52 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   flex-wrap: wrap;
 }
 
+.gpu-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .gpu-title-text {
   font-weight: 600;
+}
+
+.arch-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  padding: 0.14rem 0.42rem;
+  border-radius: 4px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.arch-blackwell {
+  background-color: #111827;
+  color: #f9fafb;
+  border: 1px solid #374151;
+}
+
+.arch-ada {
+  background-color: #facc15;
+  color: #422006;
+  border: 1px solid #eab308;
+}
+
+.arch-ampere {
+  background: linear-gradient(135deg, #e5e7eb 0%, #cbd5e1 100%);
+  color: #1e293b;
+  border: 1px solid #94a3b8;
+}
+
+.arch-turing {
+  background-color: #ffffff;
+  color: #8c7a6b;
+  border: 1px solid #e2ddd7;
 }
 
 .gpu-pills-row {

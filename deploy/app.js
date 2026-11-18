@@ -163,6 +163,93 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   }
 ]);
 
+function getGpuArchitecture(gpuId, displayName = "") {
+  const s = `${gpuId || ""} ${displayName || ""}`.toLowerCase();
+
+  if (
+    s.includes("blackwell") ||
+    /\brtx\s*50[0-9]{2}\b/.test(s) ||
+    /\b(gb200|b100|b200|b300)\b/.test(s)
+  ) {
+    return {
+      label: "Blackwell",
+      tierClass: "arch-blackwell",
+      title: "Blackwell (FP4 / FP8 / BF16 — максимальная поддержка)"
+    };
+  }
+
+  if (/\b(h100|h200|gh200)\b/.test(s)) {
+    return {
+      label: "Hopper",
+      tierClass: "arch-ada",
+      title: "Hopper (FP8 / BF16, без FP4)"
+    };
+  }
+
+  if (
+    s.includes("ada") ||
+    /\brtx\s*40[0-9]{2}\b/.test(s) ||
+    /\bl40s?\b/.test(s) ||
+    /\bl4\b/.test(s)
+  ) {
+    return {
+      label: "Ada Lovelace",
+      tierClass: "arch-ada",
+      title: "Ada Lovelace (FP8 / BF16, без FP4)"
+    };
+  }
+
+  if (
+    /\brtx\s*30[0-9]{2}\b/.test(s) ||
+    /\brtx\s*a[0-9]{4}\b/.test(s) ||
+    /\ba(100|40|30|16|10|2)\b/.test(s)
+  ) {
+    return {
+      label: "Ampere",
+      tierClass: "arch-ampere",
+      title: "Ampere (BF16 / TF32, без FP8 — устаревающее поколение)"
+    };
+  }
+
+  if (
+    /\brtx\s*20[0-9]{2}\b/.test(s) ||
+    /\bt4\b/.test(s) ||
+    /\brtx\s*(4000|5000|6000|8000)\b/.test(s) ||
+    s.includes("quadro rtx")
+  ) {
+    return {
+      label: "Turing",
+      tierClass: "arch-turing",
+      title: "Turing (нет BF16 / FP8 — слабо поддерживается)"
+    };
+  }
+
+  if (/\bv100\b/.test(s)) {
+    return {
+      label: "Volta",
+      tierClass: "arch-turing",
+      title: "Volta (нет BF16 / FP8 — устаревшая архитектура)"
+    };
+  }
+
+  if (/\b(p100|p40|p4|gtx\s*10[0-9]{2})\b/.test(s)) {
+    return {
+      label: "Pascal",
+      tierClass: "arch-turing",
+      title: "Pascal (нет Tensor Cores / BF16 / FP8)"
+    };
+  }
+
+  if (/\bmi300/.test(s)) {
+    return { label: "CDNA 3", tierClass: "arch-ada", title: "AMD CDNA 3" };
+  }
+  if (/\bmi250|\bmi210/.test(s)) {
+    return { label: "CDNA 2", tierClass: "arch-ampere", title: "AMD CDNA 2" };
+  }
+
+  return null;
+}
+
 const AVAILABILITY_WEIGHT = Object.freeze({
   HIGH: 4,
   MEDIUM: 3,
@@ -1011,9 +1098,22 @@ function renderGpuTable() {
     const nameWrap = document.createElement("div");
     nameWrap.className = "gpu-name-cell";
 
+    const titleWrap = document.createElement("span");
+    titleWrap.className = "gpu-title-wrap";
+
     const titleSpan = document.createElement("span");
-    titleSpan.className = "gpu-title";
+    titleSpan.className = "gpu-title gpu-title-text";
     titleSpan.textContent = row.displayName;
+    titleWrap.appendChild(titleSpan);
+
+    const arch = getGpuArchitecture(row.gpuId, row.displayName);
+    if (arch) {
+      const archPill = document.createElement("span");
+      archPill.className = `arch-pill ${arch.tierClass}`;
+      archPill.textContent = arch.label;
+      archPill.title = arch.title;
+      titleWrap.appendChild(archPill);
+    }
 
     const pillsRow = document.createElement("div");
     pillsRow.className = "gpu-pills-row";
@@ -1031,7 +1131,7 @@ function renderGpuTable() {
       pillsRow.appendChild(ramPill);
     }
 
-    nameWrap.append(titleSpan, pillsRow);
+    nameWrap.append(titleWrap, pillsRow);
     tdName.appendChild(nameWrap);
 
     // Price
@@ -1490,6 +1590,15 @@ function createPodCardElement(ctrl) {
   gpuBadge.className = "badge badge-warn pod-gpu-badge";
   gpuBadge.textContent = `${ctrl.gpuName} · ${ctrl.cloud}`;
 
+  const podArch = getGpuArchitecture(ctrl.pod?.gpu?.id, ctrl.gpuName);
+  let podArchBadge = null;
+  if (podArch) {
+    podArchBadge = document.createElement("span");
+    podArchBadge.className = `arch-pill ${podArch.tierClass} pod-arch-badge`;
+    podArchBadge.textContent = podArch.label;
+    podArchBadge.title = podArch.title;
+  }
+
   const specsBadge = document.createElement("span");
   specsBadge.className = "badge badge-subtle pod-specs-badge";
   const specsText = formatPodSpecsText(ctrl);
@@ -1500,7 +1609,9 @@ function createPodCardElement(ctrl) {
   statusBadge.className = "badge pod-status-badge";
   statusBadge.textContent = ctrl.status;
 
-  summary.append(chevron, title, idCode, gpuBadge, specsBadge, statusBadge);
+  summary.append(chevron, title, idCode, gpuBadge);
+  if (podArchBadge) summary.append(podArchBadge);
+  summary.append(specsBadge, statusBadge);
 
   const quickActions = document.createElement("div");
   quickActions.className = "pod-card-quick-actions";
