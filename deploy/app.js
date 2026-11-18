@@ -1790,6 +1790,16 @@ function scheduleLogStreamRetry(ctrl, delayMs = 3000) {
   }, delayMs);
 }
 
+function setLogPlaceholderMessage(ctrl, message) {
+  if (ctrl.logLines.length > 0) return;
+  const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+  if (!card) return;
+  const logPre = card.querySelector(".terminal-logs");
+  if (logPre) {
+    logPre.textContent = message;
+  }
+}
+
 async function startLogStreamForPod(ctrl) {
   if (ctrl.logRetryTimerId) {
     clearTimeout(ctrl.logRetryTimerId);
@@ -1809,7 +1819,19 @@ async function startLogStreamForPod(ctrl) {
     });
     if (!res.ok || !res.body) {
       shouldRetry = true;
-      retryDelayMs = 2500;
+      if (res.status === 401 || res.status === 403) {
+        retryDelayMs = 10000;
+        setLogPlaceholderMessage(
+          ctrl,
+          `[HTTP ${res.status}] Нет доступа к логам пода ${ctrl.podId}. Проверьте права API-ключа RunPod (в REST API нужны права Pods: Read & Write).\n`
+        );
+      } else {
+        retryDelayMs = 2500;
+        setLogPlaceholderMessage(
+          ctrl,
+          `Подключение к логам пода ${ctrl.podId}... (HTTP ${res.status || "error"}, повтор через 2.5с)\n`
+        );
+      }
       return;
     }
 
@@ -1846,6 +1868,10 @@ async function startLogStreamForPod(ctrl) {
     if (err.name !== "AbortError") {
       shouldRetry = true;
       retryDelayMs = 4000;
+      setLogPlaceholderMessage(
+        ctrl,
+        `Подключение к логам пода ${ctrl.podId}... (${err.message || "ошибка сети"}, повтор через 4с)\n`
+      );
     }
   } finally {
     if (ctrl.logAbortController === abortController) {
