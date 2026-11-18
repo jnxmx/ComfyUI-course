@@ -207,7 +207,8 @@ const state = {
   catalogFetchPromise: null,
   catalogFetchStartedAt: 0,
   catalogLastFetchedAt: 0,
-  catalogRefreshTimerId: null
+  catalogRefreshTimerId: null,
+  ipGeoCache: new Map()
 };
 
 /* ==========================================================================
@@ -1090,10 +1091,90 @@ function getContainerFatalReason(lowerLine, source = "system") {
   return null;
 }
 
+function getPublicIpFromPod(pod) {
+  const ports = pod?.runtime?.ports;
+  if (!Array.isArray(ports)) return null;
+  const pub = ports.find(
+    (p) => p && typeof p.ip === "string" && p.ip && (p.isIpPublic || !p.ip.startsWith("100."))
+  );
+  return pub ? pub.ip : null;
+}
+
+function formatPodSpecsText(ctrl) {
+  const parts = [];
+  if (Number.isFinite(ctrl.ramGb) && ctrl.ramGb > 0) {
+    parts.push(`${Math.round(ctrl.ramGb)} ГБ RAM`);
+  }
+  if (ctrl.speedText) {
+    parts.push(ctrl.speedText);
+  }
+  if (ctrl.locationText) {
+    parts.push(ctrl.locationText);
+  }
+  return parts.join(" · ");
+}
+
+async function resolvePodGeoByIp(ctrl, ip) {
+  if (!ip) return;
+  if (state.ipGeoCache.has(ip)) {
+    const cached = state.ipGeoCache.get(ip);
+    if (cached && cached !== ctrl.locationText) {
+      ctrl.locationText = cached;
+      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+      if (card) updatePodCardElement(ctrl, card);
+    }
+    return;
+  }
+  if (ctrl.geoFetchInFlightIp === ip) return;
+  ctrl.geoFetchInFlightIp = ip;
+  try {
+    const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || data.success === false) return;
+    const flag = data.flag?.emoji ? `${data.flag.emoji} ` : "";
+    const place = [data.country_code || data.country, data.city].filter(Boolean).join(", ");
+    if (!place) return;
+    const label = `${flag}${place}`;
+    state.ipGeoCache.set(ip, label);
+    ctrl.locationText = label;
+    const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+    if (card) updatePodCardElement(ctrl, card);
+  } catch {
+    // Ignore GeoIP lookup errors
+  } finally {
+    if (ctrl.geoFetchInFlightIp === ip) {
+      ctrl.geoFetchInFlightIp = null;
+    }
+  }
+}
+
 function syncPodStateFromApi(ctrl, pod) {
   if (!pod) return;
   ctrl.pod = pod;
   ctrl.status = pod.status || ctrl.status;
+
+  const ramGb = pod.gpu?.memory ?? pod.cpu?.memory;
+  if (Number.isFinite(ramGb) && ramGb > 0) {
+    ctrl.ramGb = ramGb;
+  }
+
+  const dl = pod.machine?.maxDownloadSpeedMbps ?? pod.maxDownloadSpeedMbps;
+  const ul = pod.machine?.maxUploadSpeedMbps ?? pod.maxUploadSpeedMbps;
+  if (Number.isFinite(dl) || Number.isFinite(ul)) {
+    const dlPart = Number.isFinite(dl) ? `↓${Math.round(dl)}` : "";
+    const ulPart = Number.isFinite(ul) ? `↑${Math.round(ul)}` : "";
+    ctrl.speedText = `${[dlPart, ulPart].filter(Boolean).join("/")} Mbps`;
+  }
+
+  if (pod.dataCenterId) {
+    ctrl.locationText = pod.dataCenterId;
+  } else {
+    const pubIp = getPublicIpFromPod(pod);
+    if (pubIp) {
+      resolvePodGeoByIp(ctrl, pubIp);
+    }
+  }
 
   if (!ctrl.isOurPod) return;
 
@@ -1343,11 +1424,17 @@ function createPodCardElement(ctrl) {
   gpuBadge.className = "badge badge-warn pod-gpu-badge";
   gpuBadge.textContent = `${ctrl.gpuName} · ${ctrl.cloud}`;
 
+  const specsBadge = document.createElement("span");
+  specsBadge.className = "badge badge-subtle pod-specs-badge";
+  const specsText = formatPodSpecsText(ctrl);
+  specsBadge.textContent = specsText;
+  specsBadge.hidden = !specsText;
+
   const statusBadge = document.createElement("span");
   statusBadge.className = "badge pod-status-badge";
   statusBadge.textContent = ctrl.status;
 
-  summary.append(chevron, title, idCode, gpuBadge, statusBadge);
+  summary.append(chevron, title, idCode, gpuBadge, specsBadge, statusBadge);
 
   const quickActions = document.createElement("div");
   quickActions.className = "pod-card-quick-actions";
@@ -1603,6 +1690,13 @@ function createPodCardElement(ctrl) {
 
 function updatePodCardElement(ctrl, cardEl) {
   cardEl.classList.toggle("is-expanded", ctrl.isExpanded);
+
+  const specsBadge = cardEl.querySelector(".pod-specs-badge");
+  if (specsBadge) {
+    const specsText = formatPodSpecsText(ctrl);
+    specsBadge.textContent = specsText;
+    specsBadge.hidden = !specsText;
+  }
 
   if (!ctrl.isOurPod) {
     cardEl.classList.remove("pod-running", "pod-deploying", "pod-error");
