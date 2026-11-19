@@ -29,22 +29,25 @@ const DEFAULT_TEMPLATE = Object.freeze({
 });
 
 /**
- * GPU Priority Ranking (Best to Worst):
+ * GPU Priority Ranking (Best to Worst, aligned with benchmark spreadsheet):
  * 1. Pro 6000
  * 2. RTX 5090
  * 3. RTX 4090
- * 4. L40 / L40S
- * 5. RTX 5080 (Включительно по умолчанию)
- * 6. Pro 5000 Blackwell
- * 7. 4080 Super / 4080
+ * 4. Pro 5000 Blackwell
+ * 5. L40 / L40S
+ * 6. RTX 5080 (Включительно по умолчанию)
+ * 7. 5000 Ada
  * 8. 6000 Ada
- * 9. Pro 4500 / SE
- * 10. Pro 4000
- * 11. 5000 Ada (ниже чем pro 4000)
- * 12. RTX 3090 / Ti (выше чем A6000)
- * 13. RTX A6000 / A40
- * 14. RTX 3080 Ti / 3080 (выше 3070)
- * 15. RTX 3070
+ * 9. 4080 Super / 4080
+ * 10. Pro 4500 / SE
+ * 11. RTX A6000
+ * 12. RTX 4070 Ti
+ * 13. A40
+ * 14. Pro 4000
+ * 15. RTX 3090 / Ti
+ * 16. RTX 3080 Ti / 3080
+ * 17. RTX 3070
+ * 18. RTX 2000 Ada
  * 99. Все остальные видеокарты с CUDA >= 13.0
  */
 const GPU_PRIORITY_TIERS = Object.freeze([
@@ -72,30 +75,27 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 4,
-    key: "l40-s",
-    label: "L40 / L40S",
-    gpuIds: ["NVIDIA L40S", "NVIDIA L40"]
-  },
-  {
-    rank: 5,
-    key: "rtx-5080",
-    label: "RTX 5080",
-    gpuIds: ["NVIDIA GeForce RTX 5080"]
-  },
-  {
-    rank: 6,
     key: "pro-5000",
     label: "Pro 5000 Blackwell",
     gpuIds: ["NVIDIA RTX PRO 5000 Blackwell"]
   },
   {
+    rank: 5,
+    key: "l40-s",
+    label: "L40 / L40S",
+    gpuIds: ["NVIDIA L40S", "NVIDIA L40"]
+  },
+  {
+    rank: 6,
+    key: "rtx-5080",
+    label: "RTX 5080",
+    gpuIds: ["NVIDIA GeForce RTX 5080"]
+  },
+  {
     rank: 7,
-    key: "4080-super",
-    label: "4080 Super",
-    gpuIds: [
-      "NVIDIA GeForce RTX 4080 SUPER",
-      "NVIDIA GeForce RTX 4080"
-    ]
+    key: "5000-ada",
+    label: "5000 Ada",
+    gpuIds: ["NVIDIA RTX 5000 Ada Generation"]
   },
   {
     rank: 8,
@@ -105,6 +105,15 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 9,
+    key: "4080-super",
+    label: "4080 Super",
+    gpuIds: [
+      "NVIDIA GeForce RTX 4080 SUPER",
+      "NVIDIA GeForce RTX 4080"
+    ]
+  },
+  {
+    rank: 10,
     key: "pro-4500-se",
     label: "Pro 4500 / SE",
     gpuIds: [
@@ -113,7 +122,25 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 10,
+    rank: 11,
+    key: "rtx-a6000",
+    label: "RTX A6000",
+    gpuIds: ["NVIDIA RTX A6000"]
+  },
+  {
+    rank: 12,
+    key: "rtx-4070-ti",
+    label: "RTX 4070 Ti",
+    gpuIds: ["NVIDIA GeForce RTX 4070 Ti"]
+  },
+  {
+    rank: 13,
+    key: "a40",
+    label: "A40",
+    gpuIds: ["NVIDIA A40"]
+  },
+  {
+    rank: 14,
     key: "pro-4000",
     label: "Pro 4000",
     gpuIds: [
@@ -123,13 +150,7 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 11,
-    key: "5000-ada",
-    label: "5000 Ada",
-    gpuIds: ["NVIDIA RTX 5000 Ada Generation"]
-  },
-  {
-    rank: 12,
+    rank: 15,
     key: "rtx-3090-ti",
     label: "RTX 3090 / Ti",
     gpuIds: [
@@ -138,16 +159,7 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 13,
-    key: "rtx-a6000",
-    label: "RTX A6000 / A40",
-    gpuIds: [
-      "NVIDIA RTX A6000",
-      "NVIDIA A40"
-    ]
-  },
-  {
-    rank: 14,
+    rank: 16,
     key: "rtx-3080-ti",
     label: "RTX 3080 Ti / 3080",
     gpuIds: [
@@ -156,13 +168,16 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 15,
+    rank: 17,
     key: "rtx-3070",
     label: "RTX 3070",
-    gpuIds: [
-      "NVIDIA GeForce RTX 3070",
-      "NVIDIA GeForce RTX 4070 Ti"
-    ]
+    gpuIds: ["NVIDIA GeForce RTX 3070"]
+  },
+  {
+    rank: 18,
+    key: "rtx-2000-ada",
+    label: "RTX 2000 Ada",
+    gpuIds: ["NVIDIA RTX 2000 Ada Generation"]
   }
 ]);
 
@@ -272,8 +287,8 @@ const STORAGE_KEYS = Object.freeze({
   OUR_POD_IDS: "yakushev_our_pod_ids_v1"
 });
 
-// Default selection: all video cards better than 5080 INCLUSIVE (ranks 1 to 5)
-const DEFAULT_MAX_RANK = 5;
+// Default selection: all video cards better than 5080 INCLUSIVE (ranks 1 to 6)
+const DEFAULT_MAX_RANK = 6;
 
 const state = {
   apiKey: "",
