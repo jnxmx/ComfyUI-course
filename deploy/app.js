@@ -275,18 +275,85 @@ const GPU_POWER_RATINGS = Object.freeze({
   "NVIDIA GeForce RTX 5090": { pic: 100, vid: 100 },
   "NVIDIA GeForce RTX 4090": { pic: 71, vid: 69 },
   "NVIDIA RTX PRO 5000 Blackwell": { pic: 60, vid: 76 },
+  "NVIDIA L40S": { pic: 70.3, vid: 58.2 },
   "NVIDIA RTX 5000 Ada Generation": { pic: 48, vid: 62 },
   "NVIDIA RTX 6000 Ada Generation": { pic: 49, vid: 61 },
+  "NVIDIA GeForce RTX 5080": { pic: 60.5, vid: 52.3 },
+  "NVIDIA L40": { pic: 50.5, vid: 58.2 },
   "NVIDIA RTX PRO 4500 Blackwell": { pic: 45, vid: 59 },
+  "NVIDIA RTX PRO 4500 Blackwell Server Edition": { pic: 42.7, vid: 54.2 },
   "NVIDIA RTX A6000": { pic: 30, vid: 43 },
   "NVIDIA GeForce RTX 4070 Ti": { pic: 37, vid: 34 },
   "NVIDIA A40": { pic: 29, vid: 41 },
   "NVIDIA RTX PRO 4000 Blackwell": { pic: 31, vid: 39 },
   "NVIDIA GeForce RTX 3090": { pic: 32, vid: 32 },
   "NVIDIA GeForce RTX 3080 Ti": { pic: 31, vid: 31 },
+  "NVIDIA RTX 4000 Ada Generation": { pic: 25.5, vid: 30.5 },
   "NVIDIA GeForce RTX 3070": { pic: 20, vid: 18 },
   "NVIDIA RTX 2000 Ada Generation": { pic: 11, vid: 13 }
 });
+
+/**
+ * Видеокарты из актуальной таблицы бенчмарков — в порядке убывания points.
+ */
+const GPU_BENCHMARK_ORDER = Object.freeze([
+  "NVIDIA GeForce RTX 5090",
+  "NVIDIA GeForce RTX 4090",
+  "NVIDIA RTX PRO 5000 Blackwell",
+  "NVIDIA L40S",
+  "NVIDIA RTX 5000 Ada Generation",
+  "NVIDIA RTX 6000 Ada Generation",
+  "NVIDIA GeForce RTX 5080",
+  "NVIDIA L40",
+  "NVIDIA RTX PRO 4500 Blackwell",
+  "NVIDIA RTX PRO 4500 Blackwell Server Edition",
+  "NVIDIA RTX A6000",
+  "NVIDIA GeForce RTX 4070 Ti",
+  "NVIDIA A40",
+  "NVIDIA RTX PRO 4000 Blackwell",
+  "NVIDIA GeForce RTX 3090",
+  "NVIDIA GeForce RTX 3080 Ti",
+  "NVIDIA RTX 4000 Ada Generation",
+  "NVIDIA GeForce RTX 3070",
+  "NVIDIA RTX 2000 Ada Generation"
+]);
+
+/**
+ * Карты из таблицы меняются местами только друг с другом, занимая свои же
+ * позиции в старом списке приоритетов. Остальные карты остаются на прежних
+ * местах (например, Pro 6000 — первой).
+ */
+function buildGpuSortOrder() {
+  const benchmarkRank = new Map();
+  GPU_BENCHMARK_ORDER.forEach((id, i) => benchmarkRank.set(id, i + 1));
+
+  const oldList = [];
+  for (const tier of GPU_PRIORITY_TIERS) {
+    for (const gpuId of tier.gpuIds) oldList.push(gpuId);
+  }
+
+  const tableSlots = [];
+  const tableGpuIds = [];
+  oldList.forEach((gpuId, index) => {
+    if (benchmarkRank.has(gpuId)) {
+      tableSlots.push(index);
+      tableGpuIds.push(gpuId);
+    }
+  });
+  tableGpuIds.sort((a, b) => benchmarkRank.get(a) - benchmarkRank.get(b));
+
+  const order = {};
+  oldList.forEach((gpuId, index) => {
+    order[gpuId] = index;
+  });
+  tableGpuIds.forEach((gpuId, i) => {
+    order[gpuId] = tableSlots[i];
+  });
+
+  return Object.freeze(order);
+}
+
+const GPU_SORT_ORDER = buildGpuSortOrder();
 
 const AVAILABILITY_WEIGHT = Object.freeze({
   HIGH: 4,
@@ -834,6 +901,11 @@ function findTierInfo(gpuId) {
   return null;
 }
 
+function getGpuSortOrder(gpuId, tier) {
+  if (!tier) return 99;
+  return GPU_SORT_ORDER[gpuId] ?? tier.rank;
+}
+
 async function fetchGpuCatalog(silent = false) {
   if (!state.apiKey) return;
 
@@ -893,6 +965,7 @@ async function fetchGpuCatalog(silent = false) {
             minRam: Number.isFinite(gpu.minRam) ? gpu.minRam : null,
             cudaVersions: cuda13List,
             tierRank: tier ? tier.rank : 99,
+            sortOrder: getGpuSortOrder(gpu.id, tier),
             tierKey: tier ? tier.key : `other-${gpu.id}`,
             tierLabel: tier ? tier.label : displayName,
             subRank: tier ? tier.subRank : 99
@@ -904,7 +977,7 @@ async function fetchGpuCatalog(silent = false) {
       processList(secureRes?.gpus, "SECURE");
 
       rows.sort((a, b) => {
-        if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
+        if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
         if (a.subRank !== b.subRank) return a.subRank - b.subRank;
 
         const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
@@ -1012,7 +1085,7 @@ function renderGpuTable() {
     const bucketDiff = getRowFilterBucket(a, maxPrice, minRamGb) - getRowFilterBucket(b, maxPrice, minRamGb);
     if (bucketDiff !== 0) return bucketDiff;
 
-    if (a.tierRank !== b.tierRank) return a.tierRank - b.tierRank;
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
     if (a.subRank !== b.subRank) return a.subRank - b.subRank;
 
     const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
