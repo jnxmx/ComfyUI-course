@@ -461,7 +461,7 @@ input[type="range"] {
 
 #gpu-table th,
 #gpu-table td {
-  padding: 0.65rem 0.85rem;
+  padding: 0.55rem 0.6rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
@@ -544,10 +544,10 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 
 .col-check {
-  width: 36px;
+  width: 34px;
   text-align: center;
-  padding-left: 0.55rem !important;
-  padding-right: 0.55rem !important;
+  padding-left: 0.45rem !important;
+  padding-right: 0.45rem !important;
 }
 
 .col-power {
