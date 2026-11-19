@@ -1195,15 +1195,21 @@ function renderGpuTable() {
       bars.className = "power-bars";
       bars.title = `Pic rating: ${rating.pic}/100 · Vid rating: ${rating.vid}/100`;
 
+      const picTrack = document.createElement("div");
+      picTrack.className = "power-track";
       const picBar = document.createElement("div");
       picBar.className = "power-bar power-pic";
       picBar.style.width = `${Math.max(1, Math.min(100, rating.pic))}%`;
+      picTrack.appendChild(picBar);
 
+      const vidTrack = document.createElement("div");
+      vidTrack.className = "power-track";
       const vidBar = document.createElement("div");
       vidBar.className = "power-bar power-vid";
       vidBar.style.width = `${Math.max(1, Math.min(100, rating.vid))}%`;
+      vidTrack.appendChild(vidBar);
 
-      bars.append(picBar, vidBar);
+      bars.append(picTrack, vidTrack);
       tdPower.appendChild(bars);
     }
 
