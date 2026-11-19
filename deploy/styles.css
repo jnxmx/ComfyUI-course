@@ -544,8 +544,37 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 
 .col-check {
-  width: 44px;
+  width: 34px;
   text-align: center;
+  padding-left: 0.45rem !important;
+  padding-right: 0.35rem !important;
+}
+
+.col-power {
+  width: 112px;
+  min-width: 96px;
+}
+
+.power-bars {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+}
+
+.power-bar {
+  height: 5px;
+  border-radius: 2px;
+  min-width: 2px;
+}
+
+.power-pic {
+  background-color: #f97316;
+}
+
+.power-vid {
+  background-color: #8b5cf6;
 }
 
 .col-check input[type="checkbox"] {

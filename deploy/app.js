@@ -268,6 +268,23 @@ function getGpuArchitecture(gpuId, displayName = "") {
   return null;
 }
 
+const GPU_POWER_RATINGS = Object.freeze({
+  "NVIDIA GeForce RTX 5090": { pic: 100, vid: 100 },
+  "NVIDIA GeForce RTX 4090": { pic: 71, vid: 69 },
+  "NVIDIA RTX PRO 5000 Blackwell": { pic: 60, vid: 76 },
+  "NVIDIA RTX 5000 Ada Generation": { pic: 48, vid: 62 },
+  "NVIDIA RTX 6000 Ada Generation": { pic: 49, vid: 61 },
+  "NVIDIA RTX PRO 4500 Blackwell": { pic: 45, vid: 59 },
+  "NVIDIA RTX A6000": { pic: 30, vid: 43 },
+  "NVIDIA GeForce RTX 4070 Ti": { pic: 37, vid: 34 },
+  "NVIDIA A40": { pic: 29, vid: 41 },
+  "NVIDIA RTX PRO 4000 Blackwell": { pic: 31, vid: 39 },
+  "NVIDIA GeForce RTX 3090": { pic: 32, vid: 32 },
+  "NVIDIA GeForce RTX 3080 Ti": { pic: 31, vid: 31 },
+  "NVIDIA GeForce RTX 3070": { pic: 20, vid: 18 },
+  "NVIDIA RTX 2000 Ada Generation": { pic: 11, vid: 13 }
+});
+
 const AVAILABILITY_WEIGHT = Object.freeze({
   HIGH: 4,
   MEDIUM: 3,
@@ -1169,19 +1186,26 @@ function renderGpuTable() {
     priceText.textContent = `${row.price.toFixed(2)} €/ч`;
     tdPrice.appendChild(priceText);
 
-    // Availability
-    const tdAvail = document.createElement("td");
-    tdAvail.className = "col-avail";
-    const availPill = document.createElement("span");
-    const availClassMap = {
-      HIGH: "avail-high",
-      MEDIUM: "avail-med",
-      LOW: "avail-low",
-      NONE: "avail-none"
-    };
-    availPill.className = `avail-pill ${availClassMap[row.availability] || "avail-none"}`;
-    availPill.textContent = row.availability;
-    tdAvail.appendChild(availPill);
+    // Power (Pic / Vid rating bars)
+    const tdPower = document.createElement("td");
+    tdPower.className = "col-power";
+    const rating = GPU_POWER_RATINGS[row.gpuId];
+    if (rating) {
+      const bars = document.createElement("div");
+      bars.className = "power-bars";
+      bars.title = `Pic rating: ${rating.pic}/100 · Vid rating: ${rating.vid}/100`;
+
+      const picBar = document.createElement("div");
+      picBar.className = "power-bar power-pic";
+      picBar.style.width = `${Math.max(1, Math.min(100, rating.pic))}%`;
+
+      const vidBar = document.createElement("div");
+      vidBar.className = "power-bar power-vid";
+      vidBar.style.width = `${Math.max(1, Math.min(100, rating.vid))}%`;
+
+      bars.append(picBar, vidBar);
+      tdPower.appendChild(bars);
+    }
 
     // Action
     const tdAction = document.createElement("td");
@@ -1201,7 +1225,7 @@ function renderGpuTable() {
     });
     tdAction.appendChild(launchBtn);
 
-    tr.append(tdCheck, tdName, tdPrice, tdAvail, tdAction);
+    tr.append(tdCheck, tdName, tdPrice, tdPower, tdAction);
     tbody.appendChild(tr);
   }
 }
