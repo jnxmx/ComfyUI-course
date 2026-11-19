@@ -269,6 +269,9 @@ function getGpuArchitecture(gpuId, displayName = "") {
 }
 
 const GPU_POWER_RATINGS = Object.freeze({
+  "NVIDIA RTX PRO 6000 Blackwell Server Edition": { pic: 100, vid: 100 },
+  "NVIDIA RTX PRO 6000 Blackwell Workstation Edition": { pic: 100, vid: 100 },
+  "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition": { pic: 100, vid: 100 },
   "NVIDIA GeForce RTX 5090": { pic: 100, vid: 100 },
   "NVIDIA GeForce RTX 4090": { pic: 71, vid: 69 },
   "NVIDIA RTX PRO 5000 Blackwell": { pic: 60, vid: 76 },
