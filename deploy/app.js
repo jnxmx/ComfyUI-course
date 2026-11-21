@@ -307,9 +307,9 @@ function getGpuArchitecture(gpuId, displayName = "") {
 }
 
 const GPU_POWER_RATINGS = Object.freeze({
-  "NVIDIA RTX PRO 6000 Blackwell Server Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42 },
-  "NVIDIA RTX PRO 6000 Blackwell Workstation Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42 },
-  "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42 },
+  "NVIDIA RTX PRO 6000 Blackwell Server Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42, plus: true },
+  "NVIDIA RTX PRO 6000 Blackwell Workstation Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42, plus: true },
+  "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42, plus: true },
   "NVIDIA GeForce RTX 5090": { pic: 100, vid: 68.5, picSit: 1.1, vidSit: 11.98 },
   "NVIDIA GeForce RTX 4090": { pic: 75.3, vid: 50, picSit: 1.56, vidSit: 16.72 },
   "NVIDIA L40S": { pic: 66.5, vid: 55.1, picSit: 1.75, vidSit: 15.09 },
@@ -1336,7 +1336,7 @@ function renderGpuTable() {
       const picTrack = buildSegmentedTrack("power-track-pic", Math.max(1, Math.min(100, rating.pic)));
       const vidTrack = buildSegmentedTrack("power-track-vid", Math.max(1, Math.min(100, rating.vid)));
 
-      if (rating.pic > 100) {
+      if (rating.plus || rating.pic > 100) {
         const picWrap = document.createElement("div");
         picWrap.className = "power-track-wrap";
         const plus = document.createElement("span");
