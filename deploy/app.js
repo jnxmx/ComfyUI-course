@@ -1515,6 +1515,11 @@ function syncPodStateFromApi(ctrl, pod) {
   if (!pod) return;
   ctrl.pod = pod;
   ctrl.status = pod.status || ctrl.status;
+  ctrl.gpuId = pod.gpu?.id || pod.machine?.gpuTypeId || ctrl.gpuId || null;
+  ctrl.startedAtMs = parsePodStartMs(pod) || ctrl.startedAtMs;
+  if (!(ctrl.price > 0) && Number(pod.costPerHr) > 0) {
+    ctrl.price = Number(pod.costPerHr);
+  }
 
   const ramGb = pod.gpu?.memory ?? pod.cpu?.memory;
   if (Number.isFinite(ramGb) && ramGb > 0) {
@@ -1600,7 +1605,27 @@ function getPodHourlyPrice(ctrl) {
   if (ctrl.price > 0) return ctrl.price;
   const costPerHr = Number(ctrl.pod?.costPerHr);
   if (Number.isFinite(costPerHr) && costPerHr > 0) return costPerHr;
-  return 0;
+  const match = state.catalogRows.find((r) => {
+    if (ctrl.gpuId && r.gpuId === ctrl.gpuId && r.cloud === ctrl.cloud) return true;
+    return false;
+  }) || state.catalogRows.find((r) => {
+    if (ctrl.gpuId && r.gpuId === ctrl.gpuId) return true;
+    if (ctrl.gpuName && r.displayName === ctrl.gpuName && r.cloud === ctrl.cloud) return true;
+    return false;
+  });
+  return match?.price > 0 ? match.price : 0;
+}
+
+function isHeldPodMergedWithRetry(ctrl) {
+  if (!ctrl || !state.heldBadPodIds.has(ctrl.podId) || !state.currentDeploySessionId || !state.heldRetryInfo) {
+    return false;
+  }
+  const { gpuIds, gpuNames, badPodIds } = state.heldRetryInfo;
+  const ctrlGpuId = ctrl.gpuId || ctrl.launchCandidate?.gpuId || ctrl.pod?.gpu?.id || ctrl.pod?.machine?.gpuTypeId;
+  if (ctrlGpuId && gpuIds?.has(ctrlGpuId)) return true;
+  if (ctrl.gpuName && gpuNames?.has(ctrl.gpuName)) return true;
+  if (badPodIds?.has(ctrl.podId) && (!gpuIds || gpuIds.size === 0)) return true;
+  return false;
 }
 
 function formatPodSpentCents(ctrl) {
@@ -1635,6 +1660,7 @@ function getOrCreatePodController(podId, initData = {}) {
     ctrl = {
       podId,
       displayName: initData.displayName || (isOur ? "comfy-work" : "runpod"),
+      gpuId: initData.gpuId || initData.pod?.gpu?.id || initData.pod?.machine?.gpuTypeId || null,
       gpuName: initData.gpuName || "GPU",
       cloud: initData.cloud || "COMMUNITY",
       price: initData.price || 0,
@@ -1736,6 +1762,7 @@ async function fetchActivePods() {
       if (!ctrl) {
         ctrl = getOrCreatePodController(pod.id, {
           displayName: pod.name || (isOur ? "comfy-work" : "runpod"),
+          gpuId: pod.gpu?.id || pod.machine?.gpuTypeId || null,
           gpuName,
           cloud: pod.cloud || "COMMUNITY",
           status: pod.status,
@@ -1745,6 +1772,7 @@ async function fetchActivePods() {
         });
       } else {
         ctrl.displayName = pod.name || ctrl.displayName;
+        ctrl.gpuId = pod.gpu?.id || pod.machine?.gpuTypeId || ctrl.gpuId || null;
         ctrl.gpuName = gpuName;
         ctrl.cloud = pod.cloud || ctrl.cloud;
         ctrl.isOurPod = isOur;
@@ -1861,11 +1889,7 @@ function createPodCardElement(ctrl) {
   deleteBtn.textContent = "Удалить";
   deleteBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
-    const isHeldWithRetry =
-      state.heldBadPodIds.has(ctrl.podId) &&
-      Boolean(state.currentDeploySessionId) &&
-      state.heldRetryInfo?.gpuIds?.has(ctrl.gpuId);
-    if (isHeldWithRetry) {
+    if (isHeldPodMergedWithRetry(ctrl)) {
       state.currentDeploySessionId = null;
       state.redeployInProgress = false;
       state.heldRetryInfo = null;
@@ -2131,10 +2155,14 @@ function updatePodCardElement(ctrl, cardEl) {
     diskWarnBadge.hidden = ctrl.diskStatus !== "slow";
   }
 
-  const isHeldWithRetry =
-    state.heldBadPodIds.has(ctrl.podId) &&
-    Boolean(state.currentDeploySessionId) &&
-    state.heldRetryInfo?.gpuIds?.has(ctrl.gpuId);
+  const spentEl = cardEl.querySelector(".pod-spent-counter");
+  if (spentEl) {
+    const spentText = formatPodSpentCents(ctrl);
+    spentEl.textContent = spentText;
+    spentEl.hidden = !spentText;
+  }
+
+  const isHeldWithRetry = isHeldPodMergedWithRetry(ctrl);
 
   const deleteBtn = cardEl.querySelector(".pod-card-quick-actions .btn-danger-sm");
   if (deleteBtn && !deleteBtn.disabled) {
@@ -2915,15 +2943,24 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     state.heldBadPodIds.add(oldBadPodId);
   }
 
+  const sessionId = Symbol("deploy-session");
+  state.currentDeploySessionId = sessionId;
+
+  const isSingleCandidate = Boolean(singleGpuOnly && candidates.length === 1);
+
   const syncPendingRetryUI = ({ title, sub, alertText, alertClass, candidatesList }) => {
-    const sourceList = (candidatesList && candidatesList.length > 0) ? candidatesList : candidates;
-    const gpuIds = new Set((sourceList || []).map((c) => c.gpuId));
-    state.heldRetryInfo = { title, sub, alertText, alertClass, gpuIds };
+    let sourceList = (candidatesList && candidatesList.length > 0) ? candidatesList : candidates;
+    if (!sourceList || sourceList.length === 0) {
+      sourceList = state.catalogRows.filter((r) => isGpuDesiredByUser(r));
+    }
+    const gpuIds = new Set((sourceList || []).map((c) => c.gpuId).filter(Boolean));
+    const gpuNames = new Set((sourceList || []).map((c) => c.displayName).filter(Boolean));
+    const badPodIds = new Set(oldBadPodId ? [oldBadPodId] : []);
+    state.heldRetryInfo = { title, sub, alertText, alertClass, gpuIds, gpuNames, badPodIds };
 
     let hasMergedHeldPod = false;
-    for (const heldId of state.heldBadPodIds) {
-      const heldCtrl = state.podControllers.get(heldId);
-      if (heldCtrl && gpuIds.has(heldCtrl.gpuId)) {
+    for (const heldCtrl of state.podControllers.values()) {
+      if (isHeldPodMergedWithRetry(heldCtrl)) {
         hasMergedHeldPod = true;
         break;
       }
@@ -2948,16 +2985,13 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     candidatesList: candidates
   });
 
-  const sessionId = Symbol("deploy-session");
-  state.currentDeploySessionId = sessionId;
-
-  const isSingleCandidate = Boolean(singleGpuOnly && candidates.length === 1);
-
   if (cancelBtn) {
     cancelBtn.onclick = () => {
       state.currentDeploySessionId = null;
       state.redeployInProgress = false;
+      state.heldRetryInfo = null;
       if (pendingCard) pendingCard.hidden = true;
+      renderPodsList();
     };
   }
 
@@ -3024,11 +3058,13 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
           break;
         }
 
-        if (pendingAlert) {
-          pendingAlert.hidden = false;
-          pendingAlert.className = "monitor-alert alert-warn";
-          pendingAlert.textContent = `Попытка #${state.redeployCount} (${candidate.displayName}): ${err.message}.`;
-        }
+        syncPendingRetryUI({
+          title: `Поиск альтернативы: ${candidate.displayName} (${candidate.cloud})`,
+          sub: "Ошибка при попытке запуска...",
+          alertText: `Попытка #${state.redeployCount} (${candidate.displayName}): ${err.message}.`,
+          alertClass: "monitor-alert alert-warn",
+          candidatesList: currentCandidates
+        });
         await new Promise((r) => setTimeout(r, 600));
         continue;
       }
@@ -3045,10 +3081,12 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         if (state.currentDeploySessionId === sessionId) {
           state.currentDeploySessionId = null;
         }
+        state.heldRetryInfo = null;
 
         // Initialize controller for the newly launched pod
         const ctrl = getOrCreatePodController(newPodId, {
           displayName: candidate.displayName,
+          gpuId: candidate.gpuId,
           gpuName: candidate.displayName,
           cloud: candidate.cloud,
           price: candidate.price,
@@ -3075,11 +3113,13 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         return;
       } catch (err) {
         lastErrorMessage = err.message || "";
-        if (pendingAlert) {
-          pendingAlert.hidden = false;
-          pendingAlert.className = "monitor-alert alert-warn";
-          pendingAlert.textContent = `Попытка #${state.redeployCount} (${candidate.displayName}): ${err.message}.`;
-        }
+        syncPendingRetryUI({
+          title: `Поиск альтернативы: ${candidate.displayName} (${candidate.cloud})`,
+          sub: "Ошибка при попытке запуска...",
+          alertText: `Попытка #${state.redeployCount} (${candidate.displayName}): ${err.message}.`,
+          alertClass: "monitor-alert alert-warn",
+          candidatesList: currentCandidates
+        });
         await new Promise((r) => setTimeout(r, 600));
       }
     }
