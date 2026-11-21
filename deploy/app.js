@@ -183,12 +183,30 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 20,
+    key: "rtx-a5000",
+    label: "RTX A5000",
+    gpuIds: ["NVIDIA RTX A5000"]
+  },
+  {
+    rank: 21,
+    key: "rtx-a4500",
+    label: "RTX A4500",
+    gpuIds: ["NVIDIA RTX A4500"]
+  },
+  {
+    rank: 22,
+    key: "l4",
+    label: "L4",
+    gpuIds: ["NVIDIA L4"]
+  },
+  {
+    rank: 23,
     key: "rtx-3070",
     label: "RTX 3070",
     gpuIds: ["NVIDIA GeForce RTX 3070"]
   },
   {
-    rank: 21,
+    rank: 24,
     key: "rtx-2000-ada",
     label: "RTX 2000 Ada",
     gpuIds: ["NVIDIA RTX 2000 Ada Generation"]
@@ -295,6 +313,7 @@ const GPU_POWER_RATINGS = Object.freeze({
   "NVIDIA GeForce RTX 5080": { pic: 56.7, vid: 34.5, picSit: 2.08, vidSit: 24.75 },
   "NVIDIA RTX PRO 4500 Blackwell": { pic: 46.3, vid: 40.6, picSit: 2.49, vidSit: 19.75 },
   "NVIDIA L40": { pic: 47.8, vid: 38.9, picSit: 2.44, vidSit: 21.3 },
+  "NVIDIA GeForce RTX 4080 SUPER": { pic: 50.6, vid: 32.2, picSit: 2.35, vidSit: 26.65 },
   "NVIDIA RTX PRO 4500 Blackwell Server Edition": { pic: 40.3, vid: 36.2, picSit: 2.93, vidSit: 23.28 },
   "NVIDIA RTX A6000": { pic: 32.2, vid: 30.9, picSit: 3.69, vidSit: 27.26 },
   "NVIDIA GeForce RTX 4070 Ti": { pic: 39.3, vid: 24.5, picSit: 3.01, vidSit: 34.77 },
@@ -303,7 +322,10 @@ const GPU_POWER_RATINGS = Object.freeze({
   "NVIDIA GeForce RTX 3090": { pic: 33, vid: 22.4, picSit: 3.57, vidSit: 38.16 },
   "NVIDIA GeForce RTX 3080 Ti": { pic: 32.4, vid: 21.7, picSit: 3.68, vidSit: 39.83 },
   "NVIDIA GeForce RTX 3080": { pic: 31.3, vid: 17.6, picSit: 3.77, vidSit: 48.65 },
+  "NVIDIA RTX A5000": { pic: 23.5, vid: 21.5, picSit: 5.02, vidSit: 38.08 },
   "NVIDIA RTX 4000 Ada Generation": { pic: 24, vid: 20.3, picSit: 4.92, vidSit: 41.44 },
+  "NVIDIA RTX A4500": { pic: 20.1, vid: 18.6, picSit: 5.87, vidSit: 44.98 },
+  "NVIDIA L4": { pic: 18.7, vid: 16.5, picSit: 6.36, vidSit: 51.48 },
   "NVIDIA GeForce RTX 3070": { pic: 21.5, vid: 12.5, picSit: 5.53, vidSit: 69.21 },
   "NVIDIA RTX 2000 Ada Generation": { pic: 11.9, vid: 9.6, picSit: 10.05, vidSit: 88.86 }
 });
