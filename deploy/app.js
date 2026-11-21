@@ -199,6 +199,19 @@ function getGpuArchitecture(gpuId, displayName = "") {
   const s = `${gpuId || ""} ${displayName || ""}`.toLowerCase();
 
   if (
+    s.includes("ada") ||
+    /\brtx\s*40[0-9]{2}\b/.test(s) ||
+    /\bl40s?\b/.test(s) ||
+    /\bl4\b/.test(s)
+  ) {
+    return {
+      label: "Ada Lovelace",
+      tierClass: "arch-ada",
+      title: "Ada Lovelace (FP8 / BF16, без FP4)"
+    };
+  }
+
+  if (
     s.includes("blackwell") ||
     /\brtx\s*50[0-9]{2}\b/.test(s) ||
     /\b(gb200|b100|b200|b300)\b/.test(s)
@@ -215,19 +228,6 @@ function getGpuArchitecture(gpuId, displayName = "") {
       label: "Hopper",
       tierClass: "arch-ada",
       title: "Hopper (FP8 / BF16, без FP4)"
-    };
-  }
-
-  if (
-    s.includes("ada") ||
-    /\brtx\s*40[0-9]{2}\b/.test(s) ||
-    /\bl40s?\b/.test(s) ||
-    /\bl4\b/.test(s)
-  ) {
-    return {
-      label: "Ada Lovelace",
-      tierClass: "arch-ada",
-      title: "Ada Lovelace (FP8 / BF16, без FP4)"
     };
   }
 
