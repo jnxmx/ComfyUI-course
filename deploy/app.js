@@ -207,6 +207,12 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 24,
+    key: "rtx-a4000",
+    label: "RTX A4000",
+    gpuIds: ["NVIDIA RTX A4000"]
+  },
+  {
+    rank: 25,
     key: "rtx-2000-ada",
     label: "RTX 2000 Ada",
     gpuIds: ["NVIDIA RTX 2000 Ada Generation"]
@@ -327,6 +333,7 @@ const GPU_POWER_RATINGS = Object.freeze({
   "NVIDIA RTX A4500": { pic: 20.1, vid: 18.6, picSit: 5.87, vidSit: 44.98 },
   "NVIDIA L4": { pic: 18.7, vid: 16.5, picSit: 6.36, vidSit: 51.48 },
   "NVIDIA GeForce RTX 3070": { pic: 21.5, vid: 12.5, picSit: 5.53, vidSit: 69.21 },
+  "NVIDIA RTX A4000": { pic: 16.6, vid: 15.4, picSit: 7.06, vidSit: 54.3 },
   "NVIDIA RTX 2000 Ada Generation": { pic: 11.9, vid: 9.6, picSit: 10.05, vidSit: 88.86 }
 });
 
@@ -1308,19 +1315,26 @@ function renderGpuTable() {
       bars.className = "power-bars";
       bars.title = `Moss 4K ${rating.picSit}s/it\nH3 0.98m 5s ${rating.vidSit}s/it`;
 
-      const picTrack = document.createElement("div");
-      picTrack.className = "power-track";
-      const picBar = document.createElement("div");
-      picBar.className = "power-bar power-pic";
-      picBar.style.width = `${Math.max(1, Math.min(100, rating.pic))}%`;
-      picTrack.appendChild(picBar);
+      const buildSegmentedTrack = (trackClass, pct) => {
+        const track = document.createElement("div");
+        track.className = `power-track ${trackClass}`;
+        for (let i = 0; i < 10; i += 1) {
+          const seg = document.createElement("div");
+          seg.className = "power-seg";
+          const segPct = Math.max(0, Math.min(100, (pct - i * 10) * 10));
+          if (segPct > 0) {
+            const fill = document.createElement("span");
+            fill.className = "power-seg-fill";
+            fill.style.width = `${segPct}%`;
+            seg.appendChild(fill);
+          }
+          track.appendChild(seg);
+        }
+        return track;
+      };
 
-      const vidTrack = document.createElement("div");
-      vidTrack.className = "power-track";
-      const vidBar = document.createElement("div");
-      vidBar.className = "power-bar power-vid";
-      vidBar.style.width = `${Math.max(1, Math.min(100, rating.vid))}%`;
-      vidTrack.appendChild(vidBar);
+      const picTrack = buildSegmentedTrack("power-track-pic", Math.max(1, Math.min(100, rating.pic)));
+      const vidTrack = buildSegmentedTrack("power-track-vid", Math.max(1, Math.min(100, rating.vid)));
 
       bars.append(picTrack, vidTrack);
       tdPower.appendChild(bars);
