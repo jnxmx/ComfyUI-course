@@ -75,21 +75,21 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 4,
+    key: "l40s",
+    label: "L40S",
+    gpuIds: ["NVIDIA L40S"]
+  },
+  {
+    rank: 5,
     key: "pro-5000",
     label: "Pro 5000 Blackwell",
     gpuIds: ["NVIDIA RTX PRO 5000 Blackwell"]
   },
   {
-    rank: 5,
-    key: "l40-s",
-    label: "L40 / L40S",
-    gpuIds: ["NVIDIA L40S", "NVIDIA L40"]
-  },
-  {
     rank: 6,
-    key: "rtx-5080",
-    label: "RTX 5080",
-    gpuIds: ["NVIDIA GeForce RTX 5080"]
+    key: "6000-ada",
+    label: "6000 Ada",
+    gpuIds: ["NVIDIA RTX 6000 Ada Generation"]
   },
   {
     rank: 7,
@@ -99,12 +99,18 @@ const GPU_PRIORITY_TIERS = Object.freeze([
   },
   {
     rank: 8,
-    key: "6000-ada",
-    label: "6000 Ada",
-    gpuIds: ["NVIDIA RTX 6000 Ada Generation"]
+    key: "rtx-5080",
+    label: "RTX 5080",
+    gpuIds: ["NVIDIA GeForce RTX 5080"]
   },
   {
     rank: 9,
+    key: "l40",
+    label: "L40",
+    gpuIds: ["NVIDIA L40"]
+  },
+  {
+    rank: 10,
     key: "4080-super",
     label: "4080 Super",
     gpuIds: [
@@ -113,7 +119,7 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 10,
+    rank: 11,
     key: "pro-4500-se",
     label: "Pro 4500 / SE",
     gpuIds: [
@@ -122,35 +128,31 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 11,
+    rank: 12,
     key: "rtx-a6000",
     label: "RTX A6000",
     gpuIds: ["NVIDIA RTX A6000"]
   },
   {
-    rank: 12,
+    rank: 13,
     key: "rtx-4070-ti",
     label: "RTX 4070 Ti",
     gpuIds: ["NVIDIA GeForce RTX 4070 Ti"]
   },
   {
-    rank: 13,
+    rank: 14,
     key: "a40",
     label: "A40",
     gpuIds: ["NVIDIA A40"]
   },
   {
-    rank: 14,
+    rank: 15,
     key: "pro-4000",
     label: "Pro 4000",
-    gpuIds: [
-      "NVIDIA RTX PRO 4000 Blackwell",
-      "NVIDIA RTX 4000 Ada Generation",
-      "NVIDIA RTX 4000 SFF Ada Generation"
-    ]
+    gpuIds: ["NVIDIA RTX PRO 4000 Blackwell"]
   },
   {
-    rank: 15,
+    rank: 16,
     key: "rtx-3090-ti",
     label: "RTX 3090 / Ti",
     gpuIds: [
@@ -159,7 +161,7 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 16,
+    rank: 17,
     key: "rtx-3080-ti",
     label: "RTX 3080 Ti / 3080",
     gpuIds: [
@@ -168,13 +170,22 @@ const GPU_PRIORITY_TIERS = Object.freeze([
     ]
   },
   {
-    rank: 17,
+    rank: 18,
+    key: "4000-ada",
+    label: "4000 Ada",
+    gpuIds: [
+      "NVIDIA RTX 4000 Ada Generation",
+      "NVIDIA RTX 4000 SFF Ada Generation"
+    ]
+  },
+  {
+    rank: 19,
     key: "rtx-3070",
     label: "RTX 3070",
     gpuIds: ["NVIDIA GeForce RTX 3070"]
   },
   {
-    rank: 18,
+    rank: 20,
     key: "rtx-2000-ada",
     label: "RTX 2000 Ada",
     gpuIds: ["NVIDIA RTX 2000 Ada Generation"]
@@ -274,10 +285,10 @@ const GPU_POWER_RATINGS = Object.freeze({
   "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition": { pic: 100, vid: 100 },
   "NVIDIA GeForce RTX 5090": { pic: 100, vid: 100 },
   "NVIDIA GeForce RTX 4090": { pic: 80, vid: 75.5 },
+  "NVIDIA L40S": { pic: 70.3, vid: 83 },
   "NVIDIA RTX PRO 5000 Blackwell": { pic: 67.7, vid: 85.1 },
-  "NVIDIA L40S": { pic: 70.3, vid: 58.2 },
+  "NVIDIA RTX 6000 Ada Generation": { pic: 56.4, vid: 66 },
   "NVIDIA RTX 5000 Ada Generation": { pic: 53.3, vid: 68.3 },
-  "NVIDIA RTX 6000 Ada Generation": { pic: 51.9, vid: 62.7 },
   "NVIDIA GeForce RTX 5080": { pic: 60.5, vid: 52.3 },
   "NVIDIA L40": { pic: 50.5, vid: 58.2 },
   "NVIDIA RTX PRO 4500 Blackwell": { pic: 48, vid: 58.5 },
@@ -288,6 +299,7 @@ const GPU_POWER_RATINGS = Object.freeze({
   "NVIDIA RTX PRO 4000 Blackwell": { pic: 32.7, vid: 41.3 },
   "NVIDIA GeForce RTX 3090": { pic: 35, vid: 33.8 },
   "NVIDIA GeForce RTX 3080 Ti": { pic: 34.7, vid: 33 },
+  "NVIDIA GeForce RTX 3080": { pic: 33.3, vid: 26.7 },
   "NVIDIA RTX 4000 Ada Generation": { pic: 25.5, vid: 30.5 },
   "NVIDIA GeForce RTX 3070": { pic: 23, vid: 19 },
   "NVIDIA RTX 2000 Ada Generation": { pic: 12.7, vid: 14.4 }
@@ -374,8 +386,8 @@ const STORAGE_KEYS = Object.freeze({
   OUR_POD_IDS: "yakushev_our_pod_ids_v1"
 });
 
-// Default selection: all video cards better than 5080 INCLUSIVE (ranks 1 to 6)
-const DEFAULT_MAX_RANK = 6;
+// Default selection: all video cards better than 5080 INCLUSIVE (ranks 1 to 8)
+const DEFAULT_MAX_RANK = 8;
 
 const state = {
   apiKey: "",
