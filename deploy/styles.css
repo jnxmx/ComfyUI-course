@@ -1487,3 +1487,11 @@ progress.loading-spinner:indeterminate {
   font-weight: 600;
   color: var(--text);
 }
+
+.pod-spent-counter {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}

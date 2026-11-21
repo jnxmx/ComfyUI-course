@@ -1589,6 +1589,45 @@ function syncPodStateFromApi(ctrl, pod) {
   }
 }
 
+function parsePodStartMs(pod) {
+  const raw = pod?.lastStartedAt || pod?.createdAt;
+  if (!raw) return null;
+  const ms = Date.parse(raw);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function getPodHourlyPrice(ctrl) {
+  if (ctrl.price > 0) return ctrl.price;
+  const costPerHr = Number(ctrl.pod?.costPerHr);
+  if (Number.isFinite(costPerHr) && costPerHr > 0) return costPerHr;
+  return 0;
+}
+
+function formatPodSpentCents(ctrl) {
+  const price = getPodHourlyPrice(ctrl);
+  if (!price || !ctrl.startedAtMs) return "";
+  if (ctrl.status === "EXITED" || ctrl.status === "TERMINATED") return "";
+  const elapsedHours = Math.max(0, (Date.now() - ctrl.startedAtMs) / 3600000);
+  const cents = elapsedHours * price * 100;
+  return `${cents.toFixed(2)} ¢`;
+}
+
+function updateAllPodSpentCounters() {
+  const container = document.getElementById("pods-list");
+  if (!container) return;
+  for (const card of container.querySelectorAll(".pod-card")) {
+    const podId = card.dataset.podId;
+    const ctrl = podId ? state.podControllers.get(podId) : null;
+    const el = card.querySelector(".pod-spent-counter");
+    if (!ctrl || !el) continue;
+    const text = formatPodSpentCents(ctrl);
+    el.textContent = text;
+    el.hidden = !text;
+  }
+}
+
+setInterval(updateAllPodSpentCounters, 1000);
+
 function getOrCreatePodController(podId, initData = {}) {
   let ctrl = state.podControllers.get(podId);
   if (!ctrl) {
@@ -1599,6 +1638,7 @@ function getOrCreatePodController(podId, initData = {}) {
       gpuName: initData.gpuName || "GPU",
       cloud: initData.cloud || "COMMUNITY",
       price: initData.price || 0,
+      startedAtMs: parsePodStartMs(initData.pod) || Date.now(),
       isOurPod: isOur,
       isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : true,
       pod: initData.pod || null,
@@ -1806,6 +1846,14 @@ function createPodCardElement(ctrl) {
 
   const quickActions = document.createElement("div");
   quickActions.className = "pod-card-quick-actions";
+
+  const spentCounter = document.createElement("span");
+  spentCounter.className = "pod-spent-counter";
+  spentCounter.title = "Примерно потрачено с момента запуска";
+  const initialSpent = formatPodSpentCents(ctrl);
+  spentCounter.textContent = initialSpent;
+  spentCounter.hidden = !initialSpent;
+  quickActions.appendChild(spentCounter);
 
   const deleteBtn = document.createElement("button");
   deleteBtn.type = "button";
