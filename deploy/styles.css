@@ -1468,3 +1468,22 @@ progress.loading-spinner:indeterminate {
 .api-key-req-list li + li {
   margin-top: 0.25rem;
 }
+
+.pod-held-retry-box {
+  padding: 0.6rem 1rem 0.75rem;
+  border-top: 1px solid var(--border);
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pod-held-retry-box[hidden] {
+  display: none;
+}
+
+.pod-held-retry-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}

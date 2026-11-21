@@ -1812,7 +1812,19 @@ function createPodCardElement(ctrl) {
   deleteBtn.textContent = "Удалить";
   deleteBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
-    if (!confirm(`Точно удалить под ${ctrl.podId}?`)) return;
+    const isHeldWithRetry =
+      state.heldBadPodIds.has(ctrl.podId) &&
+      Boolean(state.currentDeploySessionId) &&
+      state.heldRetryInfo?.gpuIds?.has(ctrl.gpuId);
+    if (isHeldWithRetry) {
+      state.currentDeploySessionId = null;
+      state.redeployInProgress = false;
+      state.heldRetryInfo = null;
+      const pc = document.getElementById("pending-deploy-card");
+      if (pc) pc.hidden = true;
+    } else if (!confirm(`Точно удалить под ${ctrl.podId}?`)) {
+      return;
+    }
     deleteBtn.disabled = true;
     deleteBtn.textContent = "Удаление...";
     stopPodController(ctrl);
@@ -2068,6 +2080,43 @@ function updatePodCardElement(ctrl, cardEl) {
   const diskWarnBadge = cardEl.querySelector(".pod-disk-warn-badge");
   if (diskWarnBadge) {
     diskWarnBadge.hidden = ctrl.diskStatus !== "slow";
+  }
+
+  const isHeldWithRetry =
+    state.heldBadPodIds.has(ctrl.podId) &&
+    Boolean(state.currentDeploySessionId) &&
+    state.heldRetryInfo?.gpuIds?.has(ctrl.gpuId);
+
+  const deleteBtn = cardEl.querySelector(".pod-card-quick-actions .btn-danger-sm");
+  if (deleteBtn && !deleteBtn.disabled) {
+    deleteBtn.textContent = isHeldWithRetry ? "Остановить попытки и удалить" : "Удалить";
+  }
+
+  let retryBox = cardEl.querySelector(".pod-held-retry-box");
+  if (isHeldWithRetry) {
+    if (!retryBox) {
+      retryBox = document.createElement("div");
+      retryBox.className = "pod-held-retry-box";
+      const retryTitle = document.createElement("div");
+      retryTitle.className = "pod-held-retry-title";
+      const retryAlert = document.createElement("div");
+      retryAlert.className = "pod-held-retry-alert monitor-alert";
+      retryBox.append(retryTitle, retryAlert);
+      const headerEl = cardEl.querySelector(".pod-card-header");
+      if (headerEl) headerEl.after(retryBox);
+      else cardEl.appendChild(retryBox);
+    }
+    retryBox.hidden = false;
+    const retryTitle = retryBox.querySelector(".pod-held-retry-title");
+    const retryAlert = retryBox.querySelector(".pod-held-retry-alert");
+    if (retryTitle) retryTitle.textContent = state.heldRetryInfo.title || "Поиск альтернативного хоста...";
+    if (retryAlert) {
+      retryAlert.hidden = !state.heldRetryInfo.alertText;
+      retryAlert.className = `pod-held-retry-alert ${state.heldRetryInfo.alertClass || "monitor-alert alert-info"}`;
+      retryAlert.textContent = state.heldRetryInfo.alertText || "";
+    }
+  } else if (retryBox) {
+    retryBox.hidden = true;
   }
 
   if (!ctrl.isOurPod) {
@@ -2816,7 +2865,38 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
   if (oldBadPodId) {
     state.heldBadPodIds.add(oldBadPodId);
   }
-  if (pendingCard) pendingCard.hidden = false;
+
+  const syncPendingRetryUI = ({ title, sub, alertText, alertClass, candidatesList }) => {
+    const gpuIds = new Set((candidatesList || []).map((c) => c.gpuId));
+    state.heldRetryInfo = { title, sub, alertText, alertClass, gpuIds };
+
+    let hasMergedHeldPod = false;
+    for (const heldId of state.heldBadPodIds) {
+      const heldCtrl = state.podControllers.get(heldId);
+      if (heldCtrl && gpuIds.has(heldCtrl.gpuId)) {
+        hasMergedHeldPod = true;
+        break;
+      }
+    }
+
+    if (pendingCard) pendingCard.hidden = hasMergedHeldPod;
+    if (pendingTitle && title) pendingTitle.textContent = title;
+    if (pendingSub && sub) pendingSub.textContent = sub;
+    if (pendingAlert) {
+      pendingAlert.hidden = !alertText;
+      if (alertClass) pendingAlert.className = alertClass;
+      if (alertText) pendingAlert.textContent = alertText;
+    }
+    renderPodsList();
+  };
+
+  syncPendingRetryUI({
+    title: "Запуск пода...",
+    sub: "Выделение машины на RunPod...",
+    alertText: "",
+    alertClass: "monitor-alert alert-info",
+    candidatesList: candidates
+  });
 
   const sessionId = Symbol("deploy-session");
   state.currentDeploySessionId = sessionId;
@@ -2845,27 +2925,27 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
       if (state.currentDeploySessionId !== sessionId) return;
 
       state.redeployCount += 1;
-      if (pendingTitle) pendingTitle.textContent = `Запуск: ${candidate.displayName} (${candidate.cloud})`;
-
       const heldList = [...state.heldBadPodIds];
       if (heldList.length > 0) {
         const heldLabel = heldList.length === 1
           ? `сбойный хост ${heldList[0]} удерживается`
           : `сбойные хосты ${heldList.join(", ")} удерживаются`;
-        if (pendingSub) pendingSub.textContent = `Запуск нового пода (${heldLabel})...`;
-        if (pendingAlert) {
-          pendingAlert.hidden = false;
-          pendingAlert.className = "monitor-alert alert-info";
-          pendingAlert.textContent = `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${heldList.join(", ")}...`;
-        }
+        syncPendingRetryUI({
+          title: `Поиск альтернативы: ${candidate.displayName} (${candidate.cloud})`,
+          sub: `Запуск нового пода (${heldLabel})...`,
+          alertText: `Попытка #${state.redeployCount}: Выделение нового пода на ${candidate.displayName} перед удалением ${heldList.join(", ")}...`,
+          alertClass: "monitor-alert alert-info",
+          candidatesList: currentCandidates
+        });
       } else {
         const ramNote = state.minRamGb > 0 ? `, RAM ≥ ${state.minRamGb} ГБ` : "";
-        if (pendingSub) pendingSub.textContent = `Создание пода по цене ${candidate.price.toFixed(2)} €/ч${ramNote}...`;
-        if (pendingAlert) {
-          pendingAlert.hidden = false;
-          pendingAlert.className = "monitor-alert alert-info";
-          pendingAlert.textContent = `Попытка #${state.redeployCount}: Выделение пода на ${candidate.displayName}...`;
-        }
+        syncPendingRetryUI({
+          title: `Запуск: ${candidate.displayName} (${candidate.cloud})`,
+          sub: `Создание пода по цене ${candidate.price.toFixed(2)} €/ч${ramNote}...`,
+          alertText: `Попытка #${state.redeployCount}: Выделение пода на ${candidate.displayName}...`,
+          alertClass: "monitor-alert alert-info",
+          candidatesList: currentCandidates
+        });
       }
 
       if (state.currentDeploySessionId !== sessionId || state.deployCreateInFlight) return;
