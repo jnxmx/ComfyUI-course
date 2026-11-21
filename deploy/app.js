@@ -1277,30 +1277,32 @@ function renderGpuTable() {
     priceText.textContent = `${row.price.toFixed(2)} €/ч`;
     tdPrice.appendChild(priceText);
 
-    // Power (Pic / Vid rating bars)
+    // Power (Pic / Vid 5-peak zigzag rating bars)
     const tdPower = document.createElement("td");
     tdPower.className = "col-power";
     const rating = GPU_POWER_RATINGS[row.gpuId];
     if (rating) {
+      const picPct = Math.max(1, Math.min(100, rating.pic));
+      const vidPct = Math.max(1, Math.min(100, rating.vid));
+      const safeId = row.rowId.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const topPts = "0,5 10,0 20,5 30,0 40,5 50,0 60,5 70,0 80,5 90,0 100,5 100,10 90,5 80,10 70,5 60,10 50,5 40,10 30,5 20,10 10,5 0,10";
+      const botPts = "0,10 10,5 20,10 30,5 40,10 50,5 60,10 70,5 80,10 90,5 100,10 100,15 90,10 80,15 70,10 60,15 50,10 40,15 30,10 20,15 10,10 0,15";
+
       const bars = document.createElement("div");
       bars.className = "power-bars";
       bars.title = `Moss 4K ${rating.picSit}s/it\nH3 0.98m 5s ${rating.vidSit}s/it`;
-
-      const picTrack = document.createElement("div");
-      picTrack.className = "power-track";
-      const picBar = document.createElement("div");
-      picBar.className = "power-bar power-pic";
-      picBar.style.width = `${Math.max(1, Math.min(100, rating.pic))}%`;
-      picTrack.appendChild(picBar);
-
-      const vidTrack = document.createElement("div");
-      vidTrack.className = "power-track";
-      const vidBar = document.createElement("div");
-      vidBar.className = "power-bar power-vid";
-      vidBar.style.width = `${Math.max(1, Math.min(100, rating.vid))}%`;
-      vidTrack.appendChild(vidBar);
-
-      bars.append(picTrack, vidTrack);
+      bars.innerHTML = `
+        <svg viewBox="0 0 100 15" preserveAspectRatio="none" width="100%" height="15" style="display:block;">
+          <defs>
+            <clipPath id="pic-clip-${safeId}"><rect x="0" y="0" width="${picPct}" height="15"/></clipPath>
+            <clipPath id="vid-clip-${safeId}"><rect x="0" y="0" width="${vidPct}" height="15"/></clipPath>
+          </defs>
+          <polygon points="${topPts}" fill="#e2e8f0"/>
+          <polygon points="${botPts}" fill="#e2e8f0"/>
+          <polygon points="${topPts}" fill="#f97316" clip-path="url(#pic-clip-${safeId})"/>
+          <polygon points="${botPts}" fill="#8b5cf6" clip-path="url(#vid-clip-${safeId})"/>
+        </svg>
+      `;
       tdPower.appendChild(bars);
     }
 
