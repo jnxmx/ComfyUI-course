@@ -283,29 +283,29 @@ function getGpuArchitecture(gpuId, displayName = "") {
 }
 
 const GPU_POWER_RATINGS = Object.freeze({
-  "NVIDIA RTX PRO 6000 Blackwell Server Edition": { pic: 100, vid: 100 },
-  "NVIDIA RTX PRO 6000 Blackwell Workstation Edition": { pic: 100, vid: 100 },
-  "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition": { pic: 100, vid: 100 },
-  "NVIDIA GeForce RTX 5090": { pic: 90.1, vid: 68.5 },
-  "NVIDIA GeForce RTX 4090": { pic: 67.8, vid: 50 },
-  "NVIDIA L40S": { pic: 60, vid: 55.1 },
-  "NVIDIA RTX PRO 5000 Blackwell": { pic: 57.2, vid: 56.3 },
-  "NVIDIA RTX 6000 Ada Generation": { pic: 47.8, vid: 43.6 },
-  "NVIDIA RTX 5000 Ada Generation": { pic: 45.2, vid: 45.2 },
-  "NVIDIA GeForce RTX 5080": { pic: 51.1, vid: 34.5 },
-  "NVIDIA RTX PRO 4500 Blackwell": { pic: 41.7, vid: 40.6 },
-  "NVIDIA L40": { pic: 43.1, vid: 38.9 },
-  "NVIDIA RTX PRO 4500 Blackwell Server Edition": { pic: 36.3, vid: 36.2 },
-  "NVIDIA RTX A6000": { pic: 29, vid: 30.9 },
-  "NVIDIA GeForce RTX 4070 Ti": { pic: 35.5, vid: 24.5 },
-  "NVIDIA A40": { pic: 27.6, vid: 29.6 },
-  "NVIDIA RTX PRO 4000 Blackwell": { pic: 28.3, vid: 27.9 },
-  "NVIDIA GeForce RTX 3090": { pic: 29.8, vid: 22.4 },
-  "NVIDIA GeForce RTX 3080 Ti": { pic: 29.2, vid: 21.7 },
-  "NVIDIA GeForce RTX 3080": { pic: 28.2, vid: 17.6 },
-  "NVIDIA RTX 4000 Ada Generation": { pic: 21.6, vid: 20.3 },
-  "NVIDIA GeForce RTX 3070": { pic: 19.4, vid: 12.5 },
-  "NVIDIA RTX 2000 Ada Generation": { pic: 10.7, vid: 9.6 }
+  "NVIDIA RTX PRO 6000 Blackwell Server Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42 },
+  "NVIDIA RTX PRO 6000 Blackwell Workstation Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42 },
+  "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition": { pic: 100, vid: 100, picSit: 1.06, vidSit: 8.42 },
+  "NVIDIA GeForce RTX 5090": { pic: 100, vid: 68.5, picSit: 1.1, vidSit: 11.98 },
+  "NVIDIA GeForce RTX 4090": { pic: 75.3, vid: 50, picSit: 1.56, vidSit: 16.72 },
+  "NVIDIA L40S": { pic: 66.5, vid: 55.1, picSit: 1.75, vidSit: 15.09 },
+  "NVIDIA RTX PRO 5000 Blackwell": { pic: 63.5, vid: 56.3, picSit: 1.86, vidSit: 14.6 },
+  "NVIDIA RTX 6000 Ada Generation": { pic: 53.1, vid: 43.6, picSit: 2.21, vidSit: 19.28 },
+  "NVIDIA RTX 5000 Ada Generation": { pic: 50.1, vid: 45.2, picSit: 2.35, vidSit: 18.47 },
+  "NVIDIA GeForce RTX 5080": { pic: 56.7, vid: 34.5, picSit: 2.08, vidSit: 24.75 },
+  "NVIDIA RTX PRO 4500 Blackwell": { pic: 46.3, vid: 40.6, picSit: 2.49, vidSit: 19.75 },
+  "NVIDIA L40": { pic: 47.8, vid: 38.9, picSit: 2.44, vidSit: 21.3 },
+  "NVIDIA RTX PRO 4500 Blackwell Server Edition": { pic: 40.3, vid: 36.2, picSit: 2.93, vidSit: 23.28 },
+  "NVIDIA RTX A6000": { pic: 32.2, vid: 30.9, picSit: 3.69, vidSit: 27.26 },
+  "NVIDIA GeForce RTX 4070 Ti": { pic: 39.3, vid: 24.5, picSit: 3.01, vidSit: 34.77 },
+  "NVIDIA A40": { pic: 30.6, vid: 29.6, picSit: 3.85, vidSit: 28.16 },
+  "NVIDIA RTX PRO 4000 Blackwell": { pic: 31.4, vid: 27.9, picSit: 3.7, vidSit: 29.17 },
+  "NVIDIA GeForce RTX 3090": { pic: 33, vid: 22.4, picSit: 3.57, vidSit: 38.16 },
+  "NVIDIA GeForce RTX 3080 Ti": { pic: 32.4, vid: 21.7, picSit: 3.68, vidSit: 39.83 },
+  "NVIDIA GeForce RTX 3080": { pic: 31.3, vid: 17.6, picSit: 3.77, vidSit: 48.65 },
+  "NVIDIA RTX 4000 Ada Generation": { pic: 24, vid: 20.3, picSit: 4.92, vidSit: 41.44 },
+  "NVIDIA GeForce RTX 3070": { pic: 21.5, vid: 12.5, picSit: 5.53, vidSit: 69.21 },
+  "NVIDIA RTX 2000 Ada Generation": { pic: 11.9, vid: 9.6, picSit: 10.05, vidSit: 88.86 }
 });
 
 /**
@@ -1284,7 +1284,7 @@ function renderGpuTable() {
     if (rating) {
       const bars = document.createElement("div");
       bars.className = "power-bars";
-      bars.title = `Pic rating: ${rating.pic}/100 · Vid rating: ${rating.vid}/100`;
+      bars.title = `Moss 4K ${rating.picSit}s/it\nH3 0.98m 5s ${rating.vidSit}s/it`;
 
       const picTrack = document.createElement("div");
       picTrack.className = "power-track";
