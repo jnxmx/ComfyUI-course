@@ -578,10 +578,14 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 
 .power-seg.power-seg-plus {
   background-color: transparent;
-  overflow: visible;
   display: flex;
   align-items: flex-start;
-  justify-content: flex-end;
+  justify-content: space-between;
+}
+
+.power-seg.power-seg-plus .power-seg-fill {
+  width: 35%;
+  flex-shrink: 0;
 }
 
 .power-plus {
@@ -593,6 +597,7 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .power-seg {
