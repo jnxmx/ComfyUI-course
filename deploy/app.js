@@ -2592,7 +2592,11 @@ function buildPayload(candidate) {
   const timerEnabled = document.getElementById("opt-shutdown-timer") ? document.getElementById("opt-shutdown-timer").checked : true;
   const rawMinutes = document.getElementById("opt-shutdown-minutes") ? parseInt(document.getElementById("opt-shutdown-minutes").value, 10) : 30;
   const minutes = Number.isFinite(rawMinutes) && rawMinutes > 0 ? rawMinutes : 30;
-  const slug = candidate.tierKey || "gpu";
+  const rawName = candidate.displayName || candidate.gpuId || candidate.tierKey || "gpu";
+  const slug = String(rawName)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "gpu";
   const tpl = state.currentTemplate;
 
   const env = {
