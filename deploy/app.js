@@ -1336,7 +1336,18 @@ function renderGpuTable() {
       const picTrack = buildSegmentedTrack("power-track-pic", Math.max(1, Math.min(100, rating.pic)));
       const vidTrack = buildSegmentedTrack("power-track-vid", Math.max(1, Math.min(100, rating.vid)));
 
-      bars.append(picTrack, vidTrack);
+      if (rating.pic > 100) {
+        const picWrap = document.createElement("div");
+        picWrap.className = "power-track-wrap";
+        const plus = document.createElement("span");
+        plus.className = "power-plus";
+        plus.textContent = "+";
+        plus.setAttribute("aria-hidden", "true");
+        picWrap.append(picTrack, plus);
+        bars.append(picWrap, vidTrack);
+      } else {
+        bars.append(picTrack, vidTrack);
+      }
       tdPower.appendChild(bars);
     }
 
