@@ -2866,7 +2866,8 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
   }
 
   const syncPendingRetryUI = ({ title, sub, alertText, alertClass, candidatesList }) => {
-    const gpuIds = new Set((candidatesList || []).map((c) => c.gpuId));
+    const sourceList = (candidatesList && candidatesList.length > 0) ? candidatesList : candidates;
+    const gpuIds = new Set((sourceList || []).map((c) => c.gpuId));
     state.heldRetryInfo = { title, sub, alertText, alertClass, gpuIds };
 
     let hasMergedHeldPod = false;
@@ -3065,11 +3066,13 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
     for (let sec = 5; sec > 0; sec--) {
       if (state.currentDeploySessionId !== sessionId) return;
-      if (pendingAlert) {
-        pendingAlert.hidden = false;
-        pendingAlert.className = "monitor-alert alert-warn";
-        pendingAlert.textContent = `${targetLabel} сейчас заняты на RunPod. Повторная попытка #${state.redeployCount + 1} через ${sec} сек...`;
-      }
+      syncPendingRetryUI({
+        title: `Поиск альтернативы: ${targetLabel}`,
+        sub: "Ожидание свободной машины на RunPod...",
+        alertText: `${targetLabel} сейчас заняты на RunPod. Повторная попытка #${state.redeployCount + 1} через ${sec} сек...`,
+        alertClass: "monitor-alert alert-warn",
+        candidatesList: currentCandidates
+      });
       await new Promise((r) => setTimeout(r, 1000));
     }
 
