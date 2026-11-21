@@ -1748,7 +1748,13 @@ function createPodCardElement(ctrl) {
   statusBadge.className = "badge pod-status-badge";
   statusBadge.textContent = ctrl.status;
 
-  summary.append(chevron, title, idCode, gpuBadge, specsBadge, statusBadge);
+  const diskWarnBadge = document.createElement("span");
+  diskWarnBadge.className = "badge pod-disk-warn-badge";
+  diskWarnBadge.textContent = "⚠️ Медленный диск (долгая загрузка моделей)";
+  diskWarnBadge.title = "На хосте медленный диск (не XFS, Fast Disk не включён) — в начале генерации большие модели будут загружаться долго";
+  diskWarnBadge.hidden = ctrl.diskStatus !== "slow";
+
+  summary.append(chevron, title, idCode, gpuBadge, specsBadge, diskWarnBadge, statusBadge);
 
   const quickActions = document.createElement("div");
   quickActions.className = "pod-card-quick-actions";
@@ -2010,6 +2016,11 @@ function updatePodCardElement(ctrl, cardEl) {
     const specsText = formatPodSpecsText(ctrl);
     specsBadge.textContent = specsText;
     specsBadge.hidden = !specsText;
+  }
+
+  const diskWarnBadge = cardEl.querySelector(".pod-disk-warn-badge");
+  if (diskWarnBadge) {
+    diskWarnBadge.hidden = ctrl.diskStatus !== "slow";
   }
 
   if (!ctrl.isOurPod) {
@@ -2315,6 +2326,36 @@ function handlePodLog(ctrl, entry) {
   if (!ctrl.isOurPod) return;
 
   const lowerLine = line.toLowerCase();
+
+  // Detect host disk type (XFS / Fast Disk vs MooseFS / slow disk)
+  const isFastDiskLine =
+    (lowerLine.includes("xfs") && !lowerLine.includes("not xfs") && !lowerLine.includes("no xfs")) ||
+    (lowerLine.includes("fast disk") &&
+      !lowerLine.includes("not enabled") &&
+      !lowerLine.includes("disabled") &&
+      !lowerLine.includes("false") &&
+      !lowerLine.includes("off") &&
+      !lowerLine.includes("no fast disk"));
+  const isSlowDiskLine =
+    lowerLine.includes("moosefs") ||
+    lowerLine.includes("fuse.mfs") ||
+    lowerLine.includes("not xfs") ||
+    lowerLine.includes("non-xfs") ||
+    (lowerLine.includes("fstype") && !lowerLine.includes("xfs")) ||
+    (lowerLine.includes("fast disk") &&
+      (lowerLine.includes("not enabled") ||
+        lowerLine.includes("disabled") ||
+        lowerLine.includes("false") ||
+        lowerLine.includes("off")));
+
+  if (isFastDiskLine && ctrl.diskStatus !== "fast") {
+    ctrl.diskStatus = "fast";
+    if (card) updatePodCardElement(ctrl, card);
+  } else if (isSlowDiskLine && ctrl.diskStatus !== "fast" && ctrl.diskStatus !== "slow") {
+    ctrl.diskStatus = "slow";
+    if (card) updatePodCardElement(ctrl, card);
+  }
+
   const isPreflightWarn = line.includes("[cuda][warn]");
 
   // Detect fatal CUDA / GPU error (ignore transient [cuda][warn] preflight attempts until fatal line)

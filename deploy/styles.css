@@ -218,6 +218,11 @@ a:focus-visible {
   background-color: var(--warn-bg);
   color: var(--warn);
 }
+.pod-disk-warn-badge {
+  background-color: var(--warn-bg);
+  color: var(--warn);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+}
 .badge-error {
   background-color: var(--danger-bg);
   color: var(--danger);
