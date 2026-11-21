@@ -576,22 +576,23 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   height: 6px;
 }
 
+.power-seg.power-seg-plus {
+  background-color: transparent;
+  overflow: visible;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
 .power-plus {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 7px;
-  height: 5px;
-  background-color: #ffffff;
   color: #f97316;
   font-size: 9px;
   font-weight: 800;
   line-height: 5px;
-  display: flex;
+  height: 5px;
+  display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 1px;
-  z-index: 2;
 }
 
 .power-seg {

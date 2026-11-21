@@ -1315,34 +1315,37 @@ function renderGpuTable() {
       bars.className = "power-bars";
       bars.title = `Moss 4K ${rating.picSit}s/it\nH3 0.98m 5s ${rating.vidSit}s/it`;
 
-      const buildSegmentedTrack = (trackClass, pct) => {
+      const buildSegmentedTrack = (trackClass, pct, withPlus = false) => {
         const track = document.createElement("div");
         track.className = `power-track ${trackClass}`;
         for (let i = 0; i < 10; i += 1) {
           const seg = document.createElement("div");
           seg.className = "power-seg";
-          const segPct = Math.max(0, Math.min(100, (pct - i * 10) * 10));
-          if (segPct > 0) {
-            const fill = document.createElement("span");
-            fill.className = "power-seg-fill";
-            fill.style.width = `${segPct}%`;
-            seg.appendChild(fill);
+          if (withPlus && i === 9) {
+            seg.classList.add("power-seg-plus");
+            const plus = document.createElement("span");
+            plus.className = "power-plus";
+            plus.textContent = "+";
+            plus.setAttribute("aria-hidden", "true");
+            seg.appendChild(plus);
+          } else {
+            const segPct = Math.max(0, Math.min(100, (pct - i * 10) * 10));
+            if (segPct > 0) {
+              const fill = document.createElement("span");
+              fill.className = "power-seg-fill";
+              fill.style.width = `${segPct}%`;
+              seg.appendChild(fill);
+            }
           }
           track.appendChild(seg);
         }
         return track;
       };
 
-      const picTrack = buildSegmentedTrack("power-track-pic", Math.max(1, Math.min(100, rating.pic)));
+      const hasPlus = Boolean(rating.plus || rating.pic > 100);
+      const picTrack = buildSegmentedTrack("power-track-pic", Math.max(1, Math.min(100, rating.pic)), hasPlus);
       const vidTrack = buildSegmentedTrack("power-track-vid", Math.max(1, Math.min(100, rating.vid)));
 
-      if (rating.plus || rating.pic > 100) {
-        const plus = document.createElement("span");
-        plus.className = "power-plus";
-        plus.textContent = "+";
-        plus.setAttribute("aria-hidden", "true");
-        picTrack.appendChild(plus);
-      }
       bars.append(picTrack, vidTrack);
       tdPower.appendChild(bars);
     }
