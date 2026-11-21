@@ -978,8 +978,8 @@ async function fetchGpuCatalog(silent = false) {
   const fetchTask = (async () => {
     try {
       const [communityRes, secureRes] = await Promise.all([
-        runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=COMMUNITY&minCudaVersion=13.0"),
-        runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=SECURE&minCudaVersion=13.0")
+        runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=COMMUNITY"),
+        runpodFetch("/catalog/gpus?include=AVAILABILITY&product=POD&count=1&cloud=SECURE")
       ]);
 
       const rows = [];
@@ -989,11 +989,13 @@ async function fetchGpuCatalog(silent = false) {
           const price = cloudType === "COMMUNITY" ? gpu.price?.community : gpu.price?.secure;
           if (price === null || price === undefined || price <= 0) continue;
 
+          const isUnavailable = !gpu.availability || gpu.availability === "NONE";
           const cuda13List = (gpu.cudaVersions || [])
-            .filter((c) => Number.parseFloat(c.version) >= 13.0 && c.available)
+            .filter((c) => Number.parseFloat(c.version) >= 13.0 && (isUnavailable || c.available))
             .map((c) => c.version);
 
-          if (cuda13List.length === 0) continue;
+          if (!isUnavailable && cuda13List.length === 0) continue;
+          if (isUnavailable && (gpu.cudaVersions || []).length > 0 && cuda13List.length === 0) continue;
 
           const tier = findTierInfo(gpu.id);
           const displayName = cleanGpuName(gpu.id, gpu.name);
