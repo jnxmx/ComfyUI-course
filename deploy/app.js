@@ -410,6 +410,7 @@ const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1",
   SELECTED_ROWS: "yakushev_selected_gpus_v3",
   SECURE_ONLY: "yakushev_secure_only_v1",
+  SHOW_UNAVAILABLE: "yakushev_show_unavailable_v1",
   MIN_RAM: "yakushev_min_ram_gb_v1",
   MAX_PRICE: "yakushev_max_price_v3",
   OPTIONS: "yakushev_options_v4",
@@ -427,6 +428,7 @@ const state = {
   userSelectionOverrides: new Map(),
   defaultSelectedAll: false,
   secureOnly: false,
+  showUnavailable: false,
   minRamGb: 0,
   activePods: [],
   podControllers: new Map(), // Map<podId, PodController>
@@ -859,7 +861,7 @@ async function loadTemplate(templateId, showFeedback = false) {
     state.currentTemplate = {
       ...DEFAULT_TEMPLATE,
       templateId: cleanId,
-      name: `Темплейт ${cleanId}`
+      name: cleanId === DEFAULT_TEMPLATE.templateId ? DEFAULT_TEMPLATE.name : `Темплейт ${cleanId}`
     };
     if (showFeedback && msgEl) {
       msgEl.hidden = false;
@@ -1101,6 +1103,9 @@ function renderGpuTable() {
   let displayRows = [...state.catalogRows];
   if (state.secureOnly) {
     displayRows = displayRows.filter((r) => r.cloud === "SECURE");
+  }
+  if (!state.showUnavailable) {
+    displayRows = displayRows.filter((r) => r.availability !== "NONE");
   }
 
   if (displayRows.length === 0) {
@@ -1355,18 +1360,19 @@ function renderGpuTable() {
     // Action
     const tdAction = document.createElement("td");
     tdAction.className = "col-action";
+    const isUnavailable = row.availability === "NONE";
     const launchBtn = document.createElement("button");
     launchBtn.type = "button";
-    launchBtn.className = "btn btn-subtle-sm";
-    launchBtn.textContent = "Запустить";
-    launchBtn.disabled = row.availability === "NONE" || failsFilter;
+    launchBtn.className = isUnavailable ? "btn btn-subtle-sm btn-hunt" : "btn btn-subtle-sm";
+    launchBtn.textContent = isUnavailable ? "Охотиться" : "Запустить";
+    launchBtn.disabled = failsFilter;
     if (mismatchReason) {
       launchBtn.title = mismatchReason;
-    } else if (row.availability === "NONE") {
-      launchBtn.title = "Нет в наличии";
+    } else if (isUnavailable) {
+      launchBtn.title = "Нет в наличии — пытаться создать под каждые 3 сек";
     }
     launchBtn.addEventListener("click", () => {
-      startDeploymentSequence([row], null, { singleGpuOnly: true });
+      startDeploymentSequence([row], null, { singleGpuOnly: true, huntMode: isUnavailable });
     });
     tdAction.appendChild(launchBtn);
 
@@ -2916,7 +2922,7 @@ async function deleteHeldBadPods(excludePodId = null) {
  * При попытке пересоздать под сначала запускается запуск нового пода,
  * и только после успешного создания глушатся старые сбойные поды, чтобы не попасть на тот же сбойный хост!
  */
-async function startDeploymentSequence(candidates, oldBadPodId = null, { singleGpuOnly = false } = {}) {
+async function startDeploymentSequence(candidates, oldBadPodId = null, { singleGpuOnly = false, huntMode = false } = {}) {
   if (singleGpuOnly && !state.deployCreateInFlight) {
     // Явный запуск конкретной GPU прерывает старый цикл авто-повтора
     state.currentDeploySessionId = null;
@@ -3137,7 +3143,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     }
 
     const autoRedeploy = document.getElementById("opt-auto-redeploy")?.checked;
-    if (!autoRedeploy) {
+    if (!huntMode && !autoRedeploy) {
       if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
       await deleteHeldBadPods();
       await fetchActivePods();
@@ -3153,13 +3159,16 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     const targetLabel = isSingleCandidate && currentCandidates[0]
       ? currentCandidates[0].displayName
       : "Все выбранные видеокарты";
+    const waitSeconds = huntMode ? 3 : 5;
 
-    for (let sec = 5; sec > 0; sec--) {
+    for (let sec = waitSeconds; sec > 0; sec--) {
       if (state.currentDeploySessionId !== sessionId) return;
       syncPendingRetryUI({
-        title: `Поиск альтернативы: ${targetLabel}`,
-        sub: "Ожидание свободной машины на RunPod...",
-        alertText: `${targetLabel} сейчас заняты на RunPod. Повторная попытка #${state.redeployCount + 1} через ${sec} сек...`,
+        title: huntMode ? `Охота: ${targetLabel}` : `Поиск альтернативы: ${targetLabel}`,
+        sub: huntMode ? "Попытка создания пода каждые 3 сек..." : "Ожидание свободной машины на RunPod...",
+        alertText: huntMode
+          ? `Попытка #${state.redeployCount}: свободных машин нет. Следующая попытка через ${sec} сек...`
+          : `${targetLabel} сейчас заняты на RunPod. Повторная попытка #${state.redeployCount + 1} через ${sec} сек...`,
         alertClass: "monitor-alert alert-warn",
         candidatesList: currentCandidates
       });
@@ -3168,9 +3177,11 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
     if (state.currentDeploySessionId !== sessionId) return;
 
-    try {
-      await fetchGpuCatalog(true);
-    } catch {}
+    if (!huntMode) {
+      try {
+        await fetchGpuCatalog(true);
+      } catch {}
+    }
   }
 }
 
@@ -3404,6 +3415,22 @@ async function init() {
     localStorage.setItem(STORAGE_KEYS.SECURE_ONLY, state.secureOnly ? "true" : "false");
     renderGpuTable();
   });
+
+  // Button "Показать недоступные"
+  const btnShowUnavailable = document.getElementById("btn-show-unavailable");
+  if (btnShowUnavailable) {
+    const savedUnavailable = localStorage.getItem(STORAGE_KEYS.SHOW_UNAVAILABLE);
+    if (savedUnavailable === "true") {
+      state.showUnavailable = true;
+      btnShowUnavailable.classList.add("active");
+    }
+    btnShowUnavailable.addEventListener("click", () => {
+      state.showUnavailable = !state.showUnavailable;
+      btnShowUnavailable.classList.toggle("active", state.showUnavailable);
+      localStorage.setItem(STORAGE_KEYS.SHOW_UNAVAILABLE, state.showUnavailable ? "true" : "false");
+      renderGpuTable();
+    });
+  }
 
   // Load and bind options (ComfyUI Manager, Backup, Auto-redeploy, Shutdown timer)
   loadOptions();

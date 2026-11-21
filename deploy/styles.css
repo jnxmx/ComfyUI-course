@@ -1495,3 +1495,15 @@ progress.loading-spinner:indeterminate {
   color: var(--muted);
   white-space: nowrap;
 }
+
+.btn-hunt {
+  border-color: #f59e0b;
+  color: #b45309;
+  background-color: #fffbeb;
+}
+
+.btn-hunt:hover:not(:disabled) {
+  background-color: #fef3c7;
+  border-color: #d97706;
+  color: #92400e;
+}
