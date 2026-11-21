@@ -1633,8 +1633,8 @@ function formatPodSpentCents(ctrl) {
   if (!price || !ctrl.startedAtMs) return "";
   if (ctrl.status === "EXITED" || ctrl.status === "TERMINATED") return "";
   const elapsedHours = Math.max(0, (Date.now() - ctrl.startedAtMs) / 3600000);
-  const cents = elapsedHours * price * 100;
-  return `${cents.toFixed(2)} ¢`;
+  const dollars = elapsedHours * price;
+  return `${dollars.toFixed(2)}$`;
 }
 
 function updateAllPodSpentCounters() {
