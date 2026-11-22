@@ -2070,21 +2070,21 @@ function createPodCardElement(ctrl) {
     mainComfyLink.target = "_blank";
     mainComfyLink.rel = "noopener noreferrer";
     mainComfyLink.className = "btn btn-primary btn-large btn-link-comfy";
-    mainComfyLink.textContent = "ComfyUI (:7860) ↗";
+    mainComfyLink.textContent = "ComfyUI ↗";
 
     const mainFizgigLink = document.createElement("a");
     mainFizgigLink.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
     mainFizgigLink.target = "_blank";
     mainFizgigLink.rel = "noopener noreferrer";
     mainFizgigLink.className = "btn btn-primary btn-large btn-fizgig btn-link-fizgig";
-    mainFizgigLink.textContent = "Fizgig — LoRA & Fine-tune Studio (:7862) ↗";
+    mainFizgigLink.textContent = "Fizgig ↗";
 
     const mainFileBrowserLink = document.createElement("a");
     mainFileBrowserLink.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
     mainFileBrowserLink.target = "_blank";
     mainFileBrowserLink.rel = "noopener noreferrer";
     mainFileBrowserLink.className = "btn btn-secondary btn-link-filebrowser";
-    mainFileBrowserLink.textContent = "FileBrowser (:7861) ↗";
+    mainFileBrowserLink.textContent = "FileBrowser ↗";
 
     const copyDesktopBtn = document.createElement("button");
     copyDesktopBtn.type = "button";
