@@ -107,6 +107,56 @@ code {
   padding: 1.5rem 1rem 3rem;
 }
 
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0 0.25rem;
+  gap: 0.75rem;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.app-brand-badge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--accent-soft);
+  background: rgba(106, 159, 203, 0.12);
+  border: 1px solid rgba(106, 159, 203, 0.26);
+  border-radius: 999px;
+  padding: 0.12rem 0.55rem;
+  white-space: nowrap;
+}
+
+.header-status-pill {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  white-space: nowrap;
+}
+
+.header-status-pill.is-connected {
+  color: var(--success);
+  background: var(--success-bg);
+  border-color: rgba(122, 174, 102, 0.35);
+}
+
 .main-flow {
   display: flex;
   flex-direction: column;
@@ -242,31 +292,6 @@ a:focus-visible {
   font-weight: 700;
 }
 
-.active-pods-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.pod-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 0.9rem;
-  background-color: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.pod-info {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
 .pod-title {
   font-weight: 700;
   font-size: 0.92rem;
@@ -303,12 +328,6 @@ a:focus-visible {
 .badge-error {
   background-color: var(--danger-bg);
   color: var(--danger);
-}
-
-.pod-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 /* ==========================================================================
@@ -358,7 +377,7 @@ a:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .shutdown-input-wrapper {
@@ -372,13 +391,19 @@ a:focus-visible {
   padding: 0.25rem 0.35rem;
   font-size: 0.88rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
   text-align: center;
   box-sizing: border-box;
   transition: opacity 0.2s, border-color 0.2s;
+}
+
+.shutdown-minutes-input:focus-visible {
+  outline: none;
+  border-color: var(--border-focus);
 }
 
 .shutdown-minutes-input:disabled {
@@ -405,11 +430,51 @@ a:focus-visible {
    ========================================================================== */
 .gpu-toolbar {
   display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.gpu-toolbar-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.gpu-filter-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.gpu-toolbar-actions {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 0.85rem;
+  gap: 0.6rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.gpu-selection-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.selected-count-badge {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .price-slider-box {
@@ -495,26 +560,6 @@ input[type="range"] {
   align-items: center;
   gap: 0.45rem;
   flex-wrap: wrap;
-}
-
-.select-net-wrapper {
-  display: inline-flex;
-}
-
-.select-net-speed {
-  min-height: 38px;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.select-net-speed:focus-visible {
-  border-color: var(--accent);
 }
 
 .visually-hidden {
@@ -767,10 +812,14 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 
 .cloud-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  line-height: 1;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  padding: 0.15rem 0.45rem;
+  padding: 0 0.45rem;
   border-radius: 4px;
 }
 
@@ -787,9 +836,13 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 
 .ram-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  line-height: 1;
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 0.14rem 0.45rem;
+  padding: 0 0.45rem;
   border-radius: 4px;
   background-color: var(--bg-subtle);
   color: var(--text-secondary);
@@ -808,19 +861,33 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   font-family: var(--agy-mono);
 }
 
+.col-price {
+  white-space: nowrap;
+  min-width: 88px;
+}
+
+.col-action {
+  white-space: nowrap;
+  min-width: 112px;
+  text-align: right;
+}
+
+.col-action .btn {
+  min-width: 98px;
+}
+
+#gpu-table tbody tr.row-selectable {
+  cursor: pointer;
+}
+
+#gpu-table tbody tr.is-selected td {
+  background-color: rgba(47, 113, 227, 0.06);
+}
+
 .price-text {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-
-.avail-pill {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-.avail-high { color: var(--success); }
-.avail-med { color: var(--warn); }
-.avail-low { color: var(--warn); }
-.avail-none { color: var(--text-secondary); }
 
 .empty-cell {
   text-align: center !important;
@@ -1396,10 +1463,25 @@ progress.loading-spinner:indeterminate {
 
 .pod-card-summary {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-width: 0;
   flex: 1;
+}
+
+.pod-summary-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.pod-summary-primary,
+.pod-summary-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .btn-pod-chevron {
@@ -1572,4 +1654,57 @@ progress.loading-spinner:indeterminate {
   background-color: rgba(243, 201, 73, 0.20);
   border-color: rgba(243, 201, 73, 0.55);
   color: #fde68a;
+}
+
+@media (max-width: 640px) {
+  .app-container {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .card {
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+  }
+
+  .app-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .auth-input-row {
+    flex-direction: column;
+  }
+
+  .gpu-toolbar-filters,
+  .gpu-toolbar-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gpu-toolbar-filters .price-slider-box {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .gpu-selection-controls {
+    flex-wrap: wrap;
+  }
+
+  .btn-deploy-main {
+    width: 100%;
+  }
+
+  .pod-card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pod-card-quick-actions {
+    justify-content: flex-end;
+  }
+
+  #gpu-table th,
+  #gpu-table td {
+    padding: 0.45rem 0.4rem;
+  }
 }

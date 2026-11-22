@@ -1095,6 +1095,27 @@ function isGpuDesiredByUser(row) {
   return row.tierRank <= DEFAULT_MAX_RANK;
 }
 
+function updateHeaderStatus() {
+  const el = document.getElementById("header-status-pill");
+  if (!el) return;
+  if (!state.apiKey) {
+    el.textContent = "Ожидание API-ключа";
+    el.classList.remove("is-connected");
+    return;
+  }
+  const activeCount = state.podControllers.size;
+  el.textContent = activeCount > 0 ? `● Активных подов: ${activeCount}` : "● Подключено";
+  el.classList.add("is-connected");
+}
+
+function updateSelectedGpuCount() {
+  const el = document.getElementById("selected-gpu-count");
+  if (!el) return;
+  const tbody = document.getElementById("gpu-tbody");
+  const count = tbody ? tbody.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)').length : 0;
+  el.textContent = `Выбрано: ${count}`;
+}
+
 function renderGpuTable() {
   const tbody = document.getElementById("gpu-tbody");
   tbody.replaceChildren();
@@ -1118,6 +1139,8 @@ function renderGpuTable() {
     td.textContent = state.apiKey ? "Нет видеокарт по выбранным фильтрам" : "Введите API ключ для загрузки";
     tr.appendChild(td);
     tbody.appendChild(tr);
+    updateSelectedGpuCount();
+    updateHeaderStatus();
     return;
   }
 
@@ -1240,6 +1263,7 @@ function renderGpuTable() {
     // Checkbox:
     // Видеокарты, не проходящие по фильтрам цены/RAM, не имеют включенных галочек и заблокированы
     const isChecked = !failsFilter && isDesired;
+    tr.classList.toggle("is-selected", isChecked);
     const tdCheck = document.createElement("td");
     tdCheck.className = "col-check";
     const chk = document.createElement("input");
@@ -1251,9 +1275,23 @@ function renderGpuTable() {
     }
     chk.addEventListener("change", () => {
       state.userSelectionOverrides.set(row.rowId, chk.checked);
+      tr.classList.toggle("is-selected", chk.checked);
       persistSelections();
+      updateSelectedGpuCount();
     });
     tdCheck.appendChild(chk);
+
+    if (!failsFilter) {
+      tr.classList.add("row-selectable");
+      tr.addEventListener("click", (e) => {
+        if (e.target.closest("input, button, a, label, .col-action")) return;
+        chk.checked = !chk.checked;
+        state.userSelectionOverrides.set(row.rowId, chk.checked);
+        tr.classList.toggle("is-selected", chk.checked);
+        persistSelections();
+        updateSelectedGpuCount();
+      });
+    }
 
     // Name & Cloud Badge
     const tdName = document.createElement("td");
@@ -1381,6 +1419,9 @@ function renderGpuTable() {
     tr.append(tdCheck, tdName, tdPrice, tdPower, tdAction);
     tbody.appendChild(tr);
   }
+
+  updateSelectedGpuCount();
+  updateHeaderStatus();
 }
 
 function updateLiveIndicator() {
@@ -1689,6 +1730,8 @@ function getOrCreatePodController(podId, initData = {}) {
       logLines: [],
       logAbortController: null,
       logRetryTimerId: null,
+      logsUserToggled: false,
+      logsAutoCollapsed: false,
       cudaStagePassed: false,
       cudaFatalTriggered: false,
       pollTimerId: null
@@ -1741,6 +1784,7 @@ async function fetchActivePods() {
       }
       state.podControllers.clear();
       renderPodsList();
+      updateHeaderStatus();
       return;
     }
 
@@ -1794,6 +1838,7 @@ async function fetchActivePods() {
     }
 
     renderPodsList();
+    updateHeaderStatus();
   } catch (err) {
     console.warn("fetchActivePods error:", err.message);
   }
@@ -1878,7 +1923,19 @@ function createPodCardElement(ctrl) {
   diskWarnBadge.title = "На хосте медленный диск (не XFS, Fast Disk не включён) — в начале генерации большие модели будут загружаться долго";
   diskWarnBadge.hidden = ctrl.diskStatus !== "slow";
 
-  summary.append(chevron, title, idCode, gpuBadge, specsBadge, diskWarnBadge, statusBadge);
+  const summaryLines = document.createElement("div");
+  summaryLines.className = "pod-summary-lines";
+
+  const summaryPrimary = document.createElement("div");
+  summaryPrimary.className = "pod-summary-primary";
+  summaryPrimary.append(title, idCode, statusBadge);
+
+  const summaryMeta = document.createElement("div");
+  summaryMeta.className = "pod-summary-meta";
+  summaryMeta.append(gpuBadge, specsBadge, diskWarnBadge);
+
+  summaryLines.append(summaryPrimary, summaryMeta);
+  summary.append(chevron, summaryLines);
 
   const quickActions = document.createElement("div");
   quickActions.className = "pod-card-quick-actions";
@@ -1965,12 +2022,20 @@ function createPodCardElement(ctrl) {
   const body = document.createElement("div");
   body.className = "pod-card-body";
 
-  // Terminal Logs: open by default for all pods ("логи по умолчанию видны у всех подов")
+  // Terminal Logs: open during deploy/error, auto-collapse once ready unless user toggled
   const logDetails = document.createElement("details");
   logDetails.className = "logs-details";
-  logDetails.open = true;
+  if (ctrl.stages.ready === "done") {
+    logDetails.open = false;
+    ctrl.logsAutoCollapsed = true;
+  } else {
+    logDetails.open = true;
+  }
   const logSummary = document.createElement("summary");
   logSummary.textContent = "Логи пода (в реальном времени)";
+  logSummary.addEventListener("click", () => {
+    ctrl.logsUserToggled = true;
+  });
   const logPre = document.createElement("pre");
   logPre.className = "terminal-logs";
   logPre.tabIndex = 0;
@@ -2343,6 +2408,16 @@ function updatePodCardElement(ctrl, cardEl) {
   }
 
   // Logs
+  const logDetails = cardEl.querySelector(".logs-details");
+  if (logDetails && !ctrl.logsUserToggled) {
+    if (isError || !isComfyReady) {
+      logDetails.open = true;
+    } else if (isComfyReady && !ctrl.logsAutoCollapsed) {
+      logDetails.open = false;
+      ctrl.logsAutoCollapsed = true;
+    }
+  }
+
   const logPre = cardEl.querySelector(".terminal-logs");
   if (logPre && ctrl.logLines.length > 0) {
     logPre.textContent = ctrl.logLines.join("\n");
@@ -3387,6 +3462,8 @@ async function init() {
     td.textContent = "Ключ удален. Введите API ключ для подключения.";
     tr.appendChild(td);
     document.getElementById("gpu-tbody").appendChild(tr);
+    updateSelectedGpuCount();
+    updateHeaderStatus();
   });
 
   // Key Input Listener
@@ -3397,6 +3474,7 @@ async function init() {
       state.apiKeyPermissionErrors.clear();
       localStorage.setItem(STORAGE_KEYS.API_KEY, entered);
       updateApiKeyRequirementsBanner();
+      updateHeaderStatus();
       await Promise.all([fetchAccountInfo(), fetchActivePods(), fetchGpuCatalog()]);
     }
   };
@@ -3533,12 +3611,15 @@ async function init() {
     state.apiKey = savedKey;
     keyInput.value = savedKey;
     updateApiKeyRequirementsBanner();
+    updateHeaderStatus();
     fetchAccountInfo();
     fetchActivePods();
     fetchGpuCatalog();
   } else {
     updateApiKeyRequirementsBanner();
+    updateHeaderStatus();
   }
+  updateSelectedGpuCount();
 }
 
 document.addEventListener("DOMContentLoaded", init);

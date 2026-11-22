@@ -12,10 +12,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261122_01">
+  <link rel="stylesheet" href="styles.css?v=20261122_02">
 </head>
 <body>
   <div class="app-container">
+    <header class="app-header">
+      <div class="app-brand">
+        <h1 class="app-title">Comfy.Work Deployer</h1>
+        <span class="app-brand-badge">RunPod Direct</span>
+      </div>
+      <span id="header-status-pill" class="header-status-pill">Ожидание API-ключа</span>
+    </header>
     <main class="main-flow">
       <!-- 1. API Secret Key Section -->
       <section class="card auth-card" aria-label="Авторизация RunPod">
@@ -181,56 +188,64 @@
       <!-- 3. GPU Table, Price Slider, Secure & RAM Filters -->
       <section class="card gpu-card" aria-label="Выбор видеокарты">
         <div class="gpu-toolbar">
-          <div class="price-slider-box">
-            <div class="price-header">
-              <label for="max-price-slider">Макс. цена:</label>
-              <strong id="max-price-val" class="price-highlight">1.20 €/ч</strong>
-            </div>
-            <input
-              type="range"
-              id="max-price-slider"
-              min="0"
-              max="30"
-              step="1"
-              value="20"
-              aria-label="Максимальная цена в евро за час"
-            >
-          </div>
-
-          <div class="ram-filter-box">
-            <label for="min-ram-input" class="ram-filter-label">Мин. RAM:</label>
-            <div class="ram-input-wrapper">
-              <span class="ram-prefix">от</span>
+          <div class="gpu-toolbar-filters">
+            <div class="price-slider-box">
+              <div class="price-header">
+                <label for="max-price-slider">Макс. цена:</label>
+                <strong id="max-price-val" class="price-highlight">1.20 €/ч</strong>
+              </div>
               <input
-                type="number"
-                id="min-ram-input"
-                class="ram-gb-input"
+                type="range"
+                id="max-price-slider"
                 min="0"
-                max="65536"
+                max="30"
                 step="1"
-                value="0"
-                aria-label="Минимальный объём системной RAM в ГБ (0 — любое)"
+                value="20"
+                aria-label="Максимальная цена в евро за час"
               >
-              <span class="ram-unit">ГБ</span>
             </div>
-            <span id="min-ram-hint" class="ram-hint">(любое)</span>
+
+            <div class="ram-filter-box">
+              <label for="min-ram-input" class="ram-filter-label">Мин. RAM:</label>
+              <div class="ram-input-wrapper">
+                <span class="ram-prefix">от</span>
+                <input
+                  type="number"
+                  id="min-ram-input"
+                  class="ram-gb-input"
+                  min="0"
+                  max="65536"
+                  step="1"
+                  value="0"
+                  aria-label="Минимальный объём системной RAM в ГБ (0 — любое)"
+                >
+                <span class="ram-unit">ГБ</span>
+              </div>
+              <span id="min-ram-hint" class="ram-hint">(любое)</span>
+            </div>
+
+            <div class="gpu-filter-buttons">
+              <button type="button" id="btn-secure-only" class="btn btn-subtle" title="Отображать только Secure Cloud">
+                Только Secure
+              </button>
+              <button type="button" id="btn-show-unavailable" class="btn btn-subtle" title="Показывать недоступные видеокарты и охотиться на них">
+                Показать недоступные
+              </button>
+            </div>
           </div>
 
-          <div class="gpu-quick-buttons">
-            <button type="button" id="btn-secure-only" class="btn btn-subtle" title="Отображать только Secure Cloud">
-              Только Secure
-            </button>
-            <button type="button" id="btn-show-unavailable" class="btn btn-subtle" title="Показывать недоступные видеокарты и охотиться на них">
-              Показать недоступные
-            </button>
-            <button type="button" id="btn-select-all" class="btn btn-subtle">
-              Все
-            </button>
-            <button type="button" id="btn-select-none" class="btn btn-subtle">
-              Сбросить
-            </button>
-            <button type="button" id="deploy-best-btn" class="btn btn-primary">
-              Запустить лучшую выбранную
+          <div class="gpu-toolbar-actions">
+            <div class="gpu-selection-controls">
+              <button type="button" id="btn-select-all" class="btn btn-subtle">
+                Все
+              </button>
+              <button type="button" id="btn-select-none" class="btn btn-subtle">
+                Сбросить
+              </button>
+              <span id="selected-gpu-count" class="selected-count-badge">Выбрано: 0</span>
+            </div>
+            <button type="button" id="deploy-best-btn" class="btn btn-primary btn-deploy-main">
+              Поиск на выбранных
             </button>
           </div>
         </div>
@@ -267,6 +282,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261121_22"></script>
+  <script type="module" src="app.js?v=20261122_02"></script>
 </body>
 </html>
