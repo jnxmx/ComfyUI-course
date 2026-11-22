@@ -1708,3 +1708,248 @@ progress.loading-spinner:indeterminate {
     padding: 0.45rem 0.4rem;
   }
 }
+
+/* ==========================================================================
+   Header Right Group & Disk Status Badges
+   ========================================================================== */
+.header-right-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.theme-toggle-btn {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+}
+
+.pod-disk-fast {
+  color: var(--success);
+  background: var(--success-bg);
+  border: 1px solid rgba(122, 174, 102, 0.35);
+}
+
+.pod-disk-slow {
+  color: var(--warn);
+  background: var(--warn-bg);
+  border: 1px solid rgba(243, 201, 73, 0.35);
+}
+
+/* ==========================================================================
+   Google Antigravity Light (White) Theme
+   ========================================================================== */
+html.theme-light {
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-raised: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --bg-hover: #e2e8f0;
+  --bg-card: #ffffff;
+
+  --text-primary: #0f172a;
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --muted: #64748b;
+  --text-faint: #64748b;
+
+  --border: rgba(15, 23, 42, 0.10);
+  --border-color: rgba(15, 23, 42, 0.10);
+  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border-strong: rgba(15, 23, 42, 0.18);
+
+  --accent-soft: #2563eb;
+  --accent-soft-hover: #1d4ed8;
+
+  --success: #15803d;
+  --success-bg: rgba(21, 128, 61, 0.10);
+
+  --warn: #b45309;
+  --warn-bg: rgba(217, 119, 6, 0.10);
+
+  --danger: #dc2626;
+  --danger-bg: rgba(220, 38, 38, 0.10);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not(.theme-dark) {
+    --bg-canvas: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-raised: #ffffff;
+    --bg-subtle: #f1f5f9;
+    --bg-hover: #e2e8f0;
+    --bg-card: #ffffff;
+
+    --text-primary: #0f172a;
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --muted: #64748b;
+    --text-faint: #64748b;
+
+    --border: rgba(15, 23, 42, 0.10);
+    --border-color: rgba(15, 23, 42, 0.10);
+    --border-subtle: rgba(15, 23, 42, 0.06);
+    --border-strong: rgba(15, 23, 42, 0.18);
+
+    --accent-soft: #2563eb;
+    --accent-soft-hover: #1d4ed8;
+
+    --success: #15803d;
+    --success-bg: rgba(21, 128, 61, 0.10);
+
+    --warn: #b45309;
+    --warn-bg: rgba(217, 119, 6, 0.10);
+
+    --danger: #dc2626;
+    --danger-bg: rgba(220, 38, 38, 0.10);
+
+    color-scheme: light;
+  }
+}
+
+html.theme-light code,
+html.theme-light .pod-id-code {
+  background-color: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.09);
+  color: #0f172a;
+}
+
+html.theme-light .header-status-pill {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+html.theme-light .card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+}
+
+html.theme-light input[type="text"],
+html.theme-light input[type="password"],
+html.theme-light input[type="number"],
+html.theme-light textarea,
+html.theme-light select {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.16);
+  color: #0f172a;
+  box-shadow: none;
+}
+
+html.theme-light .btn-secondary,
+html.theme-light .btn-subtle,
+html.theme-light .btn-subtle-sm {
+  background-color: rgba(15, 23, 42, 0.045);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+}
+
+html.theme-light .btn-secondary:hover:not(:disabled),
+html.theme-light .btn-subtle:hover:not(:disabled),
+html.theme-light .btn-subtle-sm:hover:not(:disabled) {
+  background-color: rgba(15, 23, 42, 0.09);
+  border-color: rgba(15, 23, 42, 0.20);
+}
+
+html.theme-light .btn-subtle.active,
+html.theme-light .btn-subtle-sm.active {
+  background-color: rgba(47, 113, 227, 0.12);
+  border-color: rgba(47, 113, 227, 0.45);
+  color: #1d4ed8;
+}
+
+html.theme-light .pod-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+html.theme-light .pod-held-retry-box {
+  background: #f8fafc;
+}
+
+html.theme-light .arch-turing {
+  background-color: rgba(15, 23, 42, 0.07);
+  color: #475569;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+html.theme-light #gpu-table tbody tr:hover {
+  background-color: rgba(15, 23, 42, 0.025);
+}
+
+@media (prefers-color-scheme: light) {
+  html:not(.theme-dark) code,
+  html:not(.theme-dark) .pod-id-code {
+    background-color: rgba(15, 23, 42, 0.06);
+    border-color: rgba(15, 23, 42, 0.09);
+    color: #0f172a;
+  }
+
+  html:not(.theme-dark) .header-status-pill {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.12);
+  }
+
+  html:not(.theme-dark) .card {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.09);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  }
+
+  html:not(.theme-dark) input[type="text"],
+  html:not(.theme-dark) input[type="password"],
+  html:not(.theme-dark) input[type="number"],
+  html:not(.theme-dark) textarea,
+  html:not(.theme-dark) select {
+    background-color: #ffffff;
+    border-color: rgba(15, 23, 42, 0.16);
+    color: #0f172a;
+    box-shadow: none;
+  }
+
+  html:not(.theme-dark) .btn-secondary,
+  html:not(.theme-dark) .btn-subtle,
+  html:not(.theme-dark) .btn-subtle-sm {
+    background-color: rgba(15, 23, 42, 0.045);
+    border-color: rgba(15, 23, 42, 0.12);
+    color: #0f172a;
+  }
+
+  html:not(.theme-dark) .btn-secondary:hover:not(:disabled),
+  html:not(.theme-dark) .btn-subtle:hover:not(:disabled),
+  html:not(.theme-dark) .btn-subtle-sm:hover:not(:disabled) {
+    background-color: rgba(15, 23, 42, 0.09);
+    border-color: rgba(15, 23, 42, 0.20);
+  }
+
+  html:not(.theme-dark) .btn-subtle.active,
+  html:not(.theme-dark) .btn-subtle-sm.active {
+    background-color: rgba(47, 113, 227, 0.12);
+    border-color: rgba(47, 113, 227, 0.45);
+    color: #1d4ed8;
+  }
+
+  html:not(.theme-dark) .pod-card {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.12);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  }
+
+  html:not(.theme-dark) .pod-held-retry-box {
+    background: #f8fafc;
+  }
+
+  html:not(.theme-dark) .arch-turing {
+    background-color: rgba(15, 23, 42, 0.07);
+    color: #475569;
+    border-color: rgba(15, 23, 42, 0.14);
+  }
+
+  html:not(.theme-dark) #gpu-table tbody tr:hover {
+    background-color: rgba(15, 23, 42, 0.025);
+  }
+}

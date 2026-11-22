@@ -460,13 +460,24 @@ function initThemeToggle() {
   const meta = document.querySelector('meta[name="color-scheme"]');
   const mql = window.matchMedia("(prefers-color-scheme: dark)");
 
+  const applySavedTheme = () => {
+    const saved = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
+    document.documentElement.classList.remove("theme-light", "theme-dark");
+    if (saved === "light" || saved === "dark") {
+      if (meta) meta.content = saved;
+      document.documentElement.classList.add(`theme-${saved}`);
+    } else if (meta) {
+      meta.content = "light dark";
+    }
+  };
+
   const updateLabel = () => {
     const saved = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
-    const system = mql.matches ? "Темная" : "Светлая";
+    const system = mql.matches ? "Тёмная" : "Светлая";
     if (!saved || saved === "light dark") {
       btn.textContent = `Тема: Авто (${system})`;
     } else {
-      btn.textContent = `Тема: ${saved === "dark" ? "Темная" : "Светлая"}`;
+      btn.textContent = `Тема: ${saved === "dark" ? "Тёмная" : "Светлая"}`;
     }
   };
 
@@ -475,20 +486,25 @@ function initThemeToggle() {
     let next = "light dark";
     if (!saved || saved === "light dark") {
       next = mql.matches ? "light" : "dark";
+    } else if (saved === "light") {
+      next = "dark";
+    } else {
+      next = "light";
     }
-    document.documentElement.classList.remove("theme-light", "theme-dark");
     if (next === "light" || next === "dark") {
-      meta.content = next;
-      document.documentElement.classList.add(`theme-${next}`);
       localStorage.setItem(STORAGE_KEYS.COLOR_SCHEME, next);
     } else {
-      meta.content = "light dark";
       localStorage.removeItem(STORAGE_KEYS.COLOR_SCHEME);
     }
+    applySavedTheme();
     updateLabel();
   });
 
-  mql.addEventListener("change", updateLabel);
+  mql.addEventListener("change", () => {
+    applySavedTheme();
+    updateLabel();
+  });
+  applySavedTheme();
   updateLabel();
 }
 
@@ -1875,6 +1891,23 @@ function renderPodsList() {
   }
 }
 
+function updatePodDiskBadge(ctrl, badgeEl) {
+  if (!badgeEl) return;
+  if (ctrl.diskStatus === "fast") {
+    badgeEl.className = "badge badge-ok pod-disk-warn-badge pod-disk-fast";
+    badgeEl.textContent = "⚡ Быстрый диск";
+    badgeEl.title = "На хосте быстрый диск (XFS / Fast Disk)";
+    badgeEl.hidden = false;
+  } else if (ctrl.diskStatus === "slow") {
+    badgeEl.className = "badge pod-disk-warn-badge pod-disk-slow";
+    badgeEl.textContent = "⚠️ Медленный диск";
+    badgeEl.title = "На хосте медленный диск (не XFS, Fast Disk не включён) — в начале генерации большие модели будут загружаться долго";
+    badgeEl.hidden = false;
+  } else {
+    badgeEl.hidden = true;
+  }
+}
+
 function createPodCardElement(ctrl) {
   const card = document.createElement("div");
   card.className = "pod-card";
@@ -1918,10 +1951,7 @@ function createPodCardElement(ctrl) {
   statusBadge.textContent = ctrl.status;
 
   const diskWarnBadge = document.createElement("span");
-  diskWarnBadge.className = "badge pod-disk-warn-badge";
-  diskWarnBadge.textContent = "⚠️ Медленный диск (долгая загрузка моделей)";
-  diskWarnBadge.title = "На хосте медленный диск (не XFS, Fast Disk не включён) — в начале генерации большие модели будут загружаться долго";
-  diskWarnBadge.hidden = ctrl.diskStatus !== "slow";
+  updatePodDiskBadge(ctrl, diskWarnBadge);
 
   const summaryLines = document.createElement("div");
   summaryLines.className = "pod-summary-lines";
@@ -2224,9 +2254,7 @@ function updatePodCardElement(ctrl, cardEl) {
   }
 
   const diskWarnBadge = cardEl.querySelector(".pod-disk-warn-badge");
-  if (diskWarnBadge) {
-    diskWarnBadge.hidden = ctrl.diskStatus !== "slow";
-  }
+  updatePodDiskBadge(ctrl, diskWarnBadge);
 
   const spentEl = cardEl.querySelector(".pod-spent-counter");
   if (spentEl) {
@@ -3080,13 +3108,142 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
   while (state.currentDeploySessionId === sessionId) {
     let currentCandidates = candidates;
-    if (!isSingleCandidate) {
-      const refreshedQueue = getSelectedCandidatesQueue();
-      currentCandidates = refreshedQueue;
+    if (huntMode && !isSingleCandidate) {
+      const avail = getSelectedCandidatesQueue();
+      const unavail = getSelectedUnavailableCandidates();
+      currentCandidates = avail.length > 0 ? avail : (unavail.length > 0 ? unavail : candidates);
+    } else if (!isSingleCandidate) {
+      currentCandidates = getSelectedCandidatesQueue();
     }
 
     let lastErrorMessage = "";
     let isFatalAuthOrBilling = false;
+
+    if (huntMode && currentCandidates.length > 1) {
+      if (state.currentDeploySessionId !== sessionId || state.deployCreateInFlight) return;
+      state.redeployCount += 1;
+      state.deployCreateInFlight = true;
+
+      const labelsList = currentCandidates.map((c) => `${c.displayName} (${c.cloud})`);
+      const shortLabels = currentCandidates.slice(0, 3).map((c) => c.displayName).join(", ")
+        + (currentCandidates.length > 3 ? ` и ещё ${currentCandidates.length - 3}` : "");
+
+      syncPendingRetryUI({
+        title: `Охота (${currentCandidates.length}): ${shortLabels}`,
+        sub: `Параллельный поиск по ${currentCandidates.length} выбранным картам (каждые 3 сек)...`,
+        alertText: `Попытка #${state.redeployCount} — опрос: ${labelsList.join(" · ")}`,
+        alertClass: "monitor-alert alert-info",
+        candidatesList: currentCandidates
+      });
+
+      let winner = null;
+      const roundErrors = [];
+      try {
+        await Promise.all(
+          currentCandidates.map(async (candidate) => {
+            if (state.currentDeploySessionId !== sessionId || winner) return;
+            try {
+              const payload = buildPayload(candidate);
+              const created = await runpodFetch("/pods", {
+                method: "POST",
+                body: JSON.stringify(payload)
+              });
+              const newPodId = created?.id;
+              if (!newPodId) throw new Error("пустой ID");
+              if (!winner && state.currentDeploySessionId === sessionId) {
+                winner = { candidate, created };
+              } else {
+                // Удаляем лишний под, если две карты ответили одновременно
+                runpodFetch(`/pods/${encodeURIComponent(newPodId)}`, { method: "DELETE" }).catch(() => {});
+              }
+            } catch (err) {
+              const msg = err.message || "ошибка";
+              lastErrorMessage = msg;
+              const lowerErr = msg.toLowerCase();
+              if (
+                msg.includes("401") ||
+                msg.includes("402") ||
+                msg.includes("403") ||
+                lowerErr.includes("unauthorized") ||
+                lowerErr.includes("payment") ||
+                lowerErr.includes("balance")
+              ) {
+                isFatalAuthOrBilling = true;
+              }
+              roundErrors.push(`${candidate.displayName}: нет мест`);
+            }
+          })
+        );
+      } finally {
+        state.deployCreateInFlight = false;
+      }
+
+      if (state.currentDeploySessionId !== sessionId) return;
+
+      if (winner) {
+        const { candidate, created } = winner;
+        const newPodId = created.id;
+        markPodAsOurs(newPodId);
+        await deleteHeldBadPods(newPodId);
+        if (pendingCard) pendingCard.hidden = true;
+        if (state.currentDeploySessionId === sessionId) {
+          state.currentDeploySessionId = null;
+        }
+        state.heldRetryInfo = null;
+
+        const ctrl = getOrCreatePodController(newPodId, {
+          displayName: candidate.displayName,
+          gpuId: candidate.gpuId,
+          gpuName: candidate.displayName,
+          cloud: candidate.cloud,
+          price: candidate.price,
+          status: created.status || "CREATED",
+          pod: created,
+          isOurPod: true,
+          isExpanded: true
+        });
+        ctrl.isExpanded = true;
+        ctrl.isOurPod = true;
+        ctrl.launchMode = "queue";
+        ctrl.launchCandidate = candidate;
+
+        await fetchActivePods();
+        if (!ctrl.logAbortController) {
+          startLogStreamForPod(ctrl);
+        }
+        const newCard = document.querySelector(`.pod-card[data-pod-id="${newPodId}"]`);
+        if (newCard) {
+          updatePodCardElement(ctrl, newCard);
+          newCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      if (isFatalAuthOrBilling) {
+        if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
+        syncPendingRetryUI({
+          title: `Охота остановлена`,
+          sub: "Ошибка авторизации или баланса",
+          alertText: `Критическая ошибка: ${lastErrorMessage}`,
+          alertClass: "monitor-alert alert-error",
+          candidatesList: currentCandidates
+        });
+        return;
+      }
+
+      for (let sec = 3; sec > 0; sec--) {
+        if (state.currentDeploySessionId !== sessionId) return;
+        syncPendingRetryUI({
+          title: `Охота (${currentCandidates.length}): ${shortLabels}`,
+          sub: "Параллельный поиск по всем выбранным картам...",
+          alertText: `Попытка #${state.redeployCount}: ${roundErrors.join(" · ")}. Следующая через ${sec} сек...`,
+          alertClass: "monitor-alert alert-warn",
+          candidatesList: currentCandidates
+        });
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      continue;
+    }
 
     for (const candidate of currentCandidates) {
       if (state.currentDeploySessionId !== sessionId) return;
@@ -3326,6 +3483,19 @@ function getSelectedCandidatesQueue() {
     if (rowFailsRamFilter(r, minRamGb)) return false;
     if (!isGpuDesiredByUser(r)) return false;
     if (r.availability === "NONE") return false;
+    if (state.secureOnly && r.cloud !== "SECURE") return false;
+    return true;
+  });
+}
+
+function getSelectedUnavailableCandidates() {
+  const maxPrice = getMaxPriceFromSlider();
+  const minRamGb = normalizeMinRamGb(state.minRamGb);
+  return state.catalogRows.filter((r) => {
+    if (r.price > maxPrice) return false;
+    if (rowFailsRamFilter(r, minRamGb)) return false;
+    if (!isGpuDesiredByUser(r)) return false;
+    if (r.availability !== "NONE") return false;
     if (state.secureOnly && r.cloud !== "SECURE") return false;
     return true;
   });
@@ -3580,6 +3750,11 @@ async function init() {
 
     const queue = getSelectedCandidatesQueue();
     if (queue.length === 0) {
+      const unavailableQueue = getSelectedUnavailableCandidates();
+      if (unavailableQueue.length > 0) {
+        startDeploymentSequence(unavailableQueue, null, { singleGpuOnly: false, huntMode: true });
+        return;
+      }
       const autoRedeployChecked = document.getElementById("opt-auto-redeploy")?.checked;
       if (autoRedeployChecked && hasAnyDesiredGpuMatchingFilters()) {
         startDeploymentSequence([], null, { singleGpuOnly: false });

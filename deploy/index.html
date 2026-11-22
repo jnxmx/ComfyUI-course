@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="light dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261122_02">
+  <link rel="stylesheet" href="styles.css?v=20261122_03">
 </head>
 <body>
   <div class="app-container">
@@ -21,7 +21,12 @@
         <h1 class="app-title">Comfy.Work Deployer</h1>
         <span class="app-brand-badge">RunPod Direct</span>
       </div>
-      <span id="header-status-pill" class="header-status-pill">Ожидание API-ключа</span>
+      <div class="header-right-group">
+        <button type="button" id="theme-toggle" class="btn btn-subtle-sm theme-toggle-btn" title="Переключить цветовую схему">
+          Тема
+        </button>
+        <span id="header-status-pill" class="header-status-pill">Ожидание API-ключа</span>
+      </div>
     </header>
     <main class="main-flow">
       <!-- 1. API Secret Key Section -->
@@ -282,6 +287,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261122_02"></script>
+  <script type="module" src="app.js?v=20261122_03"></script>
 </body>
 </html>
