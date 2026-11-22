@@ -2589,7 +2589,14 @@ function handlePodLog(ctrl, entry) {
   if (isFastDiskLine && ctrl.diskStatus !== "fast") {
     ctrl.diskStatus = "fast";
     if (card) updatePodCardElement(ctrl, card);
-  } else if (isSlowDiskLine && ctrl.diskStatus !== "fast" && ctrl.diskStatus !== "slow") {
+  } else if (
+    (isSlowDiskLine ||
+      lowerLine.includes("total vram") ||
+      lowerLine.includes("to see the gui go to:") ||
+      lowerLine.includes("comfyui is ready")) &&
+    ctrl.diskStatus !== "fast" &&
+    ctrl.diskStatus !== "slow"
+  ) {
     ctrl.diskStatus = "slow";
     if (card) updatePodCardElement(ctrl, card);
   }
@@ -2863,6 +2870,16 @@ async function pollHealthForPod(ctrl) {
       try {
         const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, { cache: "no-store" });
         if (statsRes.ok && ctrl.stages.cuda !== "error") {
+          try {
+            const statsData = await statsRes.json();
+            const argv = statsData?.system?.argv;
+            if (Array.isArray(argv)) {
+              const hasFastDisk = argv.some((arg) => String(arg).includes("fast-disk"));
+              ctrl.diskStatus = hasFastDisk ? "fast" : "slow";
+            } else if (!ctrl.diskStatus) {
+              ctrl.diskStatus = "slow";
+            }
+          } catch {}
           ctrl.containerStarted = true;
           ctrl.stages.provision = "done";
           ctrl.stages.container = "done";
