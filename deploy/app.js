@@ -458,52 +458,33 @@ function initThemeToggle() {
   const btn = document.getElementById("theme-toggle");
   if (!btn) return;
   const meta = document.querySelector('meta[name="color-scheme"]');
-  const mql = window.matchMedia("(prefers-color-scheme: dark)");
+
+  const getCurrentTheme = () => {
+    const saved = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
+    return saved === "light" ? "light" : "dark";
+  };
 
   const applySavedTheme = () => {
-    const saved = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
+    const theme = getCurrentTheme();
     document.documentElement.classList.remove("theme-light", "theme-dark");
-    if (saved === "light" || saved === "dark") {
-      if (meta) meta.content = saved;
-      document.documentElement.classList.add(`theme-${saved}`);
-    } else if (meta) {
-      meta.content = "light dark";
+    if (meta) meta.content = theme;
+    if (theme === "light") {
+      document.documentElement.classList.add("theme-light");
     }
   };
 
   const updateLabel = () => {
-    const saved = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
-    const system = mql.matches ? "Тёмная" : "Светлая";
-    if (!saved || saved === "light dark") {
-      btn.textContent = `Тема: Авто (${system})`;
-    } else {
-      btn.textContent = `Тема: ${saved === "dark" ? "Тёмная" : "Светлая"}`;
-    }
+    const theme = getCurrentTheme();
+    btn.textContent = `Тема: ${theme === "light" ? "Светлая" : "Тёмная"}`;
   };
 
   btn.addEventListener("click", () => {
-    const saved = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
-    let next = "light dark";
-    if (!saved || saved === "light dark") {
-      next = mql.matches ? "light" : "dark";
-    } else if (saved === "light") {
-      next = "dark";
-    } else {
-      next = "light";
-    }
-    if (next === "light" || next === "dark") {
-      localStorage.setItem(STORAGE_KEYS.COLOR_SCHEME, next);
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.COLOR_SCHEME);
-    }
+    const next = getCurrentTheme() === "light" ? "dark" : "light";
+    localStorage.setItem(STORAGE_KEYS.COLOR_SCHEME, next);
     applySavedTheme();
     updateLabel();
   });
 
-  mql.addEventListener("change", () => {
-    applySavedTheme();
-    updateLabel();
-  });
   applySavedTheme();
   updateLabel();
 }
@@ -1931,10 +1912,7 @@ function createPodCardElement(ctrl) {
   const title = document.createElement("strong");
   title.className = "pod-title";
   title.textContent = ctrl.displayName;
-
-  const idCode = document.createElement("code");
-  idCode.className = "pod-id-code";
-  idCode.textContent = `(${ctrl.podId})`;
+  title.title = `ID: ${ctrl.podId}`;
 
   const gpuBadge = document.createElement("span");
   gpuBadge.className = "badge badge-warn pod-gpu-badge";
@@ -1958,7 +1936,7 @@ function createPodCardElement(ctrl) {
 
   const summaryPrimary = document.createElement("div");
   summaryPrimary.className = "pod-summary-primary";
-  summaryPrimary.append(title, idCode, statusBadge);
+  summaryPrimary.append(title, statusBadge);
 
   const summaryMeta = document.createElement("div");
   summaryMeta.className = "pod-summary-meta";
@@ -2010,36 +1988,7 @@ function createPodCardElement(ctrl) {
     }
   });
 
-  if (ctrl.isOurPod) {
-    const openComfyBtn = document.createElement("a");
-    openComfyBtn.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
-    openComfyBtn.target = "_blank";
-    openComfyBtn.rel = "noopener noreferrer";
-    openComfyBtn.className = "btn btn-subtle-sm btn-quick-comfy";
-    openComfyBtn.textContent = "ComfyUI :7860 ↗";
-    openComfyBtn.addEventListener("click", (e) => e.stopPropagation());
-
-    const openFizgigBtn = document.createElement("a");
-    openFizgigBtn.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
-    openFizgigBtn.target = "_blank";
-    openFizgigBtn.rel = "noopener noreferrer";
-    openFizgigBtn.className = "btn btn-subtle-sm btn-quick-fizgig";
-    openFizgigBtn.textContent = "Fizgig :7862 ↗";
-    openFizgigBtn.addEventListener("click", (e) => e.stopPropagation());
-
-    quickActions.append(openComfyBtn, openFizgigBtn, deleteBtn);
-  } else {
-    // Foreign pod: "только ссылку на консоль и логи"
-    const openConsoleBtn = document.createElement("a");
-    openConsoleBtn.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
-    openConsoleBtn.target = "_blank";
-    openConsoleBtn.rel = "noopener noreferrer";
-    openConsoleBtn.className = "btn btn-subtle-sm btn-quick-console";
-    openConsoleBtn.textContent = "Консоль RunPod ↗";
-    openConsoleBtn.addEventListener("click", (e) => e.stopPropagation());
-
-    quickActions.append(openConsoleBtn, deleteBtn);
-  }
+  quickActions.appendChild(deleteBtn);
 
   header.append(summary, quickActions);
 
@@ -2357,6 +2306,11 @@ function updatePodCardElement(ctrl, cardEl) {
   const quickFizgig = cardEl.querySelector(".btn-quick-fizgig");
   if (quickComfy) quickComfy.style.display = isComfyReady ? "" : "none";
   if (quickFizgig) quickFizgig.style.display = isComfyReady ? "" : "none";
+
+  const stagePillsEl = cardEl.querySelector(".stage-pills");
+  if (stagePillsEl) {
+    stagePillsEl.hidden = isComfyReady;
+  }
 
   // Subtitle & spinner
   const sub = cardEl.querySelector(".pod-card-subtitle");
