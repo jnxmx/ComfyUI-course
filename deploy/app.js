@@ -4,7 +4,7 @@ import {
   GPU_POWER_RATINGS,
   GPU_BENCHMARK_ORDER,
   buildSegmentedPowerBars
-} from "./gpu_data.js?v=20261123_05";
+} from "./gpu_data.js?v=20261123_06";
 
 /**
  * course.yakushev.fr/deploy — Minimalist RunPod Deployer & CUDA 13.0 Monitor

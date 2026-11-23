@@ -105,7 +105,8 @@ html.theme-light .col-vid {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--muted);
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 #gpu-score-table tbody tr:hover {
