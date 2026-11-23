@@ -301,15 +301,27 @@ function loadOptions() {
 }
 
 function getPodTcpPort(pod, internalPort) {
-  const ports = pod?.runtime?.ports;
-  if (!Array.isArray(ports)) return null;
-  const p = ports.find(pt => pt.privatePort === internalPort && (pt.type === "tcp" || pt.type === "http"));
-  if (p && p.ip && p.publicPort) {
+  // RunPod REST API format: pod.publicIp + pod.portMappings["8188"]
+  const mappedPort = pod?.portMappings?.[String(internalPort)] ?? pod?.portMappings?.[internalPort];
+  if (pod?.publicIp && mappedPort) {
     return {
-      ip: p.ip,
-      port: p.publicPort,
-      url: `http://${p.ip}:${p.publicPort}`
+      ip: pod.publicIp,
+      port: mappedPort,
+      url: `http://${pod.publicIp}:${mappedPort}`
     };
+  }
+
+  // RunPod GraphQL format: pod.runtime.ports[]
+  const ports = pod?.runtime?.ports;
+  if (Array.isArray(ports)) {
+    const p = ports.find(pt => pt.privatePort === internalPort && (pt.type === "tcp" || pt.type === "http"));
+    if (p && p.ip && p.publicPort) {
+      return {
+        ip: p.ip,
+        port: p.publicPort,
+        url: `http://${p.ip}:${p.publicPort}`
+      };
+    }
   }
   return null;
 }
