@@ -1936,3 +1936,42 @@ html.theme-light .th-score-link {
 html.theme-light .recommended-star {
   color: #eab308;
 }
+
+.auth-header-links {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.api-safety-info {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.48;
+}
+
+.api-safety-info p {
+  margin: 0 0 0.45rem;
+  color: var(--text-primary);
+}
+
+.api-safety-info ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}

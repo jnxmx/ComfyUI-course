@@ -3266,6 +3266,17 @@ async function init() {
     toggleKeyBtn.textContent = isPw ? "Скрыть" : "Показать";
   });
 
+  // API Safety Info Toggle
+  const safetyToggleBtn = document.getElementById("api-safety-toggle");
+  const safetyInfoEl = document.getElementById("api-safety-info");
+  if (safetyToggleBtn && safetyInfoEl) {
+    safetyToggleBtn.addEventListener("click", () => {
+      const nextHidden = !safetyInfoEl.hidden;
+      safetyInfoEl.hidden = nextHidden;
+      safetyToggleBtn.setAttribute("aria-expanded", nextHidden ? "false" : "true");
+    });
+  }
+
   // Forget Key Button
   document.getElementById("forget-key-btn").addEventListener("click", () => {
     state.apiKey = "";
