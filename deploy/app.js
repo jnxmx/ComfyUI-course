@@ -2571,7 +2571,7 @@ function handlePodLog(ctrl, entry) {
 async function pollHealthForPod(ctrl) {
   if (state.redeployInProgress) return;
   try {
-    const pod = await runpodFetch(`/pods/${encodeURIComponent(ctrl.podId)}`);
+    const pod = await runpodFetch(`/pods/${encodeURIComponent(ctrl.podId)}?includeMachine=true`);
     if (!pod) return;
 
     ctrl.pod = pod;
