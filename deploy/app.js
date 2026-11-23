@@ -3312,17 +3312,28 @@ async function init() {
   slider.step = "1";
 
   const savedPrice = localStorage.getItem(STORAGE_KEYS.MAX_PRICE);
+  const updateRangeTrackFill = (el) => {
+    if (!el) return;
+    const min = Number.parseFloat(el.min || "0");
+    const max = Number.parseFloat(el.max || "100");
+    const val = Number.parseFloat(el.value || "0");
+    const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+    el.style.setProperty("--range-pct", `${Math.max(0, Math.min(100, pct))}%`);
+  };
+
   const initIdx = savedPrice !== null ? findClosestPriceStepIndex(savedPrice) : DEFAULT_PRICE_STEP_INDEX;
   slider.value = String(initIdx);
   const initPrice = PRICE_STEPS[initIdx];
   priceVal.textContent = `${initPrice.toFixed(2)} $/ч`;
   slider.setAttribute("aria-valuetext", `${initPrice.toFixed(2)} $/ч`);
+  updateRangeTrackFill(slider);
 
   const onPriceChange = () => {
     const price = getMaxPriceFromSlider();
     const val = price.toFixed(2);
     priceVal.textContent = `${val} $/ч`;
     slider.setAttribute("aria-valuetext", `${val} $/ч`);
+    updateRangeTrackFill(slider);
     localStorage.setItem(STORAGE_KEYS.MAX_PRICE, val);
     renderGpuTable();
   };
@@ -3341,6 +3352,7 @@ async function init() {
       const label = state.minRamGb === 0 ? "любое" : `${state.minRamGb} ГБ`;
       if (minRamVal) minRamVal.textContent = label;
       minRamInput.setAttribute("aria-valuetext", label);
+      updateRangeTrackFill(minRamInput);
     };
     updateRamLabel();
 

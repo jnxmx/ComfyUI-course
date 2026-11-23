@@ -564,7 +564,13 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 999px;
-  background: var(--border-strong);
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--range-pct, 0%),
+    var(--border-strong) var(--range-pct, 0%),
+    var(--border-strong) 100%
+  );
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -588,6 +594,12 @@ input[type="range"]::-moz-range-track {
   height: 4px;
   border-radius: 999px;
   background: var(--border-strong);
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
 }
 
 input[type="range"]::-moz-range-thumb {
