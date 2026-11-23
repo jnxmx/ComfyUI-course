@@ -22,7 +22,7 @@ const PRICE_STEPS = Object.freeze([
   2.0,
   3.0
 ]);
-const DEFAULT_PRICE_STEP_INDEX = 20; // 1.20 €/ч
+const DEFAULT_PRICE_STEP_INDEX = 20; // 1.20 $/ч
 
 const DEFAULT_TEMPLATE = Object.freeze({
   templateId: "casls01eko",
@@ -987,9 +987,9 @@ function renderGpuTable() {
 
     let mismatchReason = "";
     if (exceedsPrice && failsRam) {
-      mismatchReason = `Превышает лимит ${maxPrice.toFixed(2)} €/ч и меньше фильтра RAM (${minRamGb} ГБ).`;
+      mismatchReason = `Превышает лимит ${maxPrice.toFixed(2)} $/ч и меньше фильтра RAM (${minRamGb} ГБ).`;
     } else if (exceedsPrice) {
-      mismatchReason = `Превышает лимит ${maxPrice.toFixed(2)} €/ч. Увеличьте ползунок цены, чтобы выбрать.`;
+      mismatchReason = `Превышает лимит ${maxPrice.toFixed(2)} $/ч. Увеличьте ползунок цены, чтобы выбрать.`;
     } else if (failsRam) {
       mismatchReason = `Доступная RAM ниже фильтра ${minRamGb} ГБ. Уменьшите фильтр RAM, чтобы выбрать.`;
     }
@@ -3016,7 +3016,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         const ramNote = state.minRamGb > 0 ? `, RAM ≥ ${state.minRamGb} ГБ` : "";
         syncPendingRetryUI({
           title: `Запуск: ${candidate.displayName} (${candidate.cloud})`,
-          sub: `Создание пода по цене ${candidate.price.toFixed(2)} €/ч${ramNote}...`,
+          sub: `Создание пода по цене ${candidate.price.toFixed(2)} $/ч${ramNote}...`,
           alertText: `Попытка #${state.redeployCount}: Выделение пода на ${candidate.displayName}...`,
           alertClass: "monitor-alert alert-info",
           candidatesList: currentCandidates
@@ -3315,14 +3315,14 @@ async function init() {
   const initIdx = savedPrice !== null ? findClosestPriceStepIndex(savedPrice) : DEFAULT_PRICE_STEP_INDEX;
   slider.value = String(initIdx);
   const initPrice = PRICE_STEPS[initIdx];
-  priceVal.textContent = `${initPrice.toFixed(2)} €/ч`;
-  slider.setAttribute("aria-valuetext", `${initPrice.toFixed(2)} €/ч`);
+  priceVal.textContent = `${initPrice.toFixed(2)} $/ч`;
+  slider.setAttribute("aria-valuetext", `${initPrice.toFixed(2)} $/ч`);
 
   const onPriceChange = () => {
     const price = getMaxPriceFromSlider();
     const val = price.toFixed(2);
-    priceVal.textContent = `${val} €/ч`;
-    slider.setAttribute("aria-valuetext", `${val} €/ч`);
+    priceVal.textContent = `${val} $/ч`;
+    slider.setAttribute("aria-valuetext", `${val} $/ч`);
     localStorage.setItem(STORAGE_KEYS.MAX_PRICE, val);
     renderGpuTable();
   };
