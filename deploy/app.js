@@ -1071,8 +1071,11 @@ function renderGpuTable() {
     tdPrice.className = "col-price";
     const priceText = document.createElement("span");
     priceText.className = "price-text";
-    priceText.textContent = `${row.price.toFixed(2)} $/ч`;
-    tdPrice.appendChild(priceText);
+    priceText.textContent = row.price.toFixed(2);
+    const priceUnit = document.createElement("span");
+    priceUnit.className = "price-unit";
+    priceUnit.textContent = " $/ч";
+    tdPrice.append(priceText, priceUnit);
 
     // Power (Pic / Vid rating bars)
     const tdPower = document.createElement("td");
@@ -1768,7 +1771,7 @@ function createPodCardElement(ctrl) {
 
     const stages = [
       { key: "provision", label: "1. Подготовка хоста" },
-      { key: "container", label: "2. Контейнер" },
+      { key: "container", label: "2. Загрузка образа" },
       { key: "cuda", label: "3. Проверка CUDA и CPU" },
       { key: "update", label: getPodUpdateStageLabel(ctrl) },
       { key: "ready", label: "5. Готово" }
@@ -2019,7 +2022,7 @@ function updatePodCardElement(ctrl, cardEl) {
       statusBadge.textContent = "ПРОВЕРКА CUDA";
     } else if (ctrl.stages.container === "active") {
       statusBadge.className = "badge badge-warn pod-status-badge";
-      statusBadge.textContent = "КОНТЕЙНЕР";
+      statusBadge.textContent = "ЗАГРУЗКА ОБРАЗА";
     } else {
       statusBadge.className = "badge badge-warn pod-status-badge";
       statusBadge.textContent = "ПОДГОТОВКА ХОСТА";
