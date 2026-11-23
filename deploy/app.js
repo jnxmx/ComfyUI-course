@@ -177,7 +177,10 @@ function initThemeToggle() {
 
   const updateLabel = () => {
     const theme = getCurrentTheme();
-    btn.textContent = `Тема: ${theme === "light" ? "Светлая" : "Тёмная"}`;
+    const label = theme === "light" ? "Переключить на тёмную тему" : "Переключить на светлую тему";
+    btn.title = label;
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("aria-pressed", theme === "light" ? "true" : "false");
   };
 
   btn.addEventListener("click", () => {

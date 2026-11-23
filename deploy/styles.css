@@ -459,7 +459,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 0.65rem;
+  gap: 1.15rem;
 }
 
 .gpu-filter-buttons {
@@ -1896,9 +1896,22 @@ progress.loading-spinner:indeterminate {
 }
 
 .theme-toggle-btn {
-  font-size: 0.78rem;
-  padding: 0.25rem 0.65rem;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
   border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html:not(.theme-light) .theme-icon-moon {
+  display: none;
+}
+
+html.theme-light .theme-icon-sun {
+  display: none;
 }
 
 .pod-disk-fast {
