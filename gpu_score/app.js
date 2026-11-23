@@ -81,7 +81,7 @@ function renderScoreTable(priceMap = new Map()) {
     const arch = getGpuArchitecture(item.gpuId, item.name);
     if (arch) {
       const archBadge = document.createElement("span");
-      archBadge.className = `arch-badge ${arch.tierClass}`;
+      archBadge.className = `arch-pill ${arch.tierClass}`;
       archBadge.textContent = arch.label;
       archBadge.title = arch.title;
       cell.appendChild(archBadge);
