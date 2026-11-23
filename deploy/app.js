@@ -1071,7 +1071,7 @@ function renderGpuTable() {
     tdPrice.className = "col-price";
     const priceText = document.createElement("span");
     priceText.className = "price-text";
-    priceText.textContent = row.price.toFixed(2);
+    priceText.textContent = `${row.price.toFixed(2)} $/ч`;
     tdPrice.appendChild(priceText);
 
     // Power (Pic / Vid rating bars)
