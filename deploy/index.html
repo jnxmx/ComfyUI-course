@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261123_31">
+  <link rel="stylesheet" href="styles.css?v=20261123_33">
 </head>
 <body>
   <div class="app-container">
@@ -31,8 +31,8 @@
     <main class="main-flow">
       <!-- 1. API Secret Key Section -->
       <section class="card auth-card" aria-label="Авторизация RunPod">
-        <div class="auth-header-row">
-          <label for="runpod-api-key" class="field-label">RunPod API Secret Key</label>
+        <div class="section-head auth-header-row">
+          <label for="runpod-api-key" class="section-title">RunPod API Secret Key</label>
           <div class="auth-header-links">
             <button type="button" id="api-safety-toggle" class="link-external link-button" aria-expanded="false">
               Безопасно ли это?
@@ -142,70 +142,75 @@
         <div id="pods-list" class="pods-list" aria-live="polite"></div>
       </section>
 
-      <!-- 2. Template & 3 Options -->
-      <section class="card template-card" aria-label="Настройки темплейта">
-        <div class="template-header-row">
-          <div class="template-name-row">
-            <span class="template-tag">Темплейт:</span>
-            <a id="template-display-name" href="https://console.runpod.io/hub/template/casls01eko?id=casls01eko" target="_blank" rel="noopener noreferrer" class="template-name template-link" title="Открыть темплейт на RunPod Hub">comfy.work CUDA 13.0 with New Manager</a>
-            <code id="template-id-badge" class="template-id-badge">casls01eko</code>
-            <button type="button" id="edit-template-btn" class="btn-icon" title="Изменить темплейт (ID или ссылка с RunPod)" aria-label="Изменить темплейт">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
-            </button>
-          </div>
+      <!-- 2. Pod Launch (Template, Options & GPU Table) -->
+      <section class="card deploy-card gpu-card" aria-label="Запуск пода">
+        <div class="section-head">
+          <h2 class="section-title">Запуск пода</h2>
         </div>
 
-        <!-- Inline Template Editor Form -->
-        <div id="template-edit-form" class="template-edit-form" hidden>
-          <div class="template-edit-row">
-            <input
-              type="text"
-              id="custom-template-input"
-              placeholder="Вставьте ссылку на темплейт с RunPod или его код-номер (например casls01eko)"
-              spellcheck="false"
-            >
-            <button type="button" id="save-template-btn" class="btn btn-primary-sm">Применить</button>
-            <button type="button" id="reset-template-btn" class="btn btn-secondary-sm">По умолчанию</button>
-            <button type="button" id="cancel-template-btn" class="btn btn-subtle-sm">Отмена</button>
+        <div class="template-section">
+          <div class="template-header-row">
+            <div class="template-name-row">
+              <span class="template-tag">Темплейт:</span>
+              <a id="template-display-name" href="https://console.runpod.io/hub/template/casls01eko?id=casls01eko" target="_blank" rel="noopener noreferrer" class="template-name template-link" title="Открыть темплейт на RunPod Hub">comfy.work CUDA 13.0 with New Manager</a>
+              <code id="template-id-badge" class="template-id-badge">casls01eko</code>
+              <button type="button" id="edit-template-btn" class="btn-icon" title="Изменить темплейт (ID или ссылка с RunPod)" aria-label="Изменить темплейт">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <div id="template-edit-msg" class="template-edit-msg" hidden></div>
-        </div>
 
-        <div class="options-group">
-          <label class="checkbox-control" for="opt-new-manager">
-            <input type="checkbox" id="opt-new-manager" checked>
-            <span>Новый Manager</span>
-          </label>
-          <label class="checkbox-control" for="opt-restore-backup">
-            <input type="checkbox" id="opt-restore-backup" checked>
-            <span>Загружать бэкап</span>
-          </label>
-          <div class="shutdown-control-group">
-            <label class="checkbox-control" for="opt-shutdown-timer">
-              <input type="checkbox" id="opt-shutdown-timer" checked>
-              <span>Удалять при простое:</span>
-            </label>
-            <div class="shutdown-input-wrapper">
+          <!-- Inline Template Editor Form -->
+          <div id="template-edit-form" class="template-edit-form" hidden>
+            <div class="template-edit-row">
               <input
-                type="number"
-                id="opt-shutdown-minutes"
-                min="1"
-                max="1440"
-                value="30"
-                class="shutdown-minutes-input"
-                aria-label="Минут неактивности до автоматического удаления пода"
+                type="text"
+                id="custom-template-input"
+                placeholder="Вставьте ссылку на темплейт с RunPod или его код-номер (например casls01eko)"
+                spellcheck="false"
               >
-              <span class="shutdown-unit">мин</span>
+              <button type="button" id="save-template-btn" class="btn btn-primary-sm">Применить</button>
+              <button type="button" id="reset-template-btn" class="btn btn-secondary-sm">По умолчанию</button>
+              <button type="button" id="cancel-template-btn" class="btn btn-subtle-sm">Отмена</button>
+            </div>
+            <div id="template-edit-msg" class="template-edit-msg" hidden></div>
+          </div>
+
+          <div class="options-group">
+            <label class="checkbox-control" for="opt-new-manager">
+              <input type="checkbox" id="opt-new-manager" checked>
+              <span>Новый Manager</span>
+            </label>
+            <label class="checkbox-control" for="opt-restore-backup">
+              <input type="checkbox" id="opt-restore-backup" checked>
+              <span>Загружать бэкап</span>
+            </label>
+            <div class="shutdown-control-group">
+              <label class="checkbox-control" for="opt-shutdown-timer">
+                <input type="checkbox" id="opt-shutdown-timer" checked>
+                <span>Удалять при простое:</span>
+              </label>
+              <div class="shutdown-input-wrapper">
+                <input
+                  type="number"
+                  id="opt-shutdown-minutes"
+                  min="1"
+                  max="1440"
+                  value="30"
+                  class="shutdown-minutes-input"
+                  aria-label="Минут неактивности до автоматического удаления пода"
+                >
+                <span class="shutdown-unit">мин</span>
+              </div>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- 3. GPU Table, Price Slider, Secure & RAM Filters -->
-      <section class="card gpu-card" aria-label="Выбор видеокарты">
+        <hr class="card-divider">
+
         <div class="gpu-toolbar">
           <div class="gpu-toolbar-filters">
             <div class="price-slider-box">
@@ -303,6 +308,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261123_31"></script>
+  <script type="module" src="app.js?v=20261123_33"></script>
 </body>
 </html>
