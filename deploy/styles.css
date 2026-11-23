@@ -493,8 +493,14 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  min-width: 220px;
-  flex: 1;
+  min-width: 150px;
+  max-width: 195px;
+  flex: 0 1 180px;
+}
+
+.gpu-card:not(.show-unavailable-mode) .col-check,
+.gpu-card:not(.show-unavailable-mode) .gpu-toolbar-actions {
+  display: none;
 }
 
 .price-header {

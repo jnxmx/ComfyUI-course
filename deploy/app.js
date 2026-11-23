@@ -969,7 +969,7 @@ function renderGpuTable() {
     // Checkbox:
     // Видеокарты, не проходящие по фильтрам цены/RAM, не имеют включенных галочек и заблокированы
     const isChecked = !failsFilter && isDesired;
-    tr.classList.toggle("is-selected", isChecked);
+    tr.classList.toggle("is-selected", state.showUnavailable && isChecked);
     const tdCheck = document.createElement("td");
     tdCheck.className = "col-check";
     const chk = document.createElement("input");
@@ -981,13 +981,13 @@ function renderGpuTable() {
     }
     chk.addEventListener("change", () => {
       state.userSelectionOverrides.set(row.rowId, chk.checked);
-      tr.classList.toggle("is-selected", chk.checked);
+      tr.classList.toggle("is-selected", state.showUnavailable && chk.checked);
       persistSelections();
       updateSelectedGpuCount();
     });
     tdCheck.appendChild(chk);
 
-    if (!failsFilter) {
+    if (!failsFilter && state.showUnavailable) {
       tr.classList.add("row-selectable");
       tr.addEventListener("click", (e) => {
         if (e.target.closest("input, button, a, label, .col-action")) return;
@@ -3407,6 +3407,7 @@ async function init() {
   });
 
   // Button "Показать недоступные"
+  const gpuCardEl = document.querySelector(".gpu-card");
   const btnShowUnavailable = document.getElementById("btn-show-unavailable");
   if (btnShowUnavailable) {
     const savedUnavailable = localStorage.getItem(STORAGE_KEYS.SHOW_UNAVAILABLE);
@@ -3414,9 +3415,15 @@ async function init() {
       state.showUnavailable = true;
       btnShowUnavailable.classList.add("active");
     }
+    if (gpuCardEl) {
+      gpuCardEl.classList.toggle("show-unavailable-mode", state.showUnavailable);
+    }
     btnShowUnavailable.addEventListener("click", () => {
       state.showUnavailable = !state.showUnavailable;
       btnShowUnavailable.classList.toggle("active", state.showUnavailable);
+      if (gpuCardEl) {
+        gpuCardEl.classList.toggle("show-unavailable-mode", state.showUnavailable);
+      }
       localStorage.setItem(STORAGE_KEYS.SHOW_UNAVAILABLE, state.showUnavailable ? "true" : "false");
       renderGpuTable();
     });
@@ -3445,20 +3452,9 @@ async function init() {
   }
 
   // Quick Select Buttons
-  const btnAll = document.getElementById("btn-select-all");
   const btnNone = document.getElementById("btn-select-none");
 
-  btnAll.addEventListener("click", () => {
-    state.defaultSelectedAll = true;
-    state.userSelectionOverrides.clear();
-    for (const row of state.catalogRows) {
-      state.userSelectionOverrides.set(row.rowId, true);
-    }
-    persistSelections();
-    renderGpuTable();
-  });
-
-  btnNone.addEventListener("click", () => {
+  btnNone?.addEventListener("click", () => {
     state.defaultSelectedAll = false;
     state.userSelectionOverrides.clear();
     for (const row of state.catalogRows) {

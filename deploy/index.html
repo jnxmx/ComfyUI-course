@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261123_30">
+  <link rel="stylesheet" href="styles.css?v=20261123_31">
 </head>
 <body>
   <div class="app-container">
@@ -247,24 +247,21 @@
               <button type="button" id="btn-show-unavailable" class="btn btn-subtle" title="Показывать недоступные видеокарты и охотиться на них">
                 Показать недоступные
               </button>
+              <label class="checkbox-control auto-redeploy-control" for="opt-auto-redeploy">
+                <input type="checkbox" id="opt-auto-redeploy" checked>
+                <span>Повторять попытку при сбое</span>
+              </label>
             </div>
           </div>
 
           <div class="gpu-toolbar-actions">
             <div class="gpu-selection-controls">
-              <button type="button" id="btn-select-all" class="btn btn-subtle">
-                Все
-              </button>
               <button type="button" id="btn-select-none" class="btn btn-subtle">
                 Сбросить
               </button>
               <span id="selected-gpu-count" class="selected-count-badge">Выбрано: 0</span>
             </div>
             <div class="gpu-deploy-group">
-              <label class="checkbox-control auto-redeploy-control" for="opt-auto-redeploy">
-                <input type="checkbox" id="opt-auto-redeploy" checked>
-                <span>Автоповтор при сбое</span>
-              </label>
               <button type="button" id="deploy-best-btn" class="btn btn-primary btn-deploy-main">
                 Поиск на выбранных
               </button>
@@ -306,6 +303,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261123_30"></script>
+  <script type="module" src="app.js?v=20261123_31"></script>
 </body>
 </html>
