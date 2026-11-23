@@ -1884,3 +1884,16 @@ html.theme-light .th-score-link {
   cursor: help;
   flex-shrink: 0;
 }
+
+.recommended-star {
+  color: #facc15;
+  font-size: 0.65rem;
+  line-height: 1;
+  vertical-align: 0.42em;
+  margin-left: 0.25rem;
+  cursor: help;
+}
+
+html.theme-light .recommended-star {
+  color: #eab308;
+}

@@ -386,3 +386,24 @@ export function isAnomalousGpuPrice(gpuId, price) {
   }
   return false;
 }
+
+const RECOMMENDED_GPU_CLOUDS = Object.freeze({
+  "NVIDIA GeForce RTX 4070 Ti": ["COMMUNITY", "SECURE"],
+  "NVIDIA GeForce RTX 3090": ["COMMUNITY"],
+  "NVIDIA GeForce RTX 3080": ["COMMUNITY"],
+  "NVIDIA GeForce RTX 4080 SUPER": ["COMMUNITY", "SECURE"],
+  "NVIDIA RTX PRO 4500 Blackwell": ["COMMUNITY"],
+  "NVIDIA GeForce RTX 5080": ["COMMUNITY", "SECURE"],
+  "NVIDIA RTX 5000 Ada Generation": ["COMMUNITY"],
+  "NVIDIA GeForce RTX 5090": ["COMMUNITY", "SECURE"],
+  "NVIDIA RTX PRO 5000 Blackwell": ["COMMUNITY"],
+  "NVIDIA GeForce RTX 4090": ["SECURE"],
+  "NVIDIA RTX PRO 6000 Blackwell Server Edition": ["COMMUNITY"],
+  "NVIDIA RTX PRO 6000 Blackwell Workstation Edition": ["COMMUNITY"],
+  "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition": ["COMMUNITY"]
+});
+
+export function isRecommendedGpu(gpuId, cloud) {
+  const clouds = RECOMMENDED_GPU_CLOUDS[gpuId];
+  return Array.isArray(clouds) && clouds.includes(cloud);
+}

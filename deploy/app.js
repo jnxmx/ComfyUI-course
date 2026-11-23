@@ -4,8 +4,9 @@ import {
   GPU_POWER_RATINGS,
   GPU_BENCHMARK_ORDER,
   buildSegmentedPowerBars,
-  isAnomalousGpuPrice
-} from "./gpu_data.js?v=20261123_07";
+  isAnomalousGpuPrice,
+  isRecommendedGpu
+} from "./gpu_data.js?v=20261123_09";
 
 /**
  * course.yakushev.fr/deploy — Minimalist RunPod Deployer & CUDA 13.0 Monitor
@@ -1014,6 +1015,14 @@ function renderGpuTable() {
     titleSpan.className = "gpu-title gpu-title-text";
     titleSpan.textContent = row.displayName;
     titleWrap.appendChild(titleSpan);
+
+    if (isRecommendedGpu(row.gpuId, row.cloud)) {
+      const starSup = document.createElement("sup");
+      starSup.className = "recommended-star";
+      starSup.textContent = "★";
+      starSup.title = "Рекомендуемая видеокарта";
+      titleWrap.appendChild(starSup);
+    }
 
     if (Number.isFinite(row.vramGb) && row.vramGb > 0) {
       const vramSup = document.createElement("sup");
