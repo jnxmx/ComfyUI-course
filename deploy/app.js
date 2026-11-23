@@ -2778,11 +2778,10 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
       state.deployCreateInFlight = true;
 
       const labelsList = currentCandidates.map((c) => `${c.displayName} (${c.cloud})`);
-      const shortLabels = currentCandidates.slice(0, 3).map((c) => c.displayName).join(", ")
-        + (currentCandidates.length > 3 ? ` и ещё ${currentCandidates.length - 3}` : "");
+      const allHuntLabels = labelsList.join(", ");
 
       syncPendingRetryUI({
-        title: `Охота (${currentCandidates.length}): ${shortLabels}`,
+        title: `Охота (${currentCandidates.length}): ${allHuntLabels}`,
         sub: `Параллельный поиск по ${currentCandidates.length} выбранным картам (каждые 3 сек)...`,
         alertText: `Попытка #${state.redeployCount} — опрос: ${labelsList.join(" · ")}`,
         alertClass: "monitor-alert alert-info",
@@ -2887,7 +2886,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
       for (let sec = 3; sec > 0; sec--) {
         if (state.currentDeploySessionId !== sessionId) return;
         syncPendingRetryUI({
-          title: `Охота (${currentCandidates.length}): ${shortLabels}`,
+          title: `Охота (${currentCandidates.length}): ${allHuntLabels}`,
           sub: "Параллельный поиск по всем выбранным картам...",
           alertText: `Попытка #${state.redeployCount}: ${roundErrors.join(" · ")}. Следующая через ${sec} сек...`,
           alertClass: "monitor-alert alert-warn",
