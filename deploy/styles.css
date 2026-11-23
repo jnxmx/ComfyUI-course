@@ -1179,9 +1179,35 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   border-color: rgba(255, 255, 255, 0.15);
 }
 .btn-subtle.active {
-  background-color: var(--accent);
-  color: var(--accent-contrast);
-  border-color: var(--accent);
+  background-color: rgba(47, 113, 227, 0.20);
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.65);
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.22);
+}
+
+#btn-secure-only,
+#btn-show-unavailable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+#btn-secure-only::before,
+#btn-show-unavailable::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+#btn-secure-only.active::before,
+#btn-show-unavailable.active::before {
+  background-color: #60a5fa;
+  box-shadow: 0 0 6px rgba(96, 165, 250, 0.85);
+  opacity: 1;
 }
 
 .btn-danger-sm {
