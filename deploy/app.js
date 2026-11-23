@@ -3338,7 +3338,7 @@ async function init() {
     minRamInput.value = String(state.minRamGb);
 
     const updateRamLabel = () => {
-      const label = state.minRamGb === 0 ? "любое" : `от ${state.minRamGb} ГБ`;
+      const label = state.minRamGb === 0 ? "любое" : `${state.minRamGb} ГБ`;
       if (minRamVal) minRamVal.textContent = label;
       minRamInput.setAttribute("aria-valuetext", label);
     };

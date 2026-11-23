@@ -603,9 +603,9 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  min-width: 140px;
-  max-width: 148px;
-  flex: 0 0 144px;
+  min-width: 108px;
+  max-width: 116px;
+  flex: 0 0 112px;
 }
 
 .ram-header {
