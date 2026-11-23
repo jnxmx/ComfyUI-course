@@ -293,6 +293,12 @@ a:focus-visible {
   color: var(--text-primary);
 }
 
+.section-title label {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
 .card-divider {
   border: none;
   border-top: 1px solid var(--border);
