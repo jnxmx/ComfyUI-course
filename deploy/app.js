@@ -891,7 +891,7 @@ function renderGpuTable() {
       divTr.className = "table-divider-row table-divider-ram";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = `Не подходит под фильтр RAM (< ${minRamGb} ГБ)`;
+      divTd.textContent = "Не подходит под фильтр RAM";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
@@ -903,7 +903,7 @@ function renderGpuTable() {
       divTr.className = "table-divider-row table-divider-price";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = `Дороже фильтра цены (> ${maxPrice.toFixed(2)} €/ч)`;
+      divTd.textContent = "Дороже фильтра цены";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
@@ -915,31 +915,31 @@ function renderGpuTable() {
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = "Нерекомендуемые но возможные варианты";
+      divTd.textContent = "Нерекомендуемые";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
 
-    // Разделитель "Нерекомендуемые но возможные варианты" в блоке RAM
+    // Разделитель "Нерекомендуемые" в блоке RAM
     if (!exceedsPrice && failsRam && row.tierRank === 99 && !inOtherRamSection) {
       inOtherRamSection = true;
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = `Нерекомендуемые но возможные варианты (RAM < ${minRamGb} ГБ)`;
+      divTd.textContent = "Нерекомендуемые";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
 
-    // Разделитель "Нерекомендуемые но возможные варианты" в блоке дороже цены
+    // Разделитель "Нерекомендуемые" в блоке дороже цены
     if (exceedsPrice && row.tierRank === 99 && !inOtherOverpricedSection) {
       inOtherOverpricedSection = true;
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
       divTd.colSpan = 5;
-      divTd.textContent = "Нерекомендуемые но возможные варианты (> лимита цены)";
+      divTd.textContent = "Нерекомендуемые";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
     }
@@ -1065,7 +1065,7 @@ function renderGpuTable() {
     tdPrice.className = "col-price";
     const priceText = document.createElement("span");
     priceText.className = "price-text";
-    priceText.textContent = `${row.price.toFixed(2)} €/ч`;
+    priceText.textContent = row.price.toFixed(2);
     tdPrice.appendChild(priceText);
 
     // Power (Pic / Vid rating bars)
@@ -1279,11 +1279,21 @@ function syncPodStateFromApi(ctrl, pod) {
     ctrl.stages.cuda === "error";
   if (hasErrorStage || ctrl.status === "ERROR" || ctrl.status === "EXITED") return;
 
-  if (ctrl.stages.ready === "done" || ctrl.cudaStagePassed) {
+  if (ctrl.stages.ready === "done") {
     ctrl.containerStarted = true;
     ctrl.stages.provision = "done";
     ctrl.stages.container = "done";
     ctrl.stages.cuda = "done";
+    ctrl.stages.update = "done";
+    return;
+  }
+
+  if (ctrl.cudaStagePassed) {
+    ctrl.containerStarted = true;
+    ctrl.stages.provision = "done";
+    ctrl.stages.container = "done";
+    ctrl.stages.cuda = "done";
+    if (ctrl.stages.update === "pending") ctrl.stages.update = "active";
     return;
   }
 
@@ -1301,6 +1311,7 @@ function syncPodStateFromApi(ctrl, pod) {
   // pod.runtime is null -> container has NOT started yet (pulling/creating on host)
   if (!ctrl.containerStarted) {
     ctrl.stages.cuda = "pending";
+    ctrl.stages.update = "pending";
     ctrl.stages.ready = "pending";
     if (pod.status === "RUNNING") {
       ctrl.stages.provision = "done";
@@ -1400,10 +1411,12 @@ function getOrCreatePodController(podId, initData = {}) {
       pod: initData.pod || null,
       status: initData.status || initData.pod?.status || "STARTING",
       containerStarted: isPodRuntimeActive(initData.pod),
+      restoreBackup: initData.restoreBackup ?? (document.getElementById("opt-restore-backup")?.checked ?? true),
       stages: {
         provision: "active",
         container: "pending",
         cuda: "pending",
+        update: "pending",
         ready: "pending"
       },
       subtitle: isOur ? "Подготовка хоста на RunPod..." : "",
@@ -1579,6 +1592,19 @@ function updatePodDiskBadge(ctrl, badgeEl) {
   }
 }
 
+function isPodRestoreBackupEnabled(ctrl) {
+  const envVal = ctrl?.pod?.env?.RESTORE_BACKUP;
+  if (envVal !== undefined) return String(envVal) === "1";
+  if (ctrl?.restoreBackup !== undefined) return Boolean(ctrl.restoreBackup);
+  return document.getElementById("opt-restore-backup")?.checked ?? true;
+}
+
+function getPodUpdateStageLabel(ctrl) {
+  return isPodRestoreBackupEnabled(ctrl)
+    ? "4. Обновление и загрузка бэкапа"
+    : "4. Обновление ComfyUI и нодов";
+}
+
 function createPodCardElement(ctrl) {
   const card = document.createElement("div");
   card.className = "pod-card";
@@ -1730,7 +1756,7 @@ function createPodCardElement(ctrl) {
     alertBox.className = "monitor-alert pod-card-alert";
     alertBox.hidden = true;
 
-    // 4 Stage pills
+    // 5 Stage steps
     const stagePills = document.createElement("div");
     stagePills.className = "stage-pills";
 
@@ -1738,7 +1764,8 @@ function createPodCardElement(ctrl) {
       { key: "provision", label: "1. Подготовка хоста" },
       { key: "container", label: "2. Контейнер" },
       { key: "cuda", label: "3. Проверка CUDA и CPU" },
-      { key: "ready", label: "4. ComfyUI & Fizgig Готовы" }
+      { key: "update", label: getPodUpdateStageLabel(ctrl) },
+      { key: "ready", label: "5. Готово" }
     ];
 
     for (const st of stages) {
@@ -2033,6 +2060,9 @@ function updatePodCardElement(ctrl, cardEl) {
     const pill = cardEl.querySelector(`.stage-pill[data-stage="${stageKey}"]`);
     if (pill) {
       pill.className = `stage-pill stage-${stageVal}`;
+      if (stageKey === "update") {
+        pill.textContent = getPodUpdateStageLabel(ctrl);
+      }
     }
   }
 
@@ -2457,7 +2487,12 @@ function handlePodLog(ctrl, entry) {
     if (isCudaPassed && !ctrl.cudaStagePassed && ctrl.stages.cuda !== "error") {
       ctrl.cudaStagePassed = true;
       ctrl.stages.cuda = "done";
-      ctrl.subtitle = "✓ Проверки CUDA 13.0 и CPU пройдены успешно! Инициализация...";
+      if (ctrl.stages.ready !== "done") {
+        ctrl.stages.update = "active";
+      }
+      ctrl.subtitle = isPodRestoreBackupEnabled(ctrl)
+        ? "✓ Проверки пройдены. Обновление и загрузка бэкапа..."
+        : "✓ Проверки пройдены. Обновление ComfyUI и нодов...";
     }
 
     // Dynamic detailed progress updates
@@ -2480,6 +2515,7 @@ function handlePodLog(ctrl, entry) {
     if (line.includes("To see the GUI go to:") || line.includes("ComfyUI is ready")) {
       ctrl.cudaStagePassed = true;
       ctrl.stages.cuda = "done";
+      ctrl.stages.update = "done";
       ctrl.stages.ready = "done";
       ctrl.subtitle = "ComfyUI и Fizgig готовы к работе!";
       ctrl.status = "RUNNING";
@@ -2582,6 +2618,7 @@ async function pollHealthForPod(ctrl) {
           ctrl.stages.container = "done";
           ctrl.cudaStagePassed = true;
           ctrl.stages.cuda = "done";
+          ctrl.stages.update = "done";
           ctrl.stages.ready = "done";
           ctrl.status = "RUNNING";
           ctrl.subtitle = "ComfyUI и Fizgig доступны и готовы к работе!";
