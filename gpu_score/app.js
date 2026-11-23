@@ -3,8 +3,9 @@ import {
   GPU_SCORE_TABLE_ROWS,
   getGpuArchitecture,
   buildSegmentedPowerBars,
-  isAnomalousGpuPrice
-} from "../deploy/gpu_data.js?v=20261123_11";
+  isAnomalousGpuPrice,
+  GPU_FALLBACK_PRICES
+} from "../deploy/gpu_data.js?v=20261123_23";
 
 const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1",

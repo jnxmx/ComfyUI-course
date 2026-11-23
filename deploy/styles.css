@@ -1109,15 +1109,16 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  min-height: 42px;
-  padding: 0.45rem 0.95rem;
-  font-size: 0.88rem;
-  font-weight: 450;
-  border-radius: 10px;
+  min-height: 36px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  border-radius: 8px;
   border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
   font-family: inherit;
+  white-space: nowrap;
   transition: background-color 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
 }
 
@@ -1146,8 +1147,9 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 }
 
 .btn-large {
-  font-size: 0.95rem;
-  padding: 0.65rem 1.25rem;
+  min-height: 36px;
+  font-size: 0.84rem;
+  padding: 0.4rem 0.85rem;
 }
 
 .btn-secondary {
@@ -1164,9 +1166,9 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   background-color: rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(255, 255, 255, 0.09);
   color: var(--text-secondary);
-  padding: 0.35rem 0.75rem;
-  min-height: 38px;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.68rem;
+  min-height: 32px;
+  font-size: 0.8rem;
 }
 .btn-subtle:hover {
   background-color: rgba(255, 255, 255, 0.10);
@@ -1209,9 +1211,9 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   background-color: transparent;
   color: var(--danger);
   border-color: var(--danger);
-  min-height: 36px;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.82rem;
+  min-height: 32px;
+  padding: 0.3rem 0.68rem;
+  font-size: 0.8rem;
 }
 .btn-danger-sm:hover:not(:disabled) {
   background-color: var(--danger-bg);
@@ -1567,10 +1569,10 @@ progress.loading-spinner:indeterminate {
 .btn-subtle-sm,
 .btn-primary-sm,
 .btn-secondary-sm {
-  min-height: 34px;
-  padding: 0.25rem 0.65rem;
+  min-height: 32px;
+  padding: 0.3rem 0.68rem;
   font-size: 0.8rem;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .btn-subtle-sm {
