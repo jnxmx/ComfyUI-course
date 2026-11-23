@@ -1857,3 +1857,20 @@ html.theme-light .arch-turing {
 html.theme-light #gpu-table tbody tr:hover {
   background-color: rgba(15, 23, 42, 0.025);
 }
+
+.th-score-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.28);
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.th-score-link:hover {
+  color: var(--accent-soft);
+  text-decoration-color: var(--accent-soft);
+}
+
+html.theme-light .th-score-link {
+  text-decoration-color: rgba(15, 23, 42, 0.28);
+}

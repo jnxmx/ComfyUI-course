@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Замеры скоростей видеокарт на RunPod — Comfy.Work</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../deploy/styles.css?v=20261123_01">
+  <link rel="stylesheet" href="styles.css?v=20261123_01">
+</head>
+<body>
+  <div class="app-container score-container">
+    <header class="app-header">
+      <div class="app-brand">
+        <h1 class="app-title">Замеры скоростей видеокарт на RunPod</h1>
+        <a href="../deploy/" class="app-brand-badge score-back-link">← Деплойер</a>
+      </div>
+      <div class="header-right-group">
+        <button type="button" id="theme-toggle" class="btn btn-subtle-sm theme-toggle-btn" title="Переключить цветовую схему">
+          Тема: Тёмная
+        </button>
+      </div>
+    </header>
+
+    <main class="main-flow">
+      <section class="card score-intro-card">
+        <p class="score-subline">
+          (используется на <a href="../deploy/" class="link-inline">deploy</a> странице курса)
+        </p>
+
+        <div class="score-prose">
+          <p>Эта таблица не про абсолютную разницу в возможностях видеокарт, но про результаты тестов подов на runpod на двух конкретных задачах. На результаты помимо модели видеокарты влияли:</p>
+          <ol>
+            <li>ограничение электропитания самой видеокарты — например 6000ada работают гораздо медленнее из-за этого</li>
+            <li>оперативная память пода — в экстремальных случаях попадались поды у которых было 16гб</li>
+            <li>скорость сетевого диска — если у пода медленный диск и мало оперативной памяти, то большая модель будет работать медленнее</li>
+          </ol>
+          <p>Поэтому скорости ориентировочные и вам может повести больше или меньше.</p>
+          <p>Тесты проводились для лёгкой модели изображений которая не требует много видеопамяти и для тяжёлой видео модели, которая часто в память не помещалась. Настройки теста не оптимизировались, и конечно зависят от конкретных моделей, что вы будете использовать, но позволяют оценить сравнительную разницу видеокарт.</p>
+          <p>Данные в таблице это замер второй картинки или второго видео сгенерённого подряд, потому что первая генерация может долго загружать модели в память (особенно если не повезло с диском и оперативной памятью), и её время не учитывалось.</p>
+        </div>
+      </section>
+
+      <section class="card score-table-card" aria-label="Таблица скоростей видеокарт">
+        <div class="score-table-meta">
+          <span class="score-legend">
+            <span class="legend-pic">● Изображение (Moss 4K, 25 шагов)</span>
+            <span class="legend-vid">● Видео (H3, 0.98 MP)</span>
+          </span>
+          <span id="score-prices-status" class="score-prices-status"></span>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="gpu-score-table">
+            <thead>
+              <tr>
+                <th scope="col" class="col-name">Видеокарта</th>
+                <th scope="col" class="col-power">Скорость</th>
+                <th scope="col" class="col-pic">Время изображения</th>
+                <th scope="col" class="col-pic">Шаг (изобр.)</th>
+                <th scope="col" class="col-vid">Время видео</th>
+                <th scope="col" class="col-vid">Шаг (видео)</th>
+                <th scope="col" class="col-price-col">Цена на Secure</th>
+                <th scope="col" class="col-price-col">Цена на Community</th>
+              </tr>
+            </thead>
+            <tbody id="gpu-score-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card score-conclusions-card" aria-label="Выводы и рекомендации">
+        <h2 class="score-section-title">Выводы и рекомендации</h2>
+        <ul class="score-recommendations">
+          <li><strong class="budget-tag">До 0.25$</strong> 4070 Ti, 3090, 3080 на Community</li>
+          <li><strong class="budget-tag">До 0.35$</strong> была бы RTX 4090 на Community если бы был хоть один не сломаный хост</li>
+          <li><strong class="budget-tag">До 0.35$</strong> 4080 Super и PRO 4500 на Community</li>
+          <li><strong class="budget-tag">До 0.5$</strong> RTX 5080 и 5000 ada на Community <span class="rec-sep">|</span> 4080 Super, 4070 Ti на Secure</li>
+          <li><strong class="budget-tag">До 0.7$</strong> RTX 5090 на Community <span class="rec-sep">|</span> RTX 5080 на Secure</li>
+          <li><strong class="budget-tag">До 1$</strong> RTX 5090, если нет, то PRO 5000 на Community <span class="rec-sep">|</span> RTX 4090 на Secure</li>
+          <li><strong class="budget-tag">До 1.5$</strong> RTX 5090 на Secure</li>
+          <li><strong class="budget-tag">До 2$</strong> PRO 6000 на Community</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p><a href="../deploy/" class="link-inline">← Вернуться на страницу деплоя</a></p>
+    </footer>
+  </div>
+
+  <script type="module" src="app.js?v=20261123_01"></script>
+</body>
+</html>

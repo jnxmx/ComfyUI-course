@@ -1,0 +1,173 @@
+.score-container {
+  max-width: 1080px;
+}
+
+.score-back-link {
+  text-decoration: none;
+}
+
+.score-subline {
+  margin: 0 0 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.link-inline {
+  color: var(--accent-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link-inline:hover {
+  color: var(--accent-soft-hover);
+}
+
+.score-prose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.score-prose p,
+.score-prose ol {
+  margin: 0;
+}
+
+.score-prose ol {
+  padding-left: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.score-table-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.score-legend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.legend-pic,
+.col-pic {
+  color: #fb923c !important;
+}
+
+.legend-vid,
+.col-vid {
+  color: #a78bfa !important;
+}
+
+html.theme-light .legend-pic,
+html.theme-light .col-pic {
+  color: #ea580c !important;
+}
+
+html.theme-light .legend-vid,
+html.theme-light .col-vid {
+  color: #7c3aed !important;
+}
+
+.score-prices-status {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+#gpu-score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+#gpu-score-table th,
+#gpu-score-table td {
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+#gpu-score-table thead th {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+#gpu-score-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+html.theme-light #gpu-score-table tbody tr:hover {
+  background-color: rgba(15, 23, 42, 0.025);
+}
+
+#gpu-score-table td.col-pic,
+#gpu-score-table td.col-vid,
+#gpu-score-table td.col-price-col {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#gpu-score-table td.col-power {
+  min-width: 112px;
+  width: 120px;
+}
+
+.score-gpu-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.score-rank {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.4rem;
+}
+
+.score-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.score-recommendations {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.budget-tag {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.rec-sep {
+  color: var(--muted);
+  margin: 0 0.35rem;
+}
