@@ -1835,36 +1835,6 @@ function createPodCardElement(ctrl) {
     const secLinks = document.createElement("div");
     secLinks.className = "secondary-links";
 
-    // HTTP links: 7860 (ComfyUI), 7861 (FileBrowser), 7862 (Fizgig — LoRA & Fine-tune Studio)
-    const httpRow = document.createElement("div");
-    httpRow.className = "ports-row";
-    const httpTitle = document.createElement("span");
-    httpTitle.className = "ports-group-title";
-    httpTitle.textContent = "HTTP:";
-
-    const httpComfy = document.createElement("a");
-    httpComfy.href = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
-    httpComfy.target = "_blank";
-    httpComfy.rel = "noopener noreferrer";
-    httpComfy.className = "link-subtle";
-    httpComfy.textContent = "ComfyUI (:7860)";
-
-    const httpFilebrowser = document.createElement("a");
-    httpFilebrowser.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
-    httpFilebrowser.target = "_blank";
-    httpFilebrowser.rel = "noopener noreferrer";
-    httpFilebrowser.className = "link-subtle";
-    httpFilebrowser.textContent = "FileBrowser (:7861)";
-
-    const httpFizgig = document.createElement("a");
-    httpFizgig.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
-    httpFizgig.target = "_blank";
-    httpFizgig.rel = "noopener noreferrer";
-    httpFizgig.className = "link-subtle";
-    httpFizgig.textContent = "Fizgig — LoRA & Fine-tune Studio (:7862)";
-
-    httpRow.append(httpTitle, httpComfy, httpFilebrowser, httpFizgig);
-
     // TCP links: 8188 (ComfyUI), 8080 (FileBrowser), 8888 (JupyterLab)
     const tcpRow = document.createElement("div");
     tcpRow.className = "ports-row";
@@ -1899,7 +1869,7 @@ function createPodCardElement(ctrl) {
 
     tcpRow.append(tcpTitle, tcpComfy, tcpFilebrowser, tcpJupyter, consoleLink);
 
-    secLinks.append(httpRow, tcpRow);
+    secLinks.append(tcpRow);
     readyBox.append(mainActions, secLinks);
 
     body.append(stagePills, metaRow, alertBox, readyBox, logDetails);
