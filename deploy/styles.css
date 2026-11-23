@@ -1506,13 +1506,14 @@ progress.loading-spinner:indeterminate {
 
 .pending-deploy-card {
   background-color: #18181e;
-  border: 1.5px solid rgba(243, 201, 73, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 4px solid var(--warn);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 0.85rem;
   box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.42),
-    0 0 0 1px rgba(243, 201, 73, 0.14);
+    0 6px 18px rgba(0, 0, 0, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .pending-deploy-header {
@@ -1520,8 +1521,8 @@ progress.loading-spinner:indeterminate {
   align-items: flex-start;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background-color: rgba(243, 201, 73, 0.08);
-  border-bottom: 1px solid rgba(243, 201, 73, 0.20);
+  background-color: #1d1d24;
+  border-bottom: 1px solid var(--border);
   gap: 0.75rem;
   flex-wrap: wrap;
 }
@@ -1573,6 +1574,7 @@ progress.loading-spinner:indeterminate {
 .pod-card {
   background-color: #18181e;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 4px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
   overflow: hidden;
   box-shadow:
@@ -1582,18 +1584,15 @@ progress.loading-spinner:indeterminate {
 }
 
 .pod-card.pod-running {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-left-color: var(--accent);
 }
 
 .pod-card.pod-deploying {
-  border-color: rgba(47, 113, 227, 0.65);
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.44),
-    0 0 0 1px rgba(47, 113, 227, 0.25);
+  border-left-color: var(--success);
 }
 
 .pod-card.pod-error {
-  border-color: var(--danger);
+  border-left-color: var(--danger);
 }
 
 .pod-card-header {
@@ -2040,34 +2039,37 @@ html.theme-light .btn-hunt:hover:not(:disabled) {
 
 html.theme-light .pending-deploy-card {
   background-color: #ffffff;
-  border-color: rgba(217, 119, 6, 0.55);
+  border-color: rgba(15, 23, 42, 0.13);
+  border-left-color: #d97706;
   box-shadow:
-    0 4px 16px rgba(217, 119, 6, 0.10),
-    0 1px 3px rgba(15, 23, 42, 0.06);
+    0 4px 14px rgba(15, 23, 42, 0.07),
+    0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 html.theme-light .pending-deploy-header {
-  background-color: rgba(245, 158, 11, 0.09);
-  border-bottom-color: rgba(217, 119, 6, 0.18);
+  background-color: #f8fafc;
+  border-bottom-color: var(--border);
 }
 
 html.theme-light .pod-card {
   background-color: #ffffff;
   border-color: rgba(15, 23, 42, 0.13);
+  border-left-color: rgba(15, 23, 42, 0.22);
   box-shadow:
     0 4px 14px rgba(15, 23, 42, 0.07),
     0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 html.theme-light .pod-card.pod-running {
-  border-color: rgba(15, 23, 42, 0.14);
+  border-left-color: var(--accent);
 }
 
 html.theme-light .pod-card.pod-deploying {
-  border-color: rgba(37, 99, 235, 0.55);
-  box-shadow:
-    0 4px 14px rgba(37, 99, 235, 0.10),
-    0 0 0 1px rgba(37, 99, 235, 0.18);
+  border-left-color: var(--success);
+}
+
+html.theme-light .pod-card.pod-error {
+  border-left-color: var(--danger);
 }
 
 html.theme-light .pod-card-header {
