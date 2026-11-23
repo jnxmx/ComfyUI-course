@@ -1708,7 +1708,7 @@ progress.loading-spinner:indeterminate {
   font-variant-numeric: tabular-nums;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 

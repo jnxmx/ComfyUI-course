@@ -1331,6 +1331,7 @@ function parsePodStartMs(pod) {
 
 function getPodHourlyPrice(ctrl) {
   if (ctrl.price > 0) return ctrl.price;
+  if (ctrl.launchCandidate?.price > 0) return ctrl.launchCandidate.price;
   const costPerHr = Number(ctrl.pod?.costPerHr);
   if (Number.isFinite(costPerHr) && costPerHr > 0) return costPerHr;
   const match = state.catalogRows.find((r) => {
@@ -1357,9 +1358,10 @@ function isHeldPodMergedWithRetry(ctrl) {
 }
 
 function formatPodSpentCents(ctrl) {
+  if (!ctrl || ctrl.status === "EXITED" || ctrl.status === "TERMINATED") return "";
   const price = getPodHourlyPrice(ctrl);
-  if (!price || !ctrl.startedAtMs) return "";
-  if (ctrl.status === "EXITED" || ctrl.status === "TERMINATED") return "";
+  if (!price) return "";
+  if (!ctrl.startedAtMs) ctrl.startedAtMs = Date.now();
   const elapsedHours = Math.max(0, (Date.now() - ctrl.startedAtMs) / 3600000);
   const dollars = elapsedHours * price;
   return `${dollars.toFixed(2)}$`;
@@ -1557,7 +1559,7 @@ function renderPodsList() {
 function updatePodDiskBadge(ctrl, badgeEl) {
   if (!badgeEl) return;
   if (ctrl.diskStatus === "fast") {
-    badgeEl.className = "badge badge-ok pod-disk-warn-badge pod-disk-fast";
+    badgeEl.className = "badge badge-success pod-disk-warn-badge pod-disk-fast";
     badgeEl.textContent = "⚡ Быстрый диск";
     badgeEl.title = "На хосте быстрый диск (XFS / Fast Disk)";
     badgeEl.hidden = false;
@@ -1565,6 +1567,11 @@ function updatePodDiskBadge(ctrl, badgeEl) {
     badgeEl.className = "badge pod-disk-warn-badge pod-disk-slow";
     badgeEl.textContent = "⚠️ Медленный диск";
     badgeEl.title = "На хосте медленный диск (не XFS, Fast Disk не включён) — в начале генерации большие модели будут загружаться долго";
+    badgeEl.hidden = false;
+  } else if (ctrl.stages?.ready === "done") {
+    badgeEl.className = "badge badge-subtle pod-disk-warn-badge";
+    badgeEl.textContent = "Диск: проверка…";
+    badgeEl.title = "Определяем тип диска хоста (XFS / Fast Disk)";
     badgeEl.hidden = false;
   } else {
     badgeEl.hidden = true;
@@ -1967,7 +1974,8 @@ function updatePodCardElement(ctrl, cardEl) {
       statusBadge.textContent = "СБОЙ";
     } else if (isComfyReady) {
       statusBadge.className = "badge badge-success pod-status-badge";
-      statusBadge.textContent = "ГОТОВ";
+      const hourly = getPodHourlyPrice(ctrl);
+      statusBadge.textContent = hourly > 0 ? `${hourly.toFixed(2)} $/ч` : "ГОТОВ";
     } else if (isCudaPassed) {
       statusBadge.className = "badge badge-warn pod-status-badge";
       statusBadge.textContent = "ЗАПУСК COMFYUI";
@@ -1992,6 +2000,11 @@ function updatePodCardElement(ctrl, cardEl) {
   const stagePillsEl = cardEl.querySelector(".stage-pills");
   if (stagePillsEl) {
     stagePillsEl.hidden = isComfyReady;
+  }
+
+  const monitorMetaEl = cardEl.querySelector(".pod-monitor-meta");
+  if (monitorMetaEl) {
+    monitorMetaEl.hidden = isComfyReady;
   }
 
   // Subtitle & spinner
