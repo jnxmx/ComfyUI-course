@@ -348,13 +348,11 @@ export function buildSegmentedPowerBars(rating) {
       seg.className = "power-seg";
       if (withPlus && i === 9) {
         seg.classList.add("power-seg-plus");
-        const fill = document.createElement("span");
-        fill.className = "power-seg-fill";
         const plus = document.createElement("span");
         plus.className = "power-plus";
         plus.textContent = "+";
         plus.setAttribute("aria-hidden", "true");
-        seg.append(fill, plus);
+        seg.appendChild(plus);
       } else {
         const segPct = Math.max(0, Math.min(100, (pct - i * 10) * 10));
         if (segPct > 0) {

@@ -3,7 +3,7 @@ import {
   GPU_SCORE_TABLE_ROWS,
   getGpuArchitecture,
   buildSegmentedPowerBars
-} from "../deploy/gpu_data.js?v=20261123_01";
+} from "../deploy/gpu_data.js?v=20261123_05";
 
 const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1",

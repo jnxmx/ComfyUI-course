@@ -695,12 +695,7 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   background-color: transparent;
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-}
-
-.power-seg.power-seg-plus .power-seg-fill {
-  width: 35%;
-  flex-shrink: 0;
+  justify-content: flex-end;
 }
 
 .power-plus {
