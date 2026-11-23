@@ -102,7 +102,7 @@ code {
 }
 
 .app-container {
-  max-width: 920px;
+  max-width: 980px;
   margin: 0 auto;
   padding: 1.5rem 1rem 3rem;
 }
@@ -755,13 +755,14 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
 }
 
 .gpu-title-wrap {
   display: inline;
   line-height: 1.35;
+  white-space: nowrap;
 }
 
 .gpu-title-text {
@@ -820,8 +821,18 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 .gpu-pills-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
   gap: 0.35rem;
+}
+
+@media (max-width: 680px) {
+  .gpu-name-cell {
+    flex-wrap: wrap;
+  }
+  .gpu-pills-row {
+    flex-wrap: wrap;
+  }
 }
 
 .cloud-pill {
@@ -1915,7 +1926,11 @@ html.theme-light .th-score-link {
   font-size: 0.65rem;
   line-height: 1;
   vertical-align: 0.42em;
-  margin-left: 0.25rem;
+  margin-left: 0.2rem;
+}
+
+.recommended-star + .vram-sup {
+  margin-left: 0.14rem;
 }
 
 html.theme-light .recommended-star {
