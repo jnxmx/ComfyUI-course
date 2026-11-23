@@ -514,7 +514,7 @@ a:focus-visible {
 .price-slider-box {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.1rem;
   min-width: 140px;
   flex: 1 1 160px;
 }
@@ -529,12 +529,21 @@ a:focus-visible {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.35rem;
-  font-size: 0.82rem;
+  line-height: 1.15;
   white-space: nowrap;
 }
 
+.price-header label,
+.ram-header label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+}
+
 .price-highlight {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
@@ -542,18 +551,61 @@ a:focus-visible {
 }
 
 input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
+  height: 14px;
+  margin: 0;
+  background: transparent;
   accent-color: var(--accent);
   cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  margin-top: -4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  transition: transform 0.12s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
 }
 
 .ram-slider-box {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  min-width: 145px;
-  max-width: 150px;
-  flex: 0 0 148px;
+  gap: 0.1rem;
+  min-width: 140px;
+  max-width: 148px;
+  flex: 0 0 144px;
 }
 
 .ram-header {
@@ -561,7 +613,7 @@ input[type="range"] {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.4rem;
-  font-size: 0.82rem;
+  line-height: 1.15;
   white-space: nowrap;
 }
 
