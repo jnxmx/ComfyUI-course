@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261123_15">
+  <link rel="stylesheet" href="styles.css?v=20261123_16">
 </head>
 <body>
   <div class="app-container">
@@ -149,7 +149,10 @@
             <strong id="template-display-name" class="template-name">comfy.work CUDA 13.0 with New Manager</strong>
             <code id="template-id-badge" class="template-id-badge">casls01eko</code>
             <button type="button" id="edit-template-btn" class="btn-icon" title="Изменить темплейт (ID или ссылка с RunPod)" aria-label="Изменить темплейт">
-              ✏️
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
             </button>
           </div>
         </div>
@@ -173,20 +176,20 @@
         <div class="options-group">
           <label class="checkbox-control" for="opt-new-manager">
             <input type="checkbox" id="opt-new-manager" checked>
-            <span>Новый ComfyUI Manager</span>
+            <span>Новый Manager</span>
           </label>
           <label class="checkbox-control" for="opt-restore-backup">
             <input type="checkbox" id="opt-restore-backup" checked>
-            <span>Загружать бэкап при запуске</span>
+            <span>Загружать бэкап</span>
           </label>
           <label class="checkbox-control" for="opt-auto-redeploy">
             <input type="checkbox" id="opt-auto-redeploy" checked>
-            <span>Повторять при ошибке деплоя</span>
+            <span>Автоповтор при сбое</span>
           </label>
           <div class="shutdown-control-group">
             <label class="checkbox-control" for="opt-shutdown-timer">
               <input type="checkbox" id="opt-shutdown-timer" checked>
-              <span>Автоматическое удаление пода при отсутствии активности:</span>
+              <span>Удалять при простое:</span>
             </label>
             <div class="shutdown-input-wrapper">
               <input
@@ -198,7 +201,7 @@
                 class="shutdown-minutes-input"
                 aria-label="Минут неактивности до автоматического удаления пода"
               >
-              <span class="shutdown-unit">минут</span>
+              <span class="shutdown-unit">мин</span>
             </div>
           </div>
         </div>
@@ -279,7 +282,7 @@
                 <th scope="col" class="col-power">
                   <a href="../gpu_score/" class="th-score-link" title="Открыть таблицу замеров скоростей на RunPod">Скорость</a>
                 </th>
-                <th scope="col" class="col-action">Действие</th>
+                <th scope="col" class="col-action" aria-label="Действие"></th>
               </tr>
             </thead>
             <tbody id="gpu-tbody">
@@ -303,6 +306,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261123_15"></script>
+  <script type="module" src="app.js?v=20261123_16"></script>
 </body>
 </html>
