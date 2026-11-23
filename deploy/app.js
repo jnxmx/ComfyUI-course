@@ -201,6 +201,17 @@ function cleanGpuName(rawId, rawName) {
   return (rawId || "").replace(/^NVIDIA\s+(GeForce\s+)?/, "").trim();
 }
 
+function getShortPodGpuName(gpuId, rawName) {
+  if (gpuId && Array.isArray(state.catalogRows) && state.catalogRows.length > 0) {
+    const match = state.catalogRows.find((r) => r.gpuId === gpuId);
+    if (match?.displayName) return match.displayName;
+  }
+  return cleanGpuName(gpuId, rawName)
+    .replace(/\s+Blackwell\s+Server\s+Edition/i, "")
+    .replace(/\s+Blackwell\s+Workstation\s+Edition/i, " WK")
+    .trim();
+}
+
 function normalizeMinRamGb(value) {
   const num = Number.parseInt(String(value ?? ""), 10);
   if (!Number.isFinite(num) || num <= 0) return 0;
@@ -1216,16 +1227,13 @@ function getPublicIpFromPod(pod) {
   return pub ? pub.ip : null;
 }
 
-function formatPodSpecsText(ctrl) {
+function formatPodRamText(ctrl) {
   const parts = [];
   if (Number.isFinite(ctrl.ramGb) && ctrl.ramGb > 0) {
     parts.push(`${Math.round(ctrl.ramGb)} ГБ RAM`);
   }
   if (ctrl.speedText) {
     parts.push(ctrl.speedText);
-  }
-  if (ctrl.locationText) {
-    parts.push(ctrl.locationText);
   }
   return parts.join(" · ");
 }
@@ -1658,13 +1666,23 @@ function createPodCardElement(ctrl) {
 
   const gpuBadge = document.createElement("span");
   gpuBadge.className = "badge badge-warn pod-gpu-badge";
-  gpuBadge.textContent = `${ctrl.gpuName} · ${ctrl.cloud}`;
+  gpuBadge.textContent = getShortPodGpuName(ctrl.gpuId, ctrl.gpuName);
 
-  const specsBadge = document.createElement("span");
-  specsBadge.className = "badge badge-subtle pod-specs-badge";
-  const specsText = formatPodSpecsText(ctrl);
-  specsBadge.textContent = specsText;
-  specsBadge.hidden = !specsText;
+  const cloudValue = (ctrl.cloud || "COMMUNITY").toUpperCase();
+  const cloudBadge = document.createElement("span");
+  cloudBadge.className = `cloud-pill pod-cloud-badge ${cloudValue.toLowerCase()}`;
+  cloudBadge.textContent = cloudValue;
+
+  const ramBadge = document.createElement("span");
+  ramBadge.className = "badge badge-subtle pod-ram-badge";
+  const ramText = formatPodRamText(ctrl);
+  ramBadge.textContent = ramText;
+  ramBadge.hidden = !ramText;
+
+  const locationBadge = document.createElement("span");
+  locationBadge.className = "badge badge-subtle pod-location-badge";
+  locationBadge.textContent = ctrl.locationText || "";
+  locationBadge.hidden = !ctrl.locationText;
 
   const statusBadge = document.createElement("span");
   statusBadge.className = "badge pod-status-badge";
@@ -1679,11 +1697,11 @@ function createPodCardElement(ctrl) {
 
   const summaryPrimary = document.createElement("div");
   summaryPrimary.className = "pod-summary-primary";
-  summaryPrimary.append(title, statusBadge);
+  summaryPrimary.append(title, statusBadge, gpuBadge, cloudBadge);
 
   const summaryMeta = document.createElement("div");
   summaryMeta.className = "pod-summary-meta";
-  summaryMeta.append(gpuBadge, specsBadge, diskWarnBadge);
+  summaryMeta.append(ramBadge, locationBadge, diskWarnBadge);
 
   summaryLines.append(summaryPrimary, summaryMeta);
   summary.append(chevron, summaryLines);
@@ -1909,11 +1927,29 @@ function createPodCardElement(ctrl) {
 function updatePodCardElement(ctrl, cardEl) {
   cardEl.classList.toggle("is-expanded", ctrl.isExpanded);
 
-  const specsBadge = cardEl.querySelector(".pod-specs-badge");
-  if (specsBadge) {
-    const specsText = formatPodSpecsText(ctrl);
-    specsBadge.textContent = specsText;
-    specsBadge.hidden = !specsText;
+  const gpuBadge = cardEl.querySelector(".pod-gpu-badge");
+  if (gpuBadge) {
+    gpuBadge.textContent = getShortPodGpuName(ctrl.gpuId, ctrl.gpuName);
+  }
+
+  const cloudBadge = cardEl.querySelector(".pod-cloud-badge");
+  if (cloudBadge) {
+    const cloudValue = (ctrl.cloud || "COMMUNITY").toUpperCase();
+    cloudBadge.className = `cloud-pill pod-cloud-badge ${cloudValue.toLowerCase()}`;
+    cloudBadge.textContent = cloudValue;
+  }
+
+  const ramBadge = cardEl.querySelector(".pod-ram-badge");
+  if (ramBadge) {
+    const ramText = formatPodRamText(ctrl);
+    ramBadge.textContent = ramText;
+    ramBadge.hidden = !ramText;
+  }
+
+  const locationBadge = cardEl.querySelector(".pod-location-badge");
+  if (locationBadge) {
+    locationBadge.textContent = ctrl.locationText || "";
+    locationBadge.hidden = !ctrl.locationText;
   }
 
   const diskWarnBadge = cardEl.querySelector(".pod-disk-warn-badge");
