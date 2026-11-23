@@ -408,3 +408,32 @@ export function isRecommendedGpu(gpuId, cloud) {
   const clouds = RECOMMENDED_GPU_CLOUDS[gpuId];
   return Array.isArray(clouds) && clouds.includes(cloud);
 }
+
+export const GPU_FALLBACK_PRICES = Object.freeze({
+  "NVIDIA RTX PRO 6000 Blackwell Server Edition": { secure: 2.69, community: 1.64 },
+  "NVIDIA GeForce RTX 5090": { secure: 1.39, community: 0.69 },
+  "NVIDIA GeForce RTX 4090": { secure: 0.89, community: 0.34 },
+  "NVIDIA L40S": { secure: 1.09, community: 0.79 },
+  "NVIDIA RTX PRO 5000 Blackwell": { secure: 0.96, community: 0.82 },
+  "NVIDIA RTX 6000 Ada Generation": { secure: 1.09, community: 0.74 },
+  "NVIDIA RTX 5000 Ada Generation": { secure: 0.83, community: 0.49 },
+  "NVIDIA GeForce RTX 5080": { secure: 0.59, community: 0.39 },
+  "NVIDIA RTX PRO 4500 Blackwell": { secure: 0.72, community: 0.34 },
+  "NVIDIA L40": { secure: 0.82, community: 0.69 },
+  "NVIDIA GeForce RTX 4080 SUPER": { secure: 0.5, community: 0.28 },
+  "NVIDIA RTX PRO 4500 Blackwell Server Edition": { secure: 0.72, community: 0.5 },
+  "NVIDIA RTX A6000": { secure: 0.69, community: 0.33 },
+  "NVIDIA GeForce RTX 4070 Ti": { secure: 0.5, community: 0.19 },
+  "NVIDIA A40": { secure: 0.59, community: 0.35 },
+  "NVIDIA RTX PRO 4000 Blackwell": { secure: 0.57, community: 0.5 },
+  "NVIDIA GeForce RTX 3090": { secure: 0.5, community: 0.22 },
+  "NVIDIA GeForce RTX 3080 Ti": { secure: null, community: 0.18 },
+  "NVIDIA GeForce RTX 3080": { secure: null, community: 0.17 },
+  "NVIDIA RTX A5000": { secure: 0.27, community: 0.16 },
+  "NVIDIA RTX 4000 Ada Generation": { secure: 0.28, community: 0.2 },
+  "NVIDIA RTX A4500": { secure: 0.25, community: 0.19 },
+  "NVIDIA L4": { secure: 0.69, community: 0.44 },
+  "NVIDIA GeForce RTX 3070": { secure: null, community: 0.13 },
+  "NVIDIA RTX A4000": { secure: 0.25, community: 0.17 },
+  "NVIDIA RTX 2000 Ada Generation": { secure: 0.24, community: 0.5 }
+});

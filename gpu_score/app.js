@@ -143,17 +143,25 @@ function renderScoreTable(priceMap = new Map()) {
   }
 }
 
+function getFallbackPriceMap() {
+  const map = new Map();
+  for (const [gpuId, entry] of Object.entries(GPU_FALLBACK_PRICES)) {
+    map.set(gpuId, { ...entry });
+  }
+  return map;
+}
+
 async function fetchLivePrices() {
   const statusEl = document.getElementById("score-prices-status");
   const apiKey = (localStorage.getItem(STORAGE_KEYS.API_KEY) || "").trim();
   if (!apiKey) {
     if (statusEl) {
-      statusEl.textContent = "Чтобы видеть актуальные цены, введите API-ключ на странице deploy";
+      statusEl.textContent = "Цены RunPod на 23.11.2026 (введите API-ключ на deploy для живого обновления)";
     }
     return;
   }
 
-  if (statusEl) statusEl.textContent = "Загрузка актуальных цен с RunPod...";
+  if (statusEl) statusEl.textContent = "Обновление цен с RunPod...";
   try {
     const headers = { Authorization: `Bearer ${apiKey}` };
     const [commRes, secRes] = await Promise.all([
@@ -164,7 +172,7 @@ async function fetchLivePrices() {
       throw new Error(`HTTP ${commRes.status}/${secRes.status}`);
     }
     const [commData, secData] = await Promise.all([commRes.json(), secRes.json()]);
-    const priceMap = new Map();
+    const priceMap = getFallbackPriceMap();
 
     for (const gpu of commData?.gpus || []) {
       const p = Number(gpu.price?.community);
@@ -184,12 +192,12 @@ async function fetchLivePrices() {
     renderScoreTable(priceMap);
     if (statusEl) statusEl.textContent = "Цены обновлены с RunPod";
   } catch (err) {
-    if (statusEl) statusEl.textContent = `Не удалось загрузить цены (${err.message})`;
+    if (statusEl) statusEl.textContent = `Цены RunPod на 23.11.2026 (не удалось обновить: ${err.message})`;
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
-  renderScoreTable();
+  renderScoreTable(getFallbackPriceMap());
   fetchLivePrices();
 });
