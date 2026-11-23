@@ -545,9 +545,9 @@ input[type="range"] {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 115px;
-  max-width: 135px;
-  flex: 0 1 135px;
+  min-width: 145px;
+  max-width: 150px;
+  flex: 0 0 148px;
 }
 
 .ram-header {
@@ -556,6 +556,7 @@ input[type="range"] {
   justify-content: space-between;
   gap: 0.4rem;
   font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .ram-highlight {
