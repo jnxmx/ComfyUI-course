@@ -1001,6 +1001,15 @@ function renderGpuTable() {
     const titleWrap = document.createElement("span");
     titleWrap.className = "gpu-title-wrap";
 
+    if (row.gpuId === "NVIDIA GeForce RTX 4090" && row.cloud === "COMMUNITY") {
+      const warnIcon = document.createElement("span");
+      warnIcon.className = "gpu-broken-warn";
+      warnIcon.title = "всегда сломанные поды";
+      warnIcon.setAttribute("aria-label", "всегда сломанные поды");
+      warnIcon.innerHTML = `<svg viewBox="0 0 24 22" width="16" height="15" aria-hidden="true"><path d="M10.4 1.6a1.85 1.85 0 0 1 3.2 0l8.8 15.6A1.85 1.85 0 0 1 20.8 20H3.2a1.85 1.85 0 0 1-1.6-2.8L10.4 1.6Z" fill="#ef4444"/><circle cx="12" cy="9.4" r="3.1" fill="#fff"/><rect x="10.4" y="11.6" width="3.2" height="1.8" rx="0.6" fill="#fff"/><circle cx="10.9" cy="9.2" r="0.7" fill="#ef4444"/><circle cx="13.1" cy="9.2" r="0.7" fill="#ef4444"/><path d="M8.5 15.2l7 2.4M15.5 15.2l-7 2.4" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+      titleWrap.appendChild(warnIcon);
+    }
+
     const titleSpan = document.createElement("span");
     titleSpan.className = "gpu-title gpu-title-text";
     titleSpan.textContent = row.displayName;
