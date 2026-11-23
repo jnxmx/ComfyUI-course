@@ -390,7 +390,8 @@ export function isAnomalousGpuPrice(gpuId, price) {
 const RECOMMENDED_GPU_CLOUDS = Object.freeze({
   "NVIDIA GeForce RTX 4070 Ti": ["COMMUNITY", "SECURE"],
   "NVIDIA GeForce RTX 3090": ["COMMUNITY"],
-  "NVIDIA GeForce RTX 3080": ["COMMUNITY"],
+  "NVIDIA GeForce RTX 3090 Ti": ["COMMUNITY"],
+  "NVIDIA GeForce RTX 3080 Ti": ["COMMUNITY"],
   "NVIDIA GeForce RTX 4080 SUPER": ["COMMUNITY", "SECURE"],
   "NVIDIA RTX PRO 4500 Blackwell": ["COMMUNITY"],
   "NVIDIA GeForce RTX 5080": ["COMMUNITY", "SECURE"],
