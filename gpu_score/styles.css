@@ -172,3 +172,57 @@ html.theme-light #gpu-score-table tbody tr:hover {
   color: var(--muted);
   margin: 0 0.35rem;
 }
+
+.score-table-card .table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.score-table-meta:empty,
+.score-prices-status:empty {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .score-container {
+    padding: 0.9rem 0.65rem 2rem;
+  }
+
+  .score-container .app-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .score-container .app-brand {
+    flex-wrap: wrap;
+  }
+
+  .score-container .app-title {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .score-container .card {
+    padding: 0.85rem 0.85rem;
+    border-radius: 12px;
+  }
+
+  #gpu-score-table {
+    font-size: 0.78rem;
+  }
+
+  #gpu-score-table th,
+  #gpu-score-table td {
+    padding: 0.45rem 0.45rem;
+  }
+
+  #gpu-score-table thead th {
+    font-size: 0.68rem;
+  }
+
+  .score-prose,
+  .score-recommendations {
+    font-size: 0.84rem;
+  }
+}
