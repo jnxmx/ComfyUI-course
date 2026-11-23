@@ -376,3 +376,13 @@ export function buildSegmentedPowerBars(rating) {
   bars.append(picTrack, vidTrack);
   return bars;
 }
+
+export function isAnomalousGpuPrice(gpuId, price) {
+  const numPrice = Number(price);
+  if (!Number.isFinite(numPrice) || numPrice <= 0) return true;
+  const s = String(gpuId || "").toLowerCase();
+  if ((s.includes("pro 6000") || s.includes("6000 ada")) && numPrice <= 0.6) {
+    return true;
+  }
+  return false;
+}

@@ -2,8 +2,9 @@ import {
   GPU_POWER_RATINGS,
   GPU_SCORE_TABLE_ROWS,
   getGpuArchitecture,
-  buildSegmentedPowerBars
-} from "../deploy/gpu_data.js?v=20261123_06";
+  buildSegmentedPowerBars,
+  isAnomalousGpuPrice
+} from "../deploy/gpu_data.js?v=20261123_07";
 
 const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1",
@@ -167,14 +168,14 @@ async function fetchLivePrices() {
 
     for (const gpu of commData?.gpus || []) {
       const p = Number(gpu.price?.community);
-      if (p > 0) {
+      if (p > 0 && !isAnomalousGpuPrice(gpu.id, p)) {
         const prev = priceMap.get(gpu.id) || {};
         priceMap.set(gpu.id, { ...prev, community: p });
       }
     }
     for (const gpu of secData?.gpus || []) {
       const p = Number(gpu.price?.secure);
-      if (p > 0) {
+      if (p > 0 && !isAnomalousGpuPrice(gpu.id, p)) {
         const prev = priceMap.get(gpu.id) || {};
         priceMap.set(gpu.id, { ...prev, secure: p });
       }

@@ -3,8 +3,9 @@ import {
   getGpuArchitecture,
   GPU_POWER_RATINGS,
   GPU_BENCHMARK_ORDER,
-  buildSegmentedPowerBars
-} from "./gpu_data.js?v=20261123_06";
+  buildSegmentedPowerBars,
+  isAnomalousGpuPrice
+} from "./gpu_data.js?v=20261123_07";
 
 /**
  * course.yakushev.fr/deploy — Minimalist RunPod Deployer & CUDA 13.0 Monitor
@@ -685,6 +686,7 @@ async function fetchGpuCatalog(silent = false) {
         for (const gpu of gpus) {
           const price = cloudType === "COMMUNITY" ? gpu.price?.community : gpu.price?.secure;
           if (price === null || price === undefined || price <= 0) continue;
+          if (isAnomalousGpuPrice(gpu.id, price)) continue;
 
           const isUnavailable = !gpu.availability || gpu.availability === "NONE";
           const cuda13List = (gpu.cudaVersions || [])
