@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261123_18">
+  <link rel="stylesheet" href="styles.css?v=20261123_19">
 </head>
 <body>
   <div class="app-container">
@@ -182,10 +182,6 @@
             <input type="checkbox" id="opt-restore-backup" checked>
             <span>Загружать бэкап</span>
           </label>
-          <label class="checkbox-control" for="opt-auto-redeploy">
-            <input type="checkbox" id="opt-auto-redeploy" checked>
-            <span>Автоповтор при сбое</span>
-          </label>
           <div class="shutdown-control-group">
             <label class="checkbox-control" for="opt-shutdown-timer">
               <input type="checkbox" id="opt-shutdown-timer" checked>
@@ -227,23 +223,20 @@
               >
             </div>
 
-            <div class="ram-filter-box">
-              <label for="min-ram-input" class="ram-filter-label">Мин. RAM:</label>
-              <div class="ram-input-wrapper">
-                <span class="ram-prefix">от</span>
-                <input
-                  type="number"
-                  id="min-ram-input"
-                  class="ram-gb-input"
-                  min="0"
-                  max="65536"
-                  step="1"
-                  value="0"
-                  aria-label="Минимальный объём системной RAM в ГБ (0 — любое)"
-                >
-                <span class="ram-unit">ГБ</span>
+            <div class="ram-slider-box">
+              <div class="ram-header">
+                <label for="min-ram-input">Мин. RAM:</label>
+                <strong id="min-ram-val" class="ram-highlight">любое</strong>
               </div>
-              <span id="min-ram-hint" class="ram-hint">(любое)</span>
+              <input
+                type="range"
+                id="min-ram-input"
+                min="0"
+                max="128"
+                step="4"
+                value="0"
+                aria-label="Минимальный объём системной RAM в ГБ (0 — любое)"
+              >
             </div>
 
             <div class="gpu-filter-buttons">
@@ -266,9 +259,15 @@
               </button>
               <span id="selected-gpu-count" class="selected-count-badge">Выбрано: 0</span>
             </div>
-            <button type="button" id="deploy-best-btn" class="btn btn-primary btn-deploy-main">
-              Поиск на выбранных
-            </button>
+            <div class="gpu-deploy-group">
+              <label class="checkbox-control auto-redeploy-control" for="opt-auto-redeploy">
+                <input type="checkbox" id="opt-auto-redeploy" checked>
+                <span>Автоповтор при сбое</span>
+              </label>
+              <button type="button" id="deploy-best-btn" class="btn btn-primary btn-deploy-main">
+                Поиск на выбранных
+              </button>
+            </div>
           </div>
         </div>
 
@@ -306,6 +305,6 @@
     </footer>
   </div>
 
-  <script type="module" src="app.js?v=20261123_18"></script>
+  <script type="module" src="app.js?v=20261123_19"></script>
 </body>
 </html>

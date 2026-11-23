@@ -3243,24 +3243,25 @@ async function init() {
   slider.addEventListener("input", onPriceChange);
   slider.addEventListener("change", onPriceChange);
 
-  // Min System RAM Filter
+  // Min System RAM Filter (slider 0..128 GB, step 4 GB)
   const minRamInput = document.getElementById("min-ram-input");
-  const minRamHint = document.getElementById("min-ram-hint");
+  const minRamVal = document.getElementById("min-ram-val");
   if (minRamInput) {
     const savedMinRam = localStorage.getItem(STORAGE_KEYS.MIN_RAM);
-    state.minRamGb = normalizeMinRamGb(savedMinRam);
+    state.minRamGb = Math.min(128, Math.round(normalizeMinRamGb(savedMinRam) / 4) * 4);
     minRamInput.value = String(state.minRamGb);
 
-    const updateRamHint = () => {
-      if (!minRamHint) return;
-      minRamHint.textContent = state.minRamGb === 0 ? "(любое)" : "(фильтр хоста)";
+    const updateRamLabel = () => {
+      const label = state.minRamGb === 0 ? "любое" : `от ${state.minRamGb} ГБ`;
+      if (minRamVal) minRamVal.textContent = label;
+      minRamInput.setAttribute("aria-valuetext", label);
     };
-    updateRamHint();
+    updateRamLabel();
 
     const onRamInput = () => {
-      state.minRamGb = normalizeMinRamGb(minRamInput.value);
+      state.minRamGb = Math.min(128, Math.round(normalizeMinRamGb(minRamInput.value) / 4) * 4);
       localStorage.setItem(STORAGE_KEYS.MIN_RAM, String(state.minRamGb));
-      updateRamHint();
+      updateRamLabel();
       renderGpuTable();
     };
     minRamInput.addEventListener("input", onRamInput);

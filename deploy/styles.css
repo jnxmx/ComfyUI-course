@@ -517,54 +517,29 @@ input[type="range"] {
   cursor: pointer;
 }
 
-.ram-filter-box {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 32px;
-  padding: 0.15rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background-color: var(--bg-subtle);
-  font-size: 0.78rem;
-}
-
-.ram-filter-label {
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
-.ram-input-wrapper {
-  display: inline-flex;
-  align-items: center;
+.ram-slider-box {
+  display: flex;
+  flex-direction: column;
   gap: 0.25rem;
+  min-width: 150px;
+  max-width: 185px;
+  flex: 0 1 175px;
 }
 
-.ram-prefix,
-.ram-unit,
-.ram-hint {
-  font-size: 0.74rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
+.ram-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: 0.82rem;
 }
 
-.ram-gb-input {
-  width: 50px;
-  padding: 0.15rem 0.25rem;
-  font-size: 0.8rem;
+.ram-highlight {
+  font-size: 0.9rem;
   font-weight: 700;
+  color: var(--accent-soft);
   font-variant-numeric: tabular-nums;
-  color: var(--text-primary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  text-align: center;
-}
-
-.ram-gb-input:focus-visible {
-  outline: none;
-  border-color: var(--border-focus);
+  white-space: nowrap;
 }
 
 .gpu-quick-buttons {
@@ -1992,4 +1967,16 @@ html.theme-light .recommended-star {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+.gpu-deploy-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.auto-redeploy-control {
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
