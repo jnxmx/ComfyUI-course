@@ -1,5 +1,5 @@
 .score-container {
-  max-width: 1080px;
+  max-width: 1160px;
 }
 
 .score-back-link {
@@ -133,7 +133,8 @@ html.theme-light #gpu-score-table tbody tr:hover {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .score-rank {
