@@ -1284,11 +1284,16 @@ function syncPodStateFromApi(ctrl, pod) {
     ctrl.ramGb = ramGb;
   }
 
-  const dl = pod.machine?.maxDownloadSpeedMbps ?? pod.maxDownloadSpeedMbps ?? pod.machine?.downloadSpeedMbps;
-  const ul = pod.machine?.maxUploadSpeedMbps ?? pod.maxUploadSpeedMbps ?? pod.machine?.uploadSpeedMbps;
+  const toPosNum = (v) => {
+    if (v === null || v === undefined || v === "") return NaN;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : NaN;
+  };
+  const dl = toPosNum(pod.machine?.maxDownloadSpeedMbps ?? pod.maxDownloadSpeedMbps ?? pod.machine?.downloadSpeedMbps ?? pod.machine?.networkSpeedMbps);
+  const ul = toPosNum(pod.machine?.maxUploadSpeedMbps ?? pod.maxUploadSpeedMbps ?? pod.machine?.uploadSpeedMbps);
   if (Number.isFinite(dl) || Number.isFinite(ul)) {
-    const dlPart = Number.isFinite(dl) && dl > 0 ? `↓${Math.round(dl)}` : "";
-    const ulPart = Number.isFinite(ul) && ul > 0 ? `↑${Math.round(ul)}` : "";
+    const dlPart = Number.isFinite(dl) ? `↓${Math.round(dl)}` : "";
+    const ulPart = Number.isFinite(ul) ? `↑${Math.round(ul)}` : "";
     const joined = [dlPart, ulPart].filter(Boolean).join(" / ");
     if (joined) {
       ctrl.speedText = `${joined} Мбит/с`;
@@ -1561,6 +1566,19 @@ async function fetchActivePods() {
       // Logs visible by default for all pods: start SSE stream if expanded
       if (ctrl.isExpanded && !ctrl.logAbortController) {
         startLogStreamForPod(ctrl);
+      }
+
+      // If /pods?includeMachine=true omitted network speeds, query single-pod endpoint once
+      if (!ctrl.speedText && !ctrl.machineSpeedFetched) {
+        ctrl.machineSpeedFetched = true;
+        runpodFetch(`/pods/${encodeURIComponent(ctrl.podId)}?includeMachine=true`)
+          .then((fullPod) => {
+            if (!fullPod) return;
+            syncPodStateFromApi(ctrl, fullPod);
+            const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+            if (card) updatePodCardElement(ctrl, card);
+          })
+          .catch(() => {});
       }
     }
 
