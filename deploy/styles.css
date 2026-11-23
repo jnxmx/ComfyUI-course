@@ -772,11 +772,12 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
   background-color: transparent;
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 2px;
 }
 
 .power-seg.power-seg-plus .power-seg-fill {
-  width: 35%;
+  width: 50%;
   flex-shrink: 0;
 }
 
