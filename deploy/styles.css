@@ -606,15 +606,8 @@ input[type="range"] {
 
 #gpu-table {
   width: 100%;
-  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.9rem;
-}
-
-@media (max-width: 640px) {
-  #gpu-table {
-    table-layout: auto;
-  }
 }
 
 #gpu-table th,
@@ -683,6 +676,8 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 
 .col-check {
   width: 34px;
+  min-width: 34px;
+  max-width: 34px;
   text-align: center;
   padding-left: 0.45rem !important;
   padding-right: 0.45rem !important;
@@ -694,6 +689,8 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 
 .col-power {
   width: 170px;
+  min-width: 170px;
+  max-width: 170px;
 }
 
 .power-bars {
@@ -908,13 +905,17 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 
 .col-price {
   width: 90px;
+  min-width: 90px;
+  max-width: 90px;
   white-space: nowrap;
   padding-right: 0.75rem !important;
 }
 
 #gpu-table th.col-action,
 #gpu-table td.col-action {
-  width: 118px;
+  width: 112px;
+  min-width: 112px;
+  max-width: 112px;
   white-space: nowrap;
   text-align: right;
 }

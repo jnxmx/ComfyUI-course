@@ -837,10 +837,12 @@ function renderGpuTable() {
     displayRows = displayRows.filter((r) => r.availability !== "NONE");
   }
 
+  const gpuColCount = state.showUnavailable ? 5 : 4;
+
   if (displayRows.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 5;
+    td.colSpan = gpuColCount;
     td.className = "empty-cell";
     td.textContent = state.apiKey ? "Нет видеокарт по выбранным фильтрам" : "Введите API ключ для загрузки";
     tr.appendChild(td);
@@ -896,7 +898,7 @@ function renderGpuTable() {
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row table-divider-ram";
       const divTd = document.createElement("td");
-      divTd.colSpan = 5;
+      divTd.colSpan = gpuColCount;
       divTd.textContent = "Не подходит под фильтр RAM";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
@@ -908,7 +910,7 @@ function renderGpuTable() {
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row table-divider-price";
       const divTd = document.createElement("td");
-      divTd.colSpan = 5;
+      divTd.colSpan = gpuColCount;
       divTd.textContent = "Дороже фильтра цены";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
@@ -920,7 +922,7 @@ function renderGpuTable() {
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
-      divTd.colSpan = 5;
+      divTd.colSpan = gpuColCount;
       divTd.textContent = "Нерекомендуемые";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
@@ -932,7 +934,7 @@ function renderGpuTable() {
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
-      divTd.colSpan = 5;
+      divTd.colSpan = gpuColCount;
       divTd.textContent = "Нерекомендуемые";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
@@ -944,7 +946,7 @@ function renderGpuTable() {
       const divTr = document.createElement("tr");
       divTr.className = "table-divider-row";
       const divTd = document.createElement("td");
-      divTd.colSpan = 5;
+      divTd.colSpan = gpuColCount;
       divTd.textContent = "Нерекомендуемые";
       divTr.appendChild(divTd);
       tbody.appendChild(divTr);
