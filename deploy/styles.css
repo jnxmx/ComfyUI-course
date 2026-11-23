@@ -1881,7 +1881,6 @@ html.theme-light .th-score-link {
   justify-content: center;
   margin-right: 0.35rem;
   vertical-align: middle;
-  cursor: help;
   flex-shrink: 0;
 }
 
@@ -1891,7 +1890,6 @@ html.theme-light .th-score-link {
   line-height: 1;
   vertical-align: 0.42em;
   margin-left: 0.25rem;
-  cursor: help;
 }
 
 html.theme-light .recommended-star {
