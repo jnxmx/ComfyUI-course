@@ -576,8 +576,14 @@ async function loadTemplate(templateId, showFeedback = false) {
 function updateTemplateUI() {
   const nameEl = document.getElementById("template-display-name");
   const badgeEl = document.getElementById("template-id-badge");
-  if (nameEl) nameEl.textContent = state.currentTemplate.name || "comfy.work";
-  if (badgeEl) badgeEl.textContent = state.currentTemplate.templateId;
+  const tplId = state.currentTemplate.templateId || "casls01eko";
+  if (nameEl) {
+    nameEl.textContent = state.currentTemplate.name || "comfy.work";
+    if (nameEl.tagName === "A") {
+      nameEl.href = `https://console.runpod.io/hub/template/${encodeURIComponent(tplId)}?id=${encodeURIComponent(tplId)}`;
+    }
+  }
+  if (badgeEl) badgeEl.textContent = tplId;
 }
 
 function initTemplateControls() {
