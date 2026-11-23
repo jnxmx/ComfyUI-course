@@ -1228,14 +1228,10 @@ function getPublicIpFromPod(pod) {
 }
 
 function formatPodRamText(ctrl) {
-  const parts = [];
   if (Number.isFinite(ctrl.ramGb) && ctrl.ramGb > 0) {
-    parts.push(`${Math.round(ctrl.ramGb)} ГБ RAM`);
+    return `${Math.round(ctrl.ramGb)} ГБ RAM`;
   }
-  if (ctrl.speedText) {
-    parts.push(ctrl.speedText);
-  }
-  return parts.join(" · ");
+  return "";
 }
 
 async function resolvePodGeoByIp(ctrl, ip) {
@@ -1288,12 +1284,15 @@ function syncPodStateFromApi(ctrl, pod) {
     ctrl.ramGb = ramGb;
   }
 
-  const dl = pod.machine?.maxDownloadSpeedMbps ?? pod.maxDownloadSpeedMbps;
-  const ul = pod.machine?.maxUploadSpeedMbps ?? pod.maxUploadSpeedMbps;
+  const dl = pod.machine?.maxDownloadSpeedMbps ?? pod.maxDownloadSpeedMbps ?? pod.machine?.downloadSpeedMbps;
+  const ul = pod.machine?.maxUploadSpeedMbps ?? pod.maxUploadSpeedMbps ?? pod.machine?.uploadSpeedMbps;
   if (Number.isFinite(dl) || Number.isFinite(ul)) {
-    const dlPart = Number.isFinite(dl) ? `↓${Math.round(dl)}` : "";
-    const ulPart = Number.isFinite(ul) ? `↑${Math.round(ul)}` : "";
-    ctrl.speedText = `${[dlPart, ulPart].filter(Boolean).join("/")} Mbps`;
+    const dlPart = Number.isFinite(dl) && dl > 0 ? `↓${Math.round(dl)}` : "";
+    const ulPart = Number.isFinite(ul) && ul > 0 ? `↑${Math.round(ul)}` : "";
+    const joined = [dlPart, ulPart].filter(Boolean).join(" / ");
+    if (joined) {
+      ctrl.speedText = `${joined} Мбит/с`;
+    }
   }
 
   if (pod.dataCenterId) {
@@ -1501,7 +1500,7 @@ async function fetchActivePods() {
   const countBadge = document.getElementById("pods-count-badge");
 
   try {
-    const res = await runpodFetch("/pods");
+    const res = await runpodFetch("/pods?includeMachine=true");
     const pods = Array.isArray(res) ? res : res?.pods || res?.data || [];
     state.activePods = pods;
 
@@ -1684,6 +1683,12 @@ function createPodCardElement(ctrl) {
   locationBadge.textContent = ctrl.locationText || "";
   locationBadge.hidden = !ctrl.locationText;
 
+  const speedBadge = document.createElement("span");
+  speedBadge.className = "badge badge-subtle pod-speed-badge";
+  speedBadge.title = "Скорость интернета (Download / Upload)";
+  speedBadge.textContent = ctrl.speedText || "";
+  speedBadge.hidden = !ctrl.speedText;
+
   const statusBadge = document.createElement("span");
   statusBadge.className = "badge pod-status-badge";
   statusBadge.textContent = ctrl.status;
@@ -1701,7 +1706,7 @@ function createPodCardElement(ctrl) {
 
   const summaryMeta = document.createElement("div");
   summaryMeta.className = "pod-summary-meta";
-  summaryMeta.append(gpuBadge, cloudBadge, ramBadge, locationBadge, diskWarnBadge);
+  summaryMeta.append(gpuBadge, cloudBadge, ramBadge, locationBadge, speedBadge, diskWarnBadge);
 
   summaryLines.append(summaryPrimary, summaryMeta);
   summary.append(chevron, summaryLines);
@@ -1950,6 +1955,12 @@ function updatePodCardElement(ctrl, cardEl) {
   if (locationBadge) {
     locationBadge.textContent = ctrl.locationText || "";
     locationBadge.hidden = !ctrl.locationText;
+  }
+
+  const speedBadge = cardEl.querySelector(".pod-speed-badge");
+  if (speedBadge) {
+    speedBadge.textContent = ctrl.speedText || "";
+    speedBadge.hidden = !ctrl.speedText;
   }
 
   const diskWarnBadge = cardEl.querySelector(".pod-disk-warn-badge");
