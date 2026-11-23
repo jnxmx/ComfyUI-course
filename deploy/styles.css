@@ -509,9 +509,8 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 115px;
-  max-width: 155px;
-  flex: 1 1 130px;
+  min-width: 140px;
+  flex: 1 1 160px;
 }
 
 .gpu-card:not(.show-unavailable-mode) .col-check,
@@ -547,8 +546,8 @@ input[type="range"] {
   flex-direction: column;
   gap: 0.25rem;
   min-width: 115px;
-  max-width: 155px;
-  flex: 1 1 130px;
+  max-width: 135px;
+  flex: 0 1 135px;
 }
 
 .ram-header {
