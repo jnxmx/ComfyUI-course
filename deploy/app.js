@@ -6,7 +6,7 @@ import {
   buildSegmentedPowerBars,
   isAnomalousGpuPrice,
   isRecommendedGpu
-} from "./gpu_data.js?v=20261123_11";
+} from "./gpu_data.js?v=20261123_24";
 
 /**
  * course.yakushev.fr/deploy — Minimalist RunPod Deployer & CUDA 13.0 Monitor

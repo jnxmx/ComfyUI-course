@@ -177,7 +177,7 @@ export function getGpuArchitecture(gpuId, displayName = "") {
     /\bl4\b/.test(s)
   ) {
     return {
-      label: "Ada Lovelace",
+      label: "Ada",
       tierClass: "arch-ada",
       title: "Ada Lovelace (FP8 / BF16, без FP4)"
     };

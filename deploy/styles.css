@@ -770,14 +770,14 @@ tr.row-exceeds-price .col-check input[type="checkbox"]:disabled {
 
 .arch-pill {
   display: inline-block;
-  font-size: 0.55rem;
+  font-size: 0.48rem;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.015em;
-  padding: 0.09rem 0.28rem;
+  padding: 0.06rem 0.22rem;
   border-radius: 3px;
-  margin-left: 0.28rem;
-  vertical-align: 0.42em;
+  margin-left: 0.24rem;
+  vertical-align: 0.56em;
   white-space: nowrap;
 }
 
