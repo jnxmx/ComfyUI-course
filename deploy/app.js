@@ -1574,6 +1574,7 @@ function updatePodDiskBadge(ctrl, badgeEl) {
     badgeEl.title = "Определяем тип диска хоста (XFS / Fast Disk)";
     badgeEl.hidden = false;
   } else {
+    badgeEl.className = "badge pod-disk-warn-badge";
     badgeEl.hidden = true;
   }
 }
@@ -1618,6 +1619,7 @@ function createPodCardElement(ctrl) {
   statusBadge.textContent = ctrl.status;
 
   const diskWarnBadge = document.createElement("span");
+  diskWarnBadge.className = "badge pod-disk-warn-badge";
   updatePodDiskBadge(ctrl, diskWarnBadge);
 
   const summaryLines = document.createElement("div");
