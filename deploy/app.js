@@ -1623,7 +1623,7 @@ function createPodCardElement(ctrl) {
   chevron.type = "button";
   chevron.className = "btn-pod-chevron";
   chevron.setAttribute("aria-label", "Развернуть детали");
-  chevron.textContent = "▼";
+  chevron.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
 
   const title = document.createElement("strong");
   title.className = "pod-title";
@@ -2752,6 +2752,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
   const pendingCard = document.getElementById("pending-deploy-card");
   const pendingTitle = document.getElementById("pending-deploy-title");
   const pendingSub = document.getElementById("pending-deploy-subtitle");
+  const pendingGpus = document.getElementById("pending-deploy-gpus");
   const pendingAlert = document.getElementById("pending-deploy-alert");
   const cancelBtn = document.getElementById("cancel-pending-deploy-btn");
 
@@ -2785,6 +2786,20 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     if (pendingCard) pendingCard.hidden = hasMergedHeldPod;
     if (pendingTitle && title) pendingTitle.textContent = title;
     if (pendingSub && sub) pendingSub.textContent = sub;
+    if (pendingGpus) {
+      pendingGpus.replaceChildren();
+      if (sourceList && sourceList.length > 0) {
+        pendingGpus.hidden = false;
+        for (const c of sourceList) {
+          const pill = document.createElement("span");
+          pill.className = "badge badge-warn";
+          pill.textContent = `${c.displayName} · ${c.cloud}`;
+          pendingGpus.appendChild(pill);
+        }
+      } else {
+        pendingGpus.hidden = true;
+      }
+    }
     if (pendingAlert) {
       pendingAlert.hidden = !alertText;
       if (alertClass) pendingAlert.className = alertClass;
