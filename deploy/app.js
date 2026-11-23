@@ -1897,7 +1897,7 @@ function createPodCardElement(ctrl) {
     secLinks.append(httpRow, tcpRow);
     readyBox.append(mainActions, secLinks);
 
-    body.append(metaRow, alertBox, stagePills, readyBox, logDetails);
+    body.append(stagePills, metaRow, alertBox, readyBox, logDetails);
   } else {
     // Foreign pod: no ComfyUI/Fizgig links, no stage pills.
     // "только ссылку на консоль и логи"
