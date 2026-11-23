@@ -1697,11 +1697,11 @@ function createPodCardElement(ctrl) {
 
   const summaryPrimary = document.createElement("div");
   summaryPrimary.className = "pod-summary-primary";
-  summaryPrimary.append(title, statusBadge, gpuBadge, cloudBadge);
+  summaryPrimary.append(title, statusBadge);
 
   const summaryMeta = document.createElement("div");
   summaryMeta.className = "pod-summary-meta";
-  summaryMeta.append(ramBadge, locationBadge, diskWarnBadge);
+  summaryMeta.append(gpuBadge, cloudBadge, ramBadge, locationBadge, diskWarnBadge);
 
   summaryLines.append(summaryPrimary, summaryMeta);
   summary.append(chevron, summaryLines);
