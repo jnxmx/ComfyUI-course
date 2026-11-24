@@ -459,7 +459,7 @@ function updateApiKeyRequirementsBanner() {
   if (forgetBtn) forgetBtn.hidden = !isSaved;
 
   if (savedBadge) {
-    savedBadge.hidden = true;
+    savedBadge.hidden = !isSaved;
     savedBadge.textContent = "✓";
     savedBadge.title = state.maskedKey ? `API-ключ сохранён (${state.maskedKey})` : "API-ключ сохранён локально";
   }
@@ -2091,7 +2091,7 @@ function createPodCardElement(ctrl) {
   title.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
   title.target = "_blank";
   title.rel = "noopener noreferrer";
-  title.textContent = ctrl.displayName;
+  title.textContent = `${ctrl.displayName} ↗`;
   title.title = `${ctrl.displayName} — открыть в консоли RunPod (${ctrl.podId})`;
 
   const specsText = document.createElement("div");
@@ -2271,7 +2271,7 @@ function updatePodCardElement(ctrl, cardEl) {
 
   const titleEl = cardEl.querySelector(".pod-title");
   if (titleEl) {
-    titleEl.textContent = ctrl.displayName;
+    titleEl.textContent = `${ctrl.displayName} ↗`;
     titleEl.title = `${ctrl.displayName} — открыть в консоли RunPod (${ctrl.podId})`;
     if (titleEl.tagName === "A") {
       titleEl.href = `https://console.runpod.io/pods?id=${encodeURIComponent(ctrl.podId)}`;
