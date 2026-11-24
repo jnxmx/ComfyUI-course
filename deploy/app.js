@@ -1461,10 +1461,9 @@ async function resolvePodGeoByIp(ctrl, ip) {
     if (!res.ok) return;
     const data = await res.json();
     if (!data || data.success === false) return;
-    const flag = data.flag?.emoji ? `${data.flag.emoji} ` : "";
     const place = [data.country_code || data.country, data.city].filter(Boolean).join(", ");
     if (!place) return;
-    const label = `${flag}${place}`;
+    const label = place;
     state.ipGeoCache.set(ip, label);
     ctrl.locationText = label;
     const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
