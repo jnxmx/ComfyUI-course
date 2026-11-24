@@ -1657,7 +1657,7 @@ function formatPodSpentCents(ctrl) {
   return `$${dollars.toFixed(2)}`;
 }
 
-function formatPodReadyMetrics(ctrl) {
+function formatPodBillingParts(ctrl) {
   const parts = [];
   const uptime = formatPodUptime(ctrl);
   const hourly = getPodHourlyPrice(ctrl);
@@ -1665,7 +1665,11 @@ function formatPodReadyMetrics(ctrl) {
   if (uptime) parts.push(uptime);
   if (hourly > 0) parts.push(`$${hourly.toFixed(2)}/ч`);
   if (spent) parts.push(spent);
-  return parts.length > 0 ? parts.join(" · ") : "Готов";
+  return parts.join(" · ");
+}
+
+function formatPodReadyMetrics(ctrl) {
+  return formatPodBillingParts(ctrl) || "Готов";
 }
 
 function updateAllPodSpentCounters() {
@@ -1676,11 +1680,9 @@ function updateAllPodSpentCounters() {
     const ctrl = podId ? state.podControllers.get(podId) : null;
     if (!ctrl) continue;
     const statusInfo = getPodLiveStatus(ctrl);
-    if (statusInfo.tone === "ready" || statusInfo.tone === "active") {
-      const statusTextEl = card.querySelector(".pod-status-text");
-      if (statusTextEl && statusTextEl.textContent !== statusInfo.text) {
-        statusTextEl.textContent = statusInfo.text;
-      }
+    const statusTextEl = card.querySelector(".pod-status-text");
+    if (statusTextEl && statusTextEl.textContent !== statusInfo.text) {
+      statusTextEl.textContent = statusInfo.text;
     }
   }
 }
@@ -1923,8 +1925,9 @@ function getPodLiveStatus(ctrl) {
     const rawStatus = ctrl.status || "UNKNOWN";
     const isErr = rawStatus === "ERROR" || rawStatus === "EXITED";
     const isRunning = rawStatus === "RUNNING";
+    const billing = rawStatus === "EXITED" ? "" : formatPodBillingParts(ctrl);
     return {
-      text: isErr ? rawStatus : formatPodReadyMetrics(ctrl),
+      text: isErr ? (billing ? `${rawStatus} · ${billing}` : rawStatus) : formatPodReadyMetrics(ctrl),
       tone: isErr ? "error" : isRunning ? "ready" : "active",
       spinning: !isErr && !isRunning
     };
@@ -1939,8 +1942,16 @@ function getPodLiveStatus(ctrl) {
     ctrl.stages.cuda === "error";
 
   if (isError) {
+    if (ctrl.status === "EXITED" || ctrl.status === "TERMINATED") {
+      return {
+        text: "Под остановлен",
+        tone: "error",
+        spinning: false
+      };
+    }
+    const billing = formatPodBillingParts(ctrl);
     return {
-      text: ctrl.status === "EXITED" ? "Под остановлен" : "Сбой запуска",
+      text: billing ? `Сбой · ${billing}` : "Сбой запуска",
       tone: "error",
       spinning: false
     };
@@ -2298,13 +2309,16 @@ function updatePodCardElement(ctrl, cardEl) {
     if (!retryBox) {
       retryBox = document.createElement("div");
       retryBox.className = "pod-held-retry-box";
+      const retryHead = document.createElement("div");
+      retryHead.className = "pod-held-retry-head";
       const retryTitle = document.createElement("div");
       retryTitle.className = "pod-held-retry-title";
       const retrySub = document.createElement("div");
       retrySub.className = "pod-held-retry-sub";
+      retryHead.append(retryTitle, retrySub);
       const retryAlert = document.createElement("div");
       retryAlert.className = "pod-held-retry-alert monitor-alert";
-      retryBox.append(retryTitle, retrySub, retryAlert);
+      retryBox.append(retryHead, retryAlert);
       const headerEl = cardEl.querySelector(".pod-card-header");
       if (headerEl) headerEl.after(retryBox);
       else cardEl.appendChild(retryBox);
