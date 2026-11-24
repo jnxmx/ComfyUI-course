@@ -2003,7 +2003,8 @@ function updatePodSpecsElement(ctrl, specsEl) {
   const fitSpecs = () => {
     if (!specsEl.isConnected) return;
     specsEl.classList.remove("is-multiline");
-    if (specsEl.clientWidth > 0 && specsEl.scrollWidth > specsEl.clientWidth + 1) {
+    const naturalWidth = techLine.scrollWidth + sep.offsetWidth + hostLine.scrollWidth;
+    if (specsEl.clientWidth > 0 && (naturalWidth > specsEl.clientWidth + 1 || specsEl.scrollWidth > specsEl.clientWidth + 1)) {
       specsEl.classList.add("is-multiline");
     }
   };
