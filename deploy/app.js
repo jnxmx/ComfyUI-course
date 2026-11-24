@@ -967,7 +967,11 @@ async function fetchGpuCatalog(silent = false) {
           if (price === null || price === undefined || price <= 0) continue;
           if (isAnomalousGpuPrice(gpu.id, price)) continue;
 
-          const isUnavailable = !gpu.availability || gpu.availability === "NONE";
+          const cloudMaxCount = cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0);
+          const effectiveAvailability = (!gpu.availability || gpu.availability === "NONE" || cloudMaxCount <= 0)
+            ? "NONE"
+            : gpu.availability;
+          const isUnavailable = effectiveAvailability === "NONE";
           const cuda13List = (gpu.cudaVersions || [])
             .filter((c) => Number.parseFloat(c.version) >= 13.0 && (isUnavailable || c.available))
             .map((c) => c.version);
@@ -985,8 +989,8 @@ async function fetchGpuCatalog(silent = false) {
             displayName,
             cloud: cloudType,
             price: Number(price),
-            availability: gpu.availability || "NONE",
-            maxCount: cloudType === "COMMUNITY" ? (gpu.maxCount?.community || 0) : (gpu.maxCount?.secure || 0),
+            availability: effectiveAvailability,
+            maxCount: cloudMaxCount,
             vramGb: Number.isFinite(gpu.memory) ? gpu.memory : null,
             minRam: Number.isFinite(gpu.minRam) ? gpu.minRam : null,
             cudaVersions: cuda13List,
