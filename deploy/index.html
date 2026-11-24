@@ -9,311 +9,504 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Comfy.Work Deployer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:opsz,wght@6..144,300..700&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261123_53">
+  <link rel="stylesheet" href="styles.css?v=20261124_01">
 </head>
 <body>
-  <div class="app-container">
-    <header class="app-header">
-      <div class="app-brand">
-        <h1 class="app-title">Comfy.Work Deployer</h1>
-        <span class="app-brand-badge">RunPod Direct</span>
-      </div>
-      <div class="header-right-group">
-        <button type="button" id="theme-toggle" class="btn btn-subtle-sm theme-toggle-btn" title="Переключить тему" aria-label="Переключить тему">
-          <svg class="theme-icon-sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-          </svg>
-          <svg class="theme-icon-moon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        </button>
-        <span id="header-status-pill" class="header-status-pill">Ожидание API-ключа</span>
-      </div>
-    </header>
-    <main class="main-flow">
-      <!-- 1. API Secret Key Section -->
-      <section class="card auth-card" aria-label="Авторизация RunPod">
-        <div class="section-head auth-header-row">
-          <h2 class="section-title"><label for="runpod-api-key">RunPod API Secret Key</label></h2>
-          <div class="auth-header-links">
-            <button type="button" id="api-safety-toggle" class="link-external link-button" aria-expanded="false">
-              Безопасно ли это?
-            </button>
-            <a href="https://console.runpod.io/user/credentials" target="_blank" rel="noopener noreferrer" class="link-external">
-              Получить API ключ ↗
+  <div class="app-shell">
+    <!-- Centered API Key Onboarding Screen (shown when logged out / no key saved) -->
+    <section id="auth-onboarding" class="onboarding-screen" hidden aria-label="Подключение RunPod">
+      <div class="onboarding-panel" id="onboarding-panel">
+        <div class="onboarding-body">
+          <div class="onboarding-head-row">
+            <div class="onboarding-head">
+              <h1 class="onboarding-title">Подключение RunPod</h1>
+              <p class="onboarding-lead">Создайте ключ на RunPod и вставьте его ниже.</p>
+            </div>
+            <a
+              id="onboarding-keys-cta"
+              href="https://console.runpod.io/user/credentials"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn onboarding-keys-cta"
+            >
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 3h6v6" />
+                <path d="M10 14 21 3" />
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              </svg>
+              <span>Открыть API Keys</span>
             </a>
           </div>
-        </div>
-        <div id="api-safety-info" class="api-safety-info" hidden>
-          <p><strong>Этот текст, так же как и весь интерфейс, сделан с помощью генеративного ИИ — так что это не может быть полностью безопасно, но:</strong></p>
-          <ul>
-            <li><strong>Ключ никуда не отправляется:</strong> страница работает полностью в вашем браузере без собственного бэкенда и промежуточных серверов. API-ключ хранится только локально в <code>localStorage</code> вашего устройства.</li>
-            <li><strong>Прямое соединение с RunPod:</strong> все запросы с ключом уходят напрямую с вашего компьютера на официальный <code>https://api.runpod.io/v2</code> по защищённому HTTPS-соединению.</li>
-            <li><strong>Открытый исходный код:</strong> код сайта открыт на GitHub, а во вкладке Network в DevTools можно в любой момент проверить, что ключ передаётся только в RunPod API.</li>
-            <li><strong>Полный контроль:</strong> вы можете в один клик удалить ключ кнопкой «Забыть ключ» или отозвать его в любой момент в настройках аккаунта RunPod.</li>
-          </ul>
-        </div>
-        <div class="auth-input-row">
-          <div class="password-box">
-            <input
-              type="password"
-              id="runpod-api-key"
-              name="runpod_api_key"
-              autocomplete="current-password"
-              placeholder="rpa_..."
-              spellcheck="false"
-              required
-            >
-            <button type="button" id="toggle-key-btn" class="btn-toggle-eye" aria-label="Показать/скрыть ключ">
-              Показать
-            </button>
+
+          <!-- Top Card: API Key Input Row (matching Name row in Comfy Desktop New build) -->
+          <div class="onboarding-field-card">
+            <label for="onboarding-api-key" class="onboarding-field-label">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+              </svg>
+              <span>API Key</span>
+            </label>
+            <div class="onboarding-input-box">
+              <input
+                type="password"
+                id="onboarding-api-key"
+                name="onboarding_api_key"
+                autocomplete="off"
+                placeholder="rpa_..."
+                spellcheck="false"
+              >
+              <button type="button" id="onboarding-toggle-key" class="btn-toggle-eye" aria-label="Показать или скрыть ключ">
+                Показать
+              </button>
+            </div>
           </div>
-          <button type="button" id="forget-key-btn" class="btn btn-secondary">
-            Забыть ключ
+
+          <!-- Center Card: Native Hint Block (before key) OR Live Account Balance & Email (after key) -->
+          <div id="onboarding-hero-card" class="onboarding-hero-card">
+            <div id="onboarding-guide-view" class="onboarding-guide-view">
+              <div class="onboarding-guide-title">Как получить ключ</div>
+              <ol class="onboarding-guide-copy">
+                <li>Нажмите «Открыть API Keys» сверху и выберите Create API Key.</li>
+                <li>В списке REST API поставьте обе галочки у All resources (Read и Write).</li>
+                <li>Сверните REST API, откройте GraphQL и выберите Read, Write (достаточно Read only).</li>
+                <li>Нажмите Create, скопируйте ключ и вставьте его в поле API Key выше.</li>
+              </ol>
+            </div>
+
+            <div id="onboarding-probe-view" class="onboarding-probe-view" hidden>
+              <div class="onboarding-hero-art" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+                  <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+                </svg>
+              </div>
+              <div class="onboarding-hero-info">
+                <div id="onboarding-hero-status" class="onboarding-hero-status">
+                  <span id="onboarding-probe-spinner" class="loading-spinner" hidden aria-hidden="true"></span>
+                  <span id="onboarding-hero-status-text">Проверка ключа...</span>
+                </div>
+                <div id="onboarding-hero-title" class="onboarding-hero-title">—</div>
+                <div id="onboarding-hero-sub" class="onboarding-hero-sub">Проверяем права доступа и секреты...</div>
+              </div>
+              <button type="button" id="onboarding-clear-btn" class="btn btn-secondary onboarding-hero-btn">
+                Очистить
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Spec Table Card: REST API & Secrets -->
+          <div id="onboarding-specs-card" class="onboarding-specs-card">
+            <div class="onboarding-spec-row">
+              <div class="onboarding-spec-label">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
+                </svg>
+                <span>REST API</span>
+              </div>
+              <span id="probe-rest-desc" class="onboarding-spec-val">Pods, Templates, Secrets, Catalog</span>
+              <span id="probe-rest-status" class="onboarding-spec-right is-muted">Ожидает ключ</span>
+            </div>
+            <div class="onboarding-spec-row">
+              <div class="onboarding-spec-label">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <span>Секреты</span>
+              </div>
+              <span id="probe-gql-desc" class="onboarding-spec-val">HF_TOKEN, CIVITAI_API_KEY, COMFYUI_BACKUP</span>
+              <span id="probe-gql-status" class="onboarding-spec-right is-muted">Ожидает ключ</span>
+            </div>
+          </div>
+        </div>
+
+        <footer class="onboarding-footer">
+          <button type="button" id="onboarding-safety-btn" class="link-subtle link-button" aria-haspopup="dialog" aria-controls="api-safety-modal">
+            Безопасно?
           </button>
-        </div>
+          <button type="button" id="onboarding-login-btn" class="btn btn-primary onboarding-submit-btn" disabled>
+            Войти
+          </button>
+        </footer>
+      </div>
+    </section>
 
-        <!-- API Key Requirements (shown when key is missing or lacks permissions) -->
-        <div id="api-key-requirements" class="api-key-requirements" role="status" hidden>
-          <div id="api-key-req-title" class="api-key-req-title">
-            Требования к API-ключу RunPod
+    <main id="dashboard-main" class="main-grid" hidden>
+      <!-- LEFT COLUMN: Auth/Secrets + Active Pods (Web: no balance card) -->
+      <div class="col-left">
+        <!-- API Secret Key & Account Secrets -->
+        <section id="auth-card" class="card auth-card" aria-label="Авторизация RunPod">
+          <div class="section-head auth-header-row">
+            <div class="auth-title-wrap">
+              <h2 class="section-title"><label for="runpod-api-key">RunPod API Key</label></h2>
+              <span id="saved-key-badge" class="badge badge-success badge-check" hidden title="API-ключ сохранён локально">✓</span>
+            </div>
+            <div id="auth-header-links" class="auth-header-links" hidden>
+              <button type="button" id="api-safety-toggle" class="link-external link-button" aria-haspopup="dialog" aria-controls="api-safety-modal">
+                Безопасно?
+              </button>
+              <a href="https://console.runpod.io/user/credentials" target="_blank" rel="noopener noreferrer" class="link-external">
+                Ключи ↗
+              </a>
+            </div>
+            <div class="balance-head-actions">
+              <button type="button" id="forget-key-btn" class="btn btn-secondary-sm btn-forget-key" hidden title="Удалить сохранённый ключ">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m16 17 5-5-5-5" />
+                  <path d="M21 12H9" />
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                </svg>
+                <span>Забыть</span>
+              </button>
+            </div>
           </div>
-          <div id="api-key-req-errors" class="api-key-req-errors" hidden></div>
-          <ul class="api-key-req-list">
-            <li><strong>Минимум в REST API:</strong> <code>Pods (Read + Write)</code>, <code>Templates (Read)</code>, <code>Secrets (Read)</code>, <code>Catalog (Read)</code>.</li>
-            <li><strong>Минимум в GraphQL API:</strong> <code>Read only</code> <em>(обязательно для чтения потоковых логов подов)</em>.</li>
-            <li>Либо просто создайте ключ со всеми правами (отметить все галочки).</li>
-          </ul>
-        </div>
 
-        <!-- Account Info Panel (Secrets Status) -->
-        <div id="account-info-panel" class="account-info-panel" hidden>
-          <div class="account-info-row">
-            <div class="account-secrets-wrap">
-              <span class="account-secrets-label">Секреты RunPod:</span>
+          <div id="account-info-panel" class="account-info-panel" hidden>
+            <div class="account-secrets-row">
+              <span class="secrets-key-icon" aria-hidden="true" title="Секреты RunPod">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+                  <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+                </svg>
+              </span>
               <div class="account-secrets-box">
-                <span id="status-hf-token" class="secret-pill secret-missing" title="Токен Hugging Face">
-                  HF_TOKEN: <span class="secret-state">не найден ✗</span>
-                </span>
-                <span id="status-civitai-token" class="secret-pill secret-missing" title="Ключ Civitai API">
-                  CIVITAI_API_KEY: <span class="secret-state">не найден ✗</span>
-                </span>
-                <span id="status-backup" class="secret-pill secret-missing" title="Бэкап ComfyUI">
-                  COMFYUI_BACKUP: <span class="secret-state">не найден ✗</span>
-                </span>
+                <a id="status-hf-token" href="https://console.runpod.io/user/credentials?tab=secrets" target="_blank" rel="noopener noreferrer" class="secret-pill secret-missing" title="Настроить HF_TOKEN в RunPod">
+                  <span>HF_TOKEN</span>
+                  <span class="secret-icon-slot">
+                    <span class="secret-state">✓</span>
+                    <svg class="secret-edit-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                  </span>
+                </a>
+                <a id="status-civitai-token" href="https://console.runpod.io/user/credentials?tab=secrets" target="_blank" rel="noopener noreferrer" class="secret-pill secret-missing" title="Настроить CIVITAI_API_KEY в RunPod">
+                  <span>CIVITAI_API_KEY</span>
+                  <span class="secret-icon-slot">
+                    <span class="secret-state">✓</span>
+                    <svg class="secret-edit-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                  </span>
+                </a>
+                <a id="status-backup" href="https://console.runpod.io/user/credentials?tab=secrets" target="_blank" rel="noopener noreferrer" class="secret-pill secret-missing" title="Настроить COMFYUI_BACKUP в RunPod">
+                  <span>COMFYUI_BACKUP</span>
+                  <span class="secret-icon-slot">
+                    <span class="secret-state">✓</span>
+                    <svg class="secret-edit-icon" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                  </span>
+                </a>
               </div>
             </div>
-            <a href="https://console.runpod.io/user/secrets" target="_blank" rel="noopener noreferrer" class="link-subtle" title="Управление секретами в консоли RunPod">
-              Настроить секреты ↗
-            </a>
           </div>
-        </div>
-      </section>
 
-      <!-- Unified Pods & Deployment Section (all pods expand into full deploy view) -->
-      <section id="pods-section" class="card pods-card" hidden aria-label="Поды и мониторинг">
-        <div class="section-head">
-          <div class="pods-head-title-row">
-            <h2 class="section-title">Активные поды</h2>
-            <span id="pods-count-badge" class="badge badge-subtle">0</span>
+          <div id="auth-loading" class="card-loading-state">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Загрузка профиля...</span>
           </div>
-          <button type="button" id="refresh-pods-btn" class="btn btn-subtle" title="Обновить список подов">
-            Обновить
-          </button>
-        </div>
 
-        <!-- Pending Deployment Card (shows when auto-retrying or allocating machine before pod creation) -->
-        <div id="pending-deploy-card" class="pending-deploy-card" hidden>
-          <div class="pending-deploy-header">
-            <div class="pending-deploy-info">
-              <strong id="pending-deploy-title" class="pending-title">Запуск пода...</strong>
-              <span id="pending-deploy-subtitle" class="pending-sub">Выделение машины на RunPod...</span>
-              <div id="pending-deploy-gpus" class="pending-deploy-gpus" hidden></div>
-            </div>
-            <div class="pending-deploy-actions">
-              <progress class="loading-spinner" aria-label="Поиск машины"></progress>
-              <button type="button" id="cancel-pending-deploy-btn" class="btn btn-danger-sm">
-                Остановить попытки
+          <div id="auth-input-row" class="auth-input-row" hidden>
+            <div class="password-box">
+              <input
+                type="password"
+                id="runpod-api-key"
+                name="runpod_api_key"
+                autocomplete="off"
+                placeholder="rpa_..."
+                spellcheck="false"
+              >
+              <button type="button" id="toggle-key-btn" class="btn-toggle-eye" aria-label="Показать или скрыть вводимый ключ">
+                Показать
               </button>
             </div>
+            <button type="button" id="save-key-btn" class="btn btn-primary">
+              Сохранить
+            </button>
           </div>
-          <div id="pending-deploy-alert" class="monitor-alert" hidden></div>
-        </div>
 
-        <!-- Pod Cards Container -->
-        <div id="pods-list" class="pods-list" aria-live="polite"></div>
-      </section>
+          <div id="api-key-requirements" class="api-key-requirements" role="status" hidden>
+            <div id="api-key-req-title" class="api-key-req-title">
+              Требования к API-ключу RunPod
+            </div>
+            <div id="api-key-req-errors" class="api-key-req-errors" hidden></div>
+            <ul class="api-key-req-list">
+              <li><strong>REST API:</strong> <code>Pods (Read + Write)</code>, <code>Templates (Read)</code>, <code>Secrets (Read)</code>, <code>Catalog (Read)</code>.</li>
+              <li><strong>GraphQL API:</strong> <code>Read only</code> (для потоковых логов подов).</li>
+              <li>Или создайте ключ со всеми правами (All permissions).</li>
+            </ul>
+          </div>
+        </section>
 
-      <!-- 2. Pod Launch (Template, Options & GPU Table) -->
-      <section class="card deploy-card gpu-card" aria-label="Запуск пода">
-        <div class="section-head">
-          <h2 class="section-title">Запуск пода</h2>
-        </div>
-
-        <div class="template-section">
-          <div class="template-header-row">
-            <div class="template-name-row">
-              <span class="template-tag">Темплейт:</span>
-              <a id="template-display-name" href="https://console.runpod.io/hub/template/casls01eko?id=casls01eko" target="_blank" rel="noopener noreferrer" class="template-name template-link" title="Открыть темплейт на RunPod Hub">comfy.work CUDA 13.0 with New Manager</a>
-              <code id="template-id-badge" class="template-id-badge">casls01eko</code>
-              <button type="button" id="edit-template-btn" class="btn-icon" title="Изменить темплейт (ID или ссылка с RunPod)" aria-label="Изменить темплейт">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
-                </svg>
-              </button>
+        <!-- Active Pods & Monitoring -->
+        <section id="pods-section" class="pods-section" hidden aria-label="Поды и мониторинг">
+          <!-- Pending Deployment Card -->
+          <div id="pods-loading-card" class="pending-deploy-card pods-loading-card" hidden>
+            <span class="pod-card-glow" aria-hidden="true"></span>
+            <div class="pending-deploy-header">
+              <div class="pod-header-content">
+                <div class="pod-status-wrap">
+                  <span class="loading-spinner pod-card-spinner" aria-hidden="true"></span>
+                  <span class="pod-status-text is-active">Загрузка активных подов...</span>
+                </div>
+                <div class="pod-specs-text">Синхронизация состояния инстансов RunPod</div>
+              </div>
             </div>
           </div>
 
-          <!-- Inline Template Editor Form -->
-          <div id="template-edit-form" class="template-edit-form" hidden>
-            <div class="template-edit-row">
+          <div id="pending-deploy-card" class="pending-deploy-card" hidden>
+            <span class="pod-card-glow" aria-hidden="true"></span>
+            <div class="pending-deploy-header">
+              <div class="pending-deploy-info">
+                <strong id="pending-deploy-title" class="pending-title">Запуск пода...</strong>
+                <span id="pending-deploy-subtitle" class="pending-sub">Выделение машины на RunPod...</span>
+                <div id="pending-deploy-gpus" class="pending-deploy-gpus" hidden></div>
+              </div>
+              <div class="pending-deploy-actions">
+                <span class="loading-spinner" role="status" aria-label="Поиск машины"></span>
+                <button type="button" id="cancel-pending-deploy-btn" class="btn btn-danger-sm">
+                  Остановить
+                </button>
+              </div>
+            </div>
+            <div id="pending-deploy-alert" class="monitor-alert" hidden></div>
+          </div>
+
+          <div id="pods-empty-state" class="pods-empty-state" hidden>
+            <div class="pods-empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
+                <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
+                <line x1="6" x2="6.01" y1="6" y2="6" />
+                <line x1="6" x2="6.01" y1="18" y2="18" />
+              </svg>
+            </div>
+            <div class="pods-empty-title">Активных подов нет</div>
+            <div class="pods-empty-sub">Выберите GPU справа и нажмите «Запустить».</div>
+          </div>
+
+          <!-- Pod Cards Container -->
+          <div id="pods-list" class="pods-list" aria-live="polite"></div>
+        </section>
+      </div>
+
+      <!-- RIGHT COLUMN: Template + Options + GPU Catalog -->
+      <div class="col-right">
+        <section class="card deploy-card gpu-card" aria-label="Темплейт и выбор видеокарты">
+
+          <div class="template-section">
+            <div class="template-header-row">
+              <div class="template-name-row">
+                <span class="template-tag">Темплейт:</span>
+                <a id="template-display-name" href="https://console.runpod.io/hub/template/casls01eko?id=casls01eko" target="_blank" rel="noopener noreferrer" class="template-name template-link" title="Открыть темплейт на RunPod Hub">comfy.work CUDA 13.0 with New Manager</a>
+                <code id="template-id-badge" class="template-id-badge">casls01eko</code>
+                <button type="button" id="edit-template-btn" class="btn-icon" title="Изменить темплейт (ID или ссылка с RunPod)" aria-label="Изменить темплейт">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="options-group">
+              <label class="checkbox-control" for="opt-new-manager">
+                <input type="checkbox" id="opt-new-manager" checked>
+                <span>Новый Manager</span>
+              </label>
+              <label class="checkbox-control" for="opt-restore-backup">
+                <input type="checkbox" id="opt-restore-backup" checked>
+                <span>Загружать бэкап</span>
+              </label>
+              <div class="shutdown-control-group">
+                <label class="checkbox-control" for="opt-shutdown-timer">
+                  <input type="checkbox" id="opt-shutdown-timer" checked>
+                  <span>Удалять при простое:</span>
+                </label>
+                <div class="shutdown-input-wrapper">
+                  <input
+                    type="number"
+                    id="opt-shutdown-minutes"
+                    min="1"
+                    max="1440"
+                    value="30"
+                    class="shutdown-minutes-input"
+                    aria-label="Минут неактивности до автоматического удаления пода"
+                  >
+                  <span class="shutdown-unit">мин</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="card-divider">
+
+          <div class="gpu-toolbar">
+            <div class="gpu-toolbar-filters">
+              <div class="price-slider-box">
+                <div class="price-header">
+                  <label for="max-price-slider">Макс. цена:</label>
+                  <strong id="max-price-val" class="price-highlight">1.20 $/ч</strong>
+                </div>
+                <input
+                  type="range"
+                  id="max-price-slider"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value="20"
+                  aria-label="Максимальная цена в долларах за час"
+                >
+              </div>
+
+              <div class="ram-slider-box" id="ram-slider-box">
+                <div class="ram-header">
+                  <label for="min-ram-input">Мин. RAM:</label>
+                  <span class="ram-value-wrap">
+                    <strong id="min-ram-val" class="ram-highlight">любое</strong>
+                    <button
+                      type="button"
+                      id="reset-ram-btn"
+                      class="ram-reset-btn"
+                      title="Сбросить фильтр по RAM"
+                      aria-label="Сбросить фильтр по RAM"
+                      hidden
+                    >
+                      <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                        <path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5"/>
+                      </svg>
+                    </button>
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  id="min-ram-input"
+                  min="0"
+                  max="128"
+                  step="4"
+                  value="0"
+                  aria-label="Минимальный объём системной RAM в ГБ (0 — любое)"
+                >
+              </div>
+
+              <div class="gpu-filter-buttons">
+                <label class="checkbox-control auto-redeploy-control" for="opt-auto-redeploy">
+                  <input type="checkbox" id="opt-auto-redeploy" checked>
+                  <span>Повтор при сбое</span>
+                </label>
+                <label class="checkbox-control" for="btn-secure-only" title="Отображать только Secure Cloud">
+                  <input type="checkbox" id="btn-secure-only">
+                  <span>Только Secure</span>
+                </label>
+                <label class="checkbox-control" for="btn-show-unavailable" title="Показывать недоступные видеокарты и охотиться на них">
+                  <input type="checkbox" id="btn-show-unavailable">
+                  <span>Показать недоступные</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="gpu-toolbar-actions">
+              <div class="gpu-selection-controls">
+                <button type="button" id="btn-select-none" class="btn btn-subtle">
+                  Сбросить
+                </button>
+                <span id="selected-gpu-count" class="selected-count-badge">Выбрано: 0</span>
+              </div>
+              <div class="gpu-deploy-group">
+                <button type="button" id="deploy-best-btn" class="btn btn-primary btn-deploy-main">
+                  Поиск на выбранных
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="gpu-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="col-check" aria-label="Выбор"></th>
+                  <th scope="col" class="col-name">Видеокарта</th>
+                  <th scope="col" class="col-price">Цена</th>
+                  <th scope="col" class="col-power">
+                    <a href="https://course.yakushev.fr/gpu_score/" target="_blank" rel="noopener noreferrer" class="th-score-link" title="Открыть таблицу замеров скоростей на RunPod">Скорость</a>
+                  </th>
+                  <th scope="col" class="col-action" aria-label="Действие"></th>
+                </tr>
+              </thead>
+              <tbody id="gpu-tbody">
+                <tr>
+                  <td colspan="5" class="empty-cell">
+                    Введите RunPod API Secret Key слева для загрузки доступных видеокарт...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="template-edit-form" class="comfy-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="template-edit-modal-title" hidden>
+    <div class="comfy-modal-shell">
+      <button type="button" id="template-modal-close" class="comfy-modal-close-outside" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
+      <div class="comfy-modal-panel template-modal-panel">
+        <div class="template-modal-content">
+          <header class="template-modal-header">
+            <h2 id="template-edit-modal-title" class="template-modal-title">Изменить темплейт</h2>
+            <p class="template-modal-sub">Вставьте ссылку на темплейт с RunPod Hub или его ID.</p>
+          </header>
+          <div class="onboarding-field-card">
+            <label for="custom-template-input" class="onboarding-field-label">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+                <path d="M7 7h.01" />
+              </svg>
+              <span>Template</span>
+            </label>
+            <div class="onboarding-input-box">
               <input
                 type="text"
                 id="custom-template-input"
-                placeholder="Вставьте ссылку на темплейт с RunPod или его код-номер (например casls01eko)"
+                placeholder="https://console.runpod.io/hub/template/... или casls01eko"
                 spellcheck="false"
               >
-              <button type="button" id="save-template-btn" class="btn btn-primary-sm">Применить</button>
-              <button type="button" id="reset-template-btn" class="btn btn-secondary-sm">По умолчанию</button>
-              <button type="button" id="cancel-template-btn" class="btn btn-subtle-sm">Отмена</button>
-            </div>
-            <div id="template-edit-msg" class="template-edit-msg" hidden></div>
-          </div>
-
-          <div class="options-group">
-            <label class="checkbox-control" for="opt-new-manager">
-              <input type="checkbox" id="opt-new-manager" checked>
-              <span>Новый Manager</span>
-            </label>
-            <label class="checkbox-control" for="opt-restore-backup">
-              <input type="checkbox" id="opt-restore-backup" checked>
-              <span>Загружать бэкап</span>
-            </label>
-            <div class="shutdown-control-group">
-              <label class="checkbox-control" for="opt-shutdown-timer">
-                <input type="checkbox" id="opt-shutdown-timer" checked>
-                <span>Удалять при простое:</span>
-              </label>
-              <div class="shutdown-input-wrapper">
-                <input
-                  type="number"
-                  id="opt-shutdown-minutes"
-                  min="1"
-                  max="1440"
-                  value="30"
-                  class="shutdown-minutes-input"
-                  aria-label="Минут неактивности до автоматического удаления пода"
-                >
-                <span class="shutdown-unit">мин</span>
-              </div>
             </div>
           </div>
+          <div id="template-edit-msg" class="template-edit-msg" hidden></div>
         </div>
-
-        <hr class="card-divider">
-
-        <div class="gpu-toolbar">
-          <div class="gpu-toolbar-filters">
-            <div class="price-slider-box">
-              <div class="price-header">
-                <label for="max-price-slider">Макс. цена:</label>
-                <strong id="max-price-val" class="price-highlight">1.20 $/ч</strong>
-              </div>
-              <input
-                type="range"
-                id="max-price-slider"
-                min="0"
-                max="30"
-                step="1"
-                value="20"
-                aria-label="Максимальная цена в долларах за час"
-              >
-            </div>
-
-            <div class="ram-slider-box">
-              <div class="ram-header">
-                <label for="min-ram-input">Мин. RAM:</label>
-                <strong id="min-ram-val" class="ram-highlight">любое</strong>
-              </div>
-              <input
-                type="range"
-                id="min-ram-input"
-                min="0"
-                max="128"
-                step="4"
-                value="0"
-                aria-label="Минимальный объём системной RAM в ГБ (0 — любое)"
-              >
-            </div>
-
-            <div class="gpu-filter-buttons">
-              <label class="checkbox-control auto-redeploy-control" for="opt-auto-redeploy">
-                <input type="checkbox" id="opt-auto-redeploy" checked>
-                <span>Повторять попытку при сбое</span>
-              </label>
-              <button type="button" id="btn-secure-only" class="btn btn-subtle" title="Отображать только Secure Cloud">
-                Только Secure
-              </button>
-              <button type="button" id="btn-show-unavailable" class="btn btn-subtle" title="Показывать недоступные видеокарты и охотиться на них">
-                Показать недоступные
-              </button>
-            </div>
+        <footer class="template-modal-footer">
+          <button type="button" id="reset-template-btn" class="btn btn-secondary">По умолчанию</button>
+          <div class="template-modal-actions-right">
+            <button type="button" id="cancel-template-btn" class="btn btn-subtle">Отмена</button>
+            <button type="button" id="save-template-btn" class="btn btn-primary">Применить</button>
           </div>
-
-          <div class="gpu-toolbar-actions">
-            <div class="gpu-selection-controls">
-              <button type="button" id="btn-select-none" class="btn btn-subtle">
-                Сбросить
-              </button>
-              <span id="selected-gpu-count" class="selected-count-badge">Выбрано: 0</span>
-            </div>
-            <div class="gpu-deploy-group">
-              <button type="button" id="deploy-best-btn" class="btn btn-primary btn-deploy-main">
-                Поиск на выбранных
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table id="gpu-table">
-            <thead>
-              <tr>
-                <th scope="col" class="col-check" aria-label="Выбор"></th>
-                <th scope="col" class="col-name">Видеокарта</th>
-                <th scope="col" class="col-price">Цена</th>
-                <th scope="col" class="col-power">
-                  <a href="../gpu_score/" class="th-score-link" title="Открыть таблицу замеров скоростей на RunPod">Скорость</a>
-                </th>
-                <th scope="col" class="col-action" aria-label="Действие"></th>
-              </tr>
-            </thead>
-            <tbody id="gpu-tbody">
-              <tr>
-                <td colspan="5" class="empty-cell">
-                  Введите RunPod API Secret Key для загрузки доступных видеокарт...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="table-footer-status">
-          <span id="catalog-live-badge" class="live-indicator">● Автообновление активно</span>
-        </div>
-      </section>
-    </main>
-
-    <footer class="app-footer">
-      <p>100% браузерное выполнение &bull; Запросы идут напрямую на <code>api.runpod.io/v2</code> без промежуточных серверов.</p>
-    </footer>
+        </footer>
+      </div>
+    </div>
   </div>
 
-  <script type="module" src="app.js?v=20261123_53"></script>
+  <div id="api-safety-modal" class="comfy-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="api-safety-modal-title" hidden>
+    <div class="comfy-modal-panel">
+      <header class="comfy-modal-header">
+        <h2 id="api-safety-modal-title" class="comfy-modal-title">Безопасное хранение ключа</h2>
+        <button type="button" id="api-safety-close" class="comfy-modal-close" aria-label="Закрыть">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </header>
+      <div class="comfy-modal-body">
+        <ul class="comfy-modal-bullets">
+          <li>Сайт работает полностью в вашем браузере без собственного бэкенда и промежуточных серверов — ключ хранится только локально в <code>localStorage</code> вашего устройства.</li>
+          <li>Все запросы уходят напрямую с вашего компьютера на официальный <code>https://api.runpod.io/v2</code> по защищённому HTTPS (это можно проверить во вкладке Network в DevTools).</li>
+          <li>Исходный код открыт на GitHub; удалить ключ можно в один клик кнопкой «Забыть» или отозвать его в любой момент в настройках аккаунта RunPod.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js?v=20261124_01"></script>
 </body>
 </html>

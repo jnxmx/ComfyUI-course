@@ -1,33 +1,68 @@
 .score-container {
-  max-width: 1160px;
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 24px 26px 40px;
+}
+
+.score-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.score-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.score-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--text-primary);
 }
 
 .score-back-link {
   text-decoration: none;
 }
 
+.score-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .score-subline {
-  margin: 0 0 0.85rem;
-  color: var(--text-secondary);
-  font-size: 0.92rem;
+  margin: 0 0 12px;
+  color: var(--muted-foreground);
+  font-size: 13px;
 }
 
 .link-inline {
   color: var(--accent-soft);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.14s ease;
 }
-
 .link-inline:hover {
   color: var(--accent-soft-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .score-prose {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 9px;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -37,10 +72,10 @@
 }
 
 .score-prose ol {
-  padding-left: 1.35rem;
+  padding-left: 18px;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
 .score-table-meta {
@@ -48,130 +83,121 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.8rem;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+  font-size: 12px;
 }
 
-.score-legend {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.legend-pic,
 .col-pic {
   color: #fb923c !important;
 }
 
-.legend-vid,
 .col-vid {
   color: #a78bfa !important;
 }
 
-html.theme-light .legend-pic,
-html.theme-light .col-pic {
-  color: #ea580c !important;
-}
-
-html.theme-light .legend-vid,
-html.theme-light .col-vid {
-  color: #7c3aed !important;
-}
-
 .score-prices-status {
-  color: var(--muted);
-  font-size: 0.78rem;
+  color: var(--subtle-foreground);
+  font-size: 12px;
 }
 
 #gpu-score-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 13px;
 }
 
 #gpu-score-table th,
 #gpu-score-table td {
-  padding: 0.55rem 0.65rem;
+  padding: 9px 10px;
   text-align: left;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
 }
 
 #gpu-score-table thead th {
-  font-size: 0.74rem;
+  font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--muted);
+  letter-spacing: 0.04em;
+  color: var(--subtle-foreground);
   white-space: normal;
-  line-height: 1.25;
+  line-height: 1.3;
+  border-bottom-color: var(--border);
+}
+
+#gpu-score-table tbody tr {
+  transition: background-color 0.12s ease;
 }
 
 #gpu-score-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgba(255, 255, 255, 0.035);
 }
 
-html.theme-light #gpu-score-table tbody tr:hover {
-  background-color: rgba(15, 23, 42, 0.025);
+#gpu-score-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 #gpu-score-table td.col-pic,
 #gpu-score-table td.col-vid,
 #gpu-score-table td.col-price-col {
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
+#gpu-score-table td.col-price-col {
+  color: var(--text-primary);
+}
+
 #gpu-score-table td.col-power {
-  min-width: 112px;
-  width: 120px;
+  min-width: 136px;
+  width: 156px;
 }
 
 .score-gpu-cell {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 7px;
   flex-wrap: nowrap;
   white-space: nowrap;
 }
 
 .score-rank {
-  color: var(--muted);
-  font-size: 0.75rem;
+  color: var(--subtle-foreground);
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
-  min-width: 1.4rem;
+  min-width: 22px;
 }
 
 .score-section-title {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
+  margin: 0 0 10px;
+  font-size: 14px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
 .score-recommendations {
   margin: 0;
-  padding-left: 1.2rem;
+  padding-left: 18px;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 6px;
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.48;
 }
 
 .budget-tag {
   color: var(--text-primary);
   font-weight: 600;
-  margin-right: 0.25rem;
+  margin-right: 4px;
 }
 
 .rec-sep {
   color: var(--muted);
-  margin: 0 0.35rem;
+  margin: 0 5px;
 }
 
 .score-table-card .table-wrapper {
@@ -185,45 +211,34 @@ html.theme-light #gpu-score-table tbody tr:hover {
   display: none;
 }
 
+.score-footer {
+  margin-top: 18px;
+  font-size: 12.5px;
+}
+
 @media (max-width: 680px) {
   .score-container {
-    padding: 0.9rem 0.65rem 2rem;
+    padding: 14px 12px 28px;
   }
 
-  .score-container .app-header {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .score-container .app-brand {
-    flex-wrap: wrap;
-  }
-
-  .score-container .app-title {
-    font-size: 1rem;
-    line-height: 1.3;
+  .score-title {
+    font-size: 15.5px;
   }
 
   .score-container .card {
-    padding: 0.85rem 0.85rem;
-    border-radius: 12px;
+    padding: 14px;
   }
 
   #gpu-score-table {
-    font-size: 0.78rem;
+    font-size: 12px;
   }
 
   #gpu-score-table th,
   #gpu-score-table td {
-    padding: 0.45rem 0.45rem;
+    padding: 7px 6px;
   }
 
   #gpu-score-table thead th {
-    font-size: 0.68rem;
-  }
-
-  .score-prose,
-  .score-recommendations {
-    font-size: 0.84rem;
+    font-size: 10px;
   }
 }

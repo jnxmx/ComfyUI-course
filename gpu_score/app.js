@@ -5,49 +5,13 @@ import {
   buildSegmentedPowerBars,
   isAnomalousGpuPrice,
   GPU_FALLBACK_PRICES
-} from "../deploy/gpu_data.js?v=20261123_24";
+} from "../deploy/gpu_data.js?v=20261124_01";
 
 const STORAGE_KEYS = Object.freeze({
-  API_KEY: "yakushev_runpod_api_key_v1",
-  COLOR_SCHEME: "color-scheme"
+  API_KEY: "yakushev_runpod_api_key_v1"
 });
 
 const RUNPOD_API_BASE = "https://api.runpod.io/v2";
-
-function initThemeToggle() {
-  const btn = document.getElementById("theme-toggle");
-  if (!btn) return;
-  const meta = document.querySelector('meta[name="color-scheme"]');
-
-  const getCurrentTheme = () => {
-    const saved = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
-    return saved === "light" ? "light" : "dark";
-  };
-
-  const applySavedTheme = () => {
-    const theme = getCurrentTheme();
-    document.documentElement.classList.remove("theme-light", "theme-dark");
-    if (meta) meta.content = theme;
-    if (theme === "light") {
-      document.documentElement.classList.add("theme-light");
-    }
-  };
-
-  const updateLabel = () => {
-    const theme = getCurrentTheme();
-    btn.textContent = `Тема: ${theme === "light" ? "Светлая" : "Тёмная"}`;
-  };
-
-  btn.addEventListener("click", () => {
-    const next = getCurrentTheme() === "light" ? "dark" : "light";
-    localStorage.setItem(STORAGE_KEYS.COLOR_SCHEME, next);
-    applySavedTheme();
-    updateLabel();
-  });
-
-  applySavedTheme();
-  updateLabel();
-}
 
 function renderScoreTable(priceMap = new Map()) {
   const tbody = document.getElementById("gpu-score-tbody");
@@ -198,7 +162,6 @@ async function fetchLivePrices() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  initThemeToggle();
   renderScoreTable(getFallbackPriceMap());
   fetchLivePrices();
 });
