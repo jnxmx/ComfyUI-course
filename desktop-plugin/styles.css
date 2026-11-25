@@ -54,11 +54,12 @@
    1. Top Showcase: Logged-in Comfy Desktop Plugin Window
    ========================================================================== */
 .dp-hero-stage {
-  min-height: calc(100dvh - 148px);
+  min-height: calc(80dvh - 148px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding-bottom: 16px;
+  margin-bottom: 10dvh;
 }
 
 .dp-hero-preview {
