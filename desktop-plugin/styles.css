@@ -599,9 +599,13 @@
   justify-content: space-between;
   padding-left: 6px;
 }
-.cd-wordmark {
-  height: 22px;
-  width: auto;
+.cd-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: #f4f4f5;
 }
 .cd-sb-toggle {
