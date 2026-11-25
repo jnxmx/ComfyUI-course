@@ -1,0 +1,1512 @@
+/* ==========================================================================
+   /desktop-plugin/ — Comfy Desktop Plugin Showcase & 4-Step Animations
+   Uses ../deploy/styles.css variables and shared card/button primitives.
+   ========================================================================== */
+
+.dp-container {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: 24px 26px 56px;
+}
+
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.dp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.dp-back-link {
+  text-decoration: none;
+}
+
+.dp-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.link-inline {
+  color: var(--accent-soft);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.14s ease;
+}
+.link-inline:hover {
+  color: var(--accent-soft-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ==========================================================================
+   1. Top Showcase: Logged-in Comfy Desktop Plugin Window
+   ========================================================================== */
+.dp-hero-preview {
+  margin-bottom: 20px;
+}
+
+.dp-preview-window {
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #0e0e0f;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 20px 54px rgba(0, 0, 0, 0.55);
+}
+
+.dp-preview-titlebar {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background-color: #050505;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  user-select: none;
+}
+
+.dp-preview-tb-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.dp-preview-tb-build {
+  font-size: 12px;
+  color: #a1a1aa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dp-preview-tb-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.dp-preview-tb-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dp-preview-body {
+  padding: 14px 16px 16px;
+  background-color: var(--bg-window);
+}
+
+.dp-preview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.dp-preview-col-left,
+.dp-preview-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.dp-preview-balance {
+  padding: 2px 2px 2px;
+}
+.dp-preview-balance .section-head {
+  gap: 6px;
+}
+.dp-preview-balance .section-title {
+  font-size: 12.5px;
+}
+.dp-preview-balance .saved-key-expiry {
+  font-size: 10.5px;
+}
+.dp-preview-balance .btn-forget-key {
+  min-height: 24px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+.dp-preview-balance .balance-amount {
+  font-size: 24px;
+}
+
+.dp-preview-secrets {
+  margin-top: 8px;
+}
+.dp-preview-secrets .account-secrets-row {
+  gap: 4px;
+}
+.dp-preview-secrets .secrets-key-icon svg {
+  width: 11px;
+  height: 11px;
+}
+.dp-preview-secrets .account-secrets-box {
+  flex-wrap: nowrap;
+  gap: 3px;
+}
+.dp-preview-secrets .secret-pill {
+  height: 17px;
+  padding: 0 3.5px;
+  font-size: 7.2px;
+  gap: 2px;
+  letter-spacing: 0;
+  border-radius: 4px;
+}
+.dp-preview-secrets .secret-icon-slot {
+  width: 7px;
+  height: 7px;
+  font-size: 7px;
+}
+
+.dp-preview-pod {
+  margin: 0;
+}
+.dp-preview-pod .pod-card-header {
+  min-height: 74px;
+  padding: 12px 13px;
+  gap: 11px;
+}
+.dp-preview-pod .pod-card-icon {
+  width: 36px;
+  height: 36px;
+}
+.dp-preview-pod .pod-card-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.dp-preview-pod .pod-card-body {
+  padding: 8px 13px 11px;
+}
+.dp-preview-pod .pod-card-action-row {
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+.dp-preview-pod .ready-actions {
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+.dp-preview-pod .btn-split-main,
+.dp-preview-pod .btn-split-caret {
+  min-height: 26px;
+}
+.dp-preview-pod .btn-split-main {
+  padding: 2px 7px 2px 8px;
+  font-size: 11px;
+}
+.dp-preview-pod .btn-split-caret {
+  width: 20px;
+}
+.dp-preview-pod .dp-static-btn {
+  min-height: 26px;
+  padding: 2px 7px;
+  font-size: 11px;
+}
+
+.dp-static-btn {
+  pointer-events: none;
+}
+
+.dp-preview-deploy {
+  padding: 13px 15px;
+}
+.dp-preview-deploy .card-divider {
+  margin: 10px -15px;
+}
+
+.dp-preview-sliders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.dp-mock-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-inline-size: 0;
+}
+.dp-mock-slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.dp-mock-slider-head span {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--subtle-foreground);
+  font-weight: 500;
+}
+.dp-mock-slider-head strong {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.dp-mock-slider.is-active .dp-mock-slider-head strong {
+  color: var(--success);
+}
+.dp-mock-track {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background-color: var(--border-strong);
+  margin: 4px 0;
+}
+.dp-mock-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--pct, 30%);
+  border-radius: 999px;
+  background-color: var(--accent);
+}
+.dp-mock-slider.is-active .dp-mock-fill {
+  background-color: var(--success);
+}
+.dp-mock-thumb {
+  position: absolute;
+  top: 50%;
+  left: var(--pct, 30%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #f5f5f7;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.dp-preview-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: var(--radius-inner);
+  background: rgba(0, 0, 0, 0.24);
+}
+.dp-preview-gpu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.dp-preview-gpu-table th,
+.dp-preview-gpu-table td {
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+  vertical-align: middle;
+}
+.dp-preview-gpu-table thead th {
+  background-color: rgba(255, 255, 255, 0.02);
+  color: var(--subtle-foreground);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.dp-preview-gpu-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.dp-preview-gpu-table td:nth-child(2) {
+  white-space: nowrap;
+}
+.dp-preview-gpu-table .power-bars {
+  width: 72px;
+  min-width: 72px;
+}
+.dp-preview-gpu-table .cloud-pill {
+  height: 17px;
+  font-size: 9px;
+  padding: 0 5px;
+}
+.dp-preview-gpu-table .col-action {
+  position: static;
+  background: transparent;
+  width: auto;
+  min-width: 0;
+}
+.dp-preview-gpu-table .dp-static-btn {
+  min-height: 24px;
+  min-width: 68px;
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 7px;
+}
+
+/* ==========================================================================
+   2. Big White Download Snapshot CTA
+   ========================================================================== */
+.dp-download-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 32px;
+  text-align: center;
+}
+
+.dp-lead {
+  margin: 0 0 4px;
+  max-width: 680px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.dp-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 240px;
+  min-height: 54px;
+  padding: 12px 36px;
+  border-radius: 12px;
+  background-color: #f5f5f7;
+  color: #111113;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  transition: background-color 0.14s ease, transform 0.14s ease;
+}
+.dp-download-btn:hover {
+  background-color: #ffffff;
+  transform: translateY(-1px);
+}
+.dp-download-btn:active {
+  transform: translateY(0);
+}
+.dp-download-file {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  background-color: rgba(17, 17, 19, 0.09);
+  border: 1px solid rgba(17, 17, 19, 0.14);
+  color: #18181b;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.dp-download-meta {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   3. 4-Step Animated Comfy Desktop Walkthroughs (800x600 scale-exact)
+   ========================================================================== */
+.dp-steps-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dp-steps-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dp-steps-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+.dp-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.dp-step-card {
+  background-color: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 16px;
+  padding: 18px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dp-step-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dp-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background-color: #f5f5f7;
+  color: #111113;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.dp-step-copy h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+.dp-step-copy p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* Fixed 800x600 Comfy Desktop Window Stage */
+.cd-stage {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 4 / 3;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.55);
+  background-color: #0a0a0a;
+}
+
+.cd-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 800px;
+  height: 600px;
+  transform-origin: top left;
+  transform: scale(var(--cd-scale, 1));
+  background-color: #0a0a0a;
+  color: #f4f4f5;
+  font-family: var(--font-sans);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Titlebar */
+.cd-titlebar {
+  height: 36px;
+  background-color: #050505;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px;
+}
+.cd-traffic-lights {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.cd-tl {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.cd-tl-close { background-color: #ff5f57; }
+.cd-tl-min { background-color: #febc2e; }
+.cd-tl-max { background-color: #28c840; }
+
+.cd-tb-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Frame & Sidebar */
+.cd-frame {
+  height: 564px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  background-color: #0a0a0a;
+}
+.cd-frame-dimmed {
+  opacity: 0.45;
+}
+
+.cd-sidebar {
+  width: 244px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background-color: #121212;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cd-sb-header {
+  position: relative;
+  height: 36px;
+  margin: 8px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 6px;
+}
+.cd-wordmark {
+  height: 22px;
+  width: auto;
+  color: #f4f4f5;
+}
+.cd-sb-toggle {
+  color: #a1a1aa;
+}
+
+.cd-sb-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.cd-sb-row,
+.cd-sb-builds-row,
+.cd-sb-subrow {
+  height: 32px;
+  border-radius: 8px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #a1a1aa;
+}
+.cd-sb-row.is-active,
+.cd-sb-builds-row.is-active {
+  background-color: rgba(255, 255, 255, 0.11);
+  color: #f4f4f5;
+}
+.cd-sb-builds-group {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cd-sb-builds-row {
+  padding-right: 8px;
+}
+.cd-sb-plus {
+  margin-left: auto;
+  font-size: 15px;
+  opacity: 0.65;
+}
+.cd-sb-subrow {
+  height: 28px;
+  font-size: 12.5px;
+  color: #8f8f96;
+}
+.cd-sb-footer {
+  padding-top: 6px;
+}
+
+/* Right Main Panel */
+.cd-main {
+  flex: 1;
+  min-inline-size: 0;
+  border-radius: 12px;
+  background-color: #171717;
+  background-image: radial-gradient(60% 45% at 50% 0%, rgba(255, 255, 255, 0.045), transparent 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Home View (Step 1) */
+.cd-home-main {
+  padding: 16px 32px 20px;
+  display: flex;
+  flex-direction: column;
+}
+.cd-home-top-cta {
+  display: flex;
+  justify-content: flex-end;
+}
+.cd-home-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 44px;
+}
+.cd-home-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: #f4f4f5;
+  margin-bottom: 26px;
+}
+.cd-home-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.cd-home-card {
+  width: 112px;
+  height: 138px;
+  border-radius: 14px;
+  background: linear-gradient(155deg, #2d2f45, #1b1b22);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e4e4e7;
+}
+.cd-home-card-center {
+  width: 136px;
+  height: 152px;
+  background: linear-gradient(155deg, #3c3e68, #1d1e2b);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.cd-home-see-all {
+  margin-top: 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #a1a1aa;
+}
+.cd-home-builds-peek {
+  width: 100%;
+  margin-top: 28px;
+}
+.cd-home-builds-heading {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #a1a1aa;
+  margin-bottom: 10px;
+}
+.cd-home-builds-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.cd-tile-new {
+  height: 76px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #a1a1aa;
+}
+
+/* Builds View (Steps 2 & 4) */
+.cd-builds-main {
+  padding: 34px 36px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.cd-builds-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 20px;
+}
+.cd-builds-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: #f4f4f5;
+}
+
+.cd-split-wrap {
+  position: relative;
+}
+.cd-split-btn {
+  display: inline-flex;
+  align-items: stretch;
+  height: 34px;
+  border-radius: 9px;
+  background-color: #f5f5f7;
+  color: #111113;
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+}
+.cd-split-main {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 11px;
+}
+.cd-split-caret {
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid rgba(17, 17, 19, 0.16);
+}
+
+.cd-split-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 176px;
+  padding: 4px;
+  border-radius: 10px;
+  background-color: #232323;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 15;
+}
+.cd-split-menu-item {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  font-size: 12.5px;
+  color: #f4f4f5;
+}
+
+.cd-builds-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.cd-seg-control {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 9px;
+  background-color: rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: #a1a1aa;
+}
+.cd-seg-control span {
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.cd-seg-control span.is-active {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #f4f4f5;
+}
+.cd-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cd-select-pill,
+.cd-search-pill {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: #a1a1aa;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cd-builds-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cd-tile {
+  position: relative;
+  height: 92px;
+  border-radius: 14px;
+  background-color: #222224;
+  background-image: radial-gradient(60% 130% at 8% 0%, rgba(142, 146, 248, 0.24), transparent 70%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+.cd-tile-sm {
+  height: 76px;
+}
+.cd-tile-art {
+  width: 44px;
+  height: 34px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #3c3e52, #18181b);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+.cd-tile-body {
+  min-inline-size: 0;
+  flex: 1;
+}
+.cd-tile-sub {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+.cd-tile-name {
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #f4f4f5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cd-tile-meta {
+  margin-top: 1px;
+  font-size: 11.5px;
+  color: #8f8f96;
+}
+
+/* Modal (Steps 3 & 4) */
+.cd-modal-overlay {
+  position: absolute;
+  inset: 36px 0 0 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.cd-modal-panel {
+  position: relative;
+  width: 580px;
+  border-radius: 16px;
+  background-color: #171717;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+}
+.cd-modal-close {
+  position: absolute;
+  top: 0;
+  right: -42px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.cd-modal-body {
+  padding: 20px 22px 18px;
+}
+.cd-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f4f4f5;
+}
+.cd-modal-lead {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #a1a1aa;
+}
+.cd-dropzone {
+  position: relative;
+  margin-top: 16px;
+  height: 200px;
+  border-radius: 14px;
+  border: 2px dashed rgba(255, 255, 255, 0.14);
+  background-color: rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cd-dropzone-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #a1a1aa;
+}
+.cd-dropzone-hint {
+  font-size: 13px;
+  color: #f4f4f5;
+}
+.cd-dropzone-or {
+  font-size: 12px;
+  color: #8f8f96;
+}
+.cd-dropzone-browse {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: #f4f4f5;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.cd-dropzone-dropped {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+.cd-dropped-badge {
+  padding: 9px 15px;
+  border-radius: 10px;
+  background-color: rgba(89, 211, 140, 0.14);
+  border: 1px solid rgba(89, 211, 140, 0.35);
+  color: #59d38c;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.cd-modal-footer {
+  height: 64px;
+  padding: 0 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.cd-btn-primary {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 9px;
+  background-color: #f5f5f7;
+  color: #111113;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.cd-btn-primary.is-disabled {
+  opacity: 0.42;
+}
+
+/* Step 4 Loaded Form Details */
+.cd-modal-panel-loaded {
+  height: 446px;
+}
+.cd-modal-panel-loaded .cd-modal-body {
+  flex: 1;
+}
+.cd-form-stack {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cd-form-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+.cd-form-row-top {
+  align-items: start;
+}
+.cd-form-label {
+  font-size: 12.5px;
+  color: #a1a1aa;
+}
+.cd-form-box {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9px;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #f4f4f5;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cd-contents-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.045);
+}
+.cd-contents-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #f4f4f5;
+}
+.cd-dot-info {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #60a5fa;
+}
+.cd-tag-git {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.09);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+
+/* Dragged JSON file chip */
+.cd-drag-file {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 35;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  background-color: #27272a;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #f4f4f5;
+  pointer-events: none;
+}
+.cd-drag-file-icon {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background-color: #f5f5f7;
+  color: #111113;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Shared Cursor & Click Ring (Compositor-only transform + opacity) */
+.cd-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.65));
+  will-change: transform, opacity;
+}
+.cd-click-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  margin-top: -14px;
+  margin-left: -14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  z-index: 45;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* ==========================================================================
+   Static Default States (when reduced-motion or paused: legible, never hidden)
+   ========================================================================== */
+.cd-step1-cursor { transform: translate(82px, 246px); }
+.cd-step1-home-row { background-color: rgba(255, 255, 255, 0.11); color: #f4f4f5; }
+.cd-step1-builds-row { background-color: rgba(255, 255, 255, 0.08); color: #ffffff; }
+
+.cd-step2-cursor { transform: translate(658px, 174px); }
+.cd-step2-load-item { background-color: rgba(255, 255, 255, 0.11); color: #ffffff; }
+
+.cd-step3-cursor { transform: translate(400px, 322px); }
+.cd-step3-file { transform: translate(310px, 286px); }
+.cd-step3-dropzone { border-color: rgba(255, 255, 255, 0.4); background-color: rgba(255, 255, 255, 0.06); }
+
+.cd-step4-cursor { transform: translate(612px, 506px); }
+.cd-step4-modal-overlay { opacity: 1; }
+.cd-step4-new-tile { opacity: 1; }
+.cd-tile-status-installing,
+.cd-tile-status-starting,
+.cd-tile-status-running {
+  position: relative;
+  font-size: 11px;
+  line-height: 15px;
+}
+.cd-tile-status-installing { display: none; color: #a1a1aa; }
+.cd-tile-status-starting { display: none; color: #a1a1aa; }
+.cd-tile-status-running {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #59d38c;
+}
+.cd-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #59d38c;
+  box-shadow: 0 0 0 3px rgba(89, 211, 140, 0.35);
+}
+.cd-tile-progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 0;
+}
+.cd-tile-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #f5f5f7;
+  transform-origin: left center;
+}
+
+/* ==========================================================================
+   Active Motion Rules (only when not paused & motion enabled or opted-in)
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  /* Step 1: Home -> Builds click */
+  html:not(.dp-animations-paused) .cd-step1-cursor {
+    animation: cdStep1Cursor 4.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step1-ring {
+    animation: cdStep1Ring 4.6s ease-out infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step1-home-row {
+    animation: cdStep1HomeRow 4.6s ease infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step1-builds-row {
+    animation: cdStep1BuildsRow 4.6s ease infinite;
+  }
+
+  /* Step 2: Caret -> Load snapshot menu click */
+  html:not(.dp-animations-paused) .cd-step2-cursor {
+    animation: cdStep2Cursor 5.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step2-ring-caret {
+    animation: cdStep2RingCaret 5.8s ease-out infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step2-ring-item {
+    animation: cdStep2RingItem 5.8s ease-out infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step2-menu {
+    transform-origin: top right;
+    animation: cdStep2Menu 5.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step2-load-item {
+    animation: cdStep2LoadItem 5.8s ease infinite;
+  }
+
+  /* Step 3: Drag & drop JSON */
+  html:not(.dp-animations-paused) .cd-step3-cursor {
+    animation: cdStep3Cursor 5.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step3-file {
+    animation: cdStep3File 5.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step3-dropzone {
+    animation: cdStep3Dropzone 5.6s ease infinite;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step3 .cd-dropzone-empty {
+    animation: cdStep3Empty 5.6s ease infinite;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step3 .cd-dropzone-dropped {
+    animation: cdStep3Dropped 5.6s ease infinite;
+  }
+
+  /* Step 4: Create build -> install & launch */
+  html:not(.dp-animations-paused) .cd-step4-cursor {
+    animation: cdStep4Cursor 6.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step4-ring {
+    animation: cdStep4Ring 6.8s ease-out infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step4-create-btn {
+    animation: cdStep4Btn 6.8s ease infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step4-modal-overlay {
+    animation: cdStep4Modal 6.8s ease infinite;
+  }
+  html:not(.dp-animations-paused) .cd-step4-new-tile {
+    animation: cdStep4Tile 6.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-progress-track {
+    animation: cdStep4Track 6.8s linear infinite;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-progress-fill {
+    animation: cdStep4Fill 6.8s linear infinite;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-installing,
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-starting,
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-running {
+    display: flex;
+    position: absolute;
+    top: 16px;
+    left: 70px;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-body {
+    padding-top: 16px;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-installing {
+    animation: cdStep4Status1 6.8s linear infinite;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-starting {
+    animation: cdStep4Status2 6.8s linear infinite;
+  }
+  html:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-running {
+    animation: cdStep4Status3 6.8s linear infinite;
+  }
+}
+
+/* Explicit user opt-in when OS has prefers-reduced-motion: reduce */
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step1-cursor { animation: cdStep1Cursor 4.6s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step1-ring { animation: cdStep1Ring 4.6s ease-out infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step1-home-row { animation: cdStep1HomeRow 4.6s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step1-builds-row { animation: cdStep1BuildsRow 4.6s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step2-cursor { animation: cdStep2Cursor 5.8s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step2-ring-caret { animation: cdStep2RingCaret 5.8s ease-out infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step2-ring-item { animation: cdStep2RingItem 5.8s ease-out infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step2-menu { transform-origin: top right; animation: cdStep2Menu 5.8s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step2-load-item { animation: cdStep2LoadItem 5.8s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step3-cursor { animation: cdStep3Cursor 5.6s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step3-file { animation: cdStep3File 5.6s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step3-dropzone { animation: cdStep3Dropzone 5.6s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step3 .cd-dropzone-empty { animation: cdStep3Empty 5.6s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step3 .cd-dropzone-dropped { animation: cdStep3Dropped 5.6s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step4-cursor { animation: cdStep4Cursor 6.8s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step4-ring { animation: cdStep4Ring 6.8s ease-out infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step4-create-btn { animation: cdStep4Btn 6.8s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step4-modal-overlay { animation: cdStep4Modal 6.8s ease infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-step4-new-tile { animation: cdStep4Tile 6.8s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-progress-track { animation: cdStep4Track 6.8s linear infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-progress-fill { animation: cdStep4Fill 6.8s linear infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-installing,
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-starting,
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-running { display: flex; position: absolute; top: 16px; left: 70px; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-body { padding-top: 16px; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-installing { animation: cdStep4Status1 6.8s linear infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-starting { animation: cdStep4Status2 6.8s linear infinite; }
+html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-running { animation: cdStep4Status3 6.8s linear infinite; }
+
+/* Keyframes: Step 1 */
+@keyframes cdStep1Cursor {
+  0%, 10% { transform: translate(470px, 310px) scale(1); opacity: 0; }
+  18% { transform: translate(470px, 310px) scale(1); opacity: 1; }
+  48% { transform: translate(82px, 248px) scale(1); opacity: 1; }
+  56% { transform: translate(82px, 248px) scale(0.86); opacity: 1; }
+  64%, 88% { transform: translate(82px, 248px) scale(1); opacity: 1; }
+  96%, 100% { transform: translate(82px, 248px) scale(1); opacity: 0; }
+}
+@keyframes cdStep1Ring {
+  0%, 54% { transform: translate(82px, 248px) scale(0.4); opacity: 0; }
+  58% { transform: translate(82px, 248px) scale(0.8); opacity: 0.9; }
+  72%, 100% { transform: translate(82px, 248px) scale(1.7); opacity: 0; }
+}
+@keyframes cdStep1HomeRow {
+  0%, 55% { background-color: rgba(255, 255, 255, 0.11); color: #f4f4f5; }
+  60%, 92% { background-color: transparent; color: #a1a1aa; }
+  100% { background-color: rgba(255, 255, 255, 0.11); color: #f4f4f5; }
+}
+@keyframes cdStep1BuildsRow {
+  0%, 38% { background-color: transparent; color: #a1a1aa; }
+  46%, 55% { background-color: rgba(255, 255, 255, 0.06); color: #f4f4f5; }
+  60%, 92% { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
+  100% { background-color: transparent; color: #a1a1aa; }
+}
+
+/* Keyframes: Step 2 */
+@keyframes cdStep2Cursor {
+  0%, 8% { transform: translate(540px, 220px) scale(1); opacity: 0; }
+  15% { transform: translate(540px, 220px) scale(1); opacity: 1; }
+  34% { transform: translate(742px, 95px) scale(1); opacity: 1; }
+  40% { transform: translate(742px, 95px) scale(0.86); opacity: 1; }
+  46% { transform: translate(742px, 95px) scale(1); opacity: 1; }
+  64% { transform: translate(672px, 174px) scale(1); opacity: 1; }
+  70% { transform: translate(672px, 174px) scale(0.86); opacity: 1; }
+  76%, 90% { transform: translate(672px, 174px) scale(1); opacity: 1; }
+  97%, 100% { transform: translate(672px, 174px) scale(1); opacity: 0; }
+}
+@keyframes cdStep2RingCaret {
+  0%, 38% { transform: translate(742px, 95px) scale(0.4); opacity: 0; }
+  42% { transform: translate(742px, 95px) scale(0.8); opacity: 0.9; }
+  54%, 100% { transform: translate(742px, 95px) scale(1.65); opacity: 0; }
+}
+@keyframes cdStep2RingItem {
+  0%, 68% { transform: translate(672px, 174px) scale(0.4); opacity: 0; }
+  72% { transform: translate(672px, 174px) scale(0.8); opacity: 0.9; }
+  84%, 100% { transform: translate(672px, 174px) scale(1.65); opacity: 0; }
+}
+@keyframes cdStep2Menu {
+  0%, 39% { opacity: 0; transform: translateY(-4px) scale(0.96); }
+  45%, 88% { opacity: 1; transform: translateY(0) scale(1); }
+  95%, 100% { opacity: 0; transform: translateY(-4px) scale(0.96); }
+}
+@keyframes cdStep2LoadItem {
+  0%, 58% { background-color: transparent; color: #f4f4f5; }
+  64%, 88% { background-color: rgba(255, 255, 255, 0.11); color: #ffffff; }
+  95%, 100% { background-color: transparent; color: #f4f4f5; }
+}
+
+/* Keyframes: Step 3 */
+@keyframes cdStep3Cursor {
+  0%, 8% { transform: translate(115px, 475px) scale(1); opacity: 0; }
+  16% { transform: translate(115px, 475px) scale(1); opacity: 1; }
+  54% { transform: translate(400px, 322px) scale(1); opacity: 1; }
+  62% { transform: translate(400px, 322px) scale(0.9); opacity: 1; }
+  68%, 88% { transform: translate(400px, 322px) scale(1); opacity: 1; }
+  96%, 100% { transform: translate(400px, 322px) scale(1); opacity: 0; }
+}
+@keyframes cdStep3File {
+  0%, 8% { transform: translate(55px, 445px) scale(0.96); opacity: 0; }
+  16% { transform: translate(55px, 445px) scale(1); opacity: 1; }
+  54% { transform: translate(310px, 286px) scale(1); opacity: 1; }
+  62% { transform: translate(310px, 286px) scale(0.94); opacity: 0; }
+  100% { transform: translate(310px, 286px) scale(0.94); opacity: 0; }
+}
+@keyframes cdStep3Dropzone {
+  0%, 38% { border-color: rgba(255, 255, 255, 0.14); background-color: rgba(255, 255, 255, 0.03); }
+  46%, 62% { border-color: rgba(255, 255, 255, 0.45); background-color: rgba(255, 255, 255, 0.08); }
+  65%, 90% { border-color: rgba(89, 211, 140, 0.45); background-color: rgba(89, 211, 140, 0.06); }
+  97%, 100% { border-color: rgba(255, 255, 255, 0.14); background-color: rgba(255, 255, 255, 0.03); }
+}
+@keyframes cdStep3Empty {
+  0%, 58% { opacity: 1; }
+  63%, 90% { opacity: 0; }
+  97%, 100% { opacity: 1; }
+}
+@keyframes cdStep3Dropped {
+  0%, 58% { opacity: 0; transform: scale(0.96); }
+  64%, 90% { opacity: 1; transform: scale(1); }
+  97%, 100% { opacity: 0; transform: scale(0.96); }
+}
+
+/* Keyframes: Step 4 */
+@keyframes cdStep4Cursor {
+  0%, 6% { transform: translate(420px, 370px) scale(1); opacity: 0; }
+  12% { transform: translate(420px, 370px) scale(1); opacity: 1; }
+  28% { transform: translate(612px, 506px) scale(1); opacity: 1; }
+  34% { transform: translate(612px, 506px) scale(0.86); opacity: 1; }
+  40%, 88% { transform: translate(612px, 506px) scale(1); opacity: 1; }
+  96%, 100% { transform: translate(612px, 506px) scale(1); opacity: 0; }
+}
+@keyframes cdStep4Ring {
+  0%, 32% { transform: translate(612px, 506px) scale(0.4); opacity: 0; }
+  36% { transform: translate(612px, 506px) scale(0.8); opacity: 0.9; }
+  46%, 100% { transform: translate(612px, 506px) scale(1.7); opacity: 0; }
+}
+@keyframes cdStep4Btn {
+  0%, 31% { transform: scale(1); background-color: #f5f5f7; }
+  34% { transform: scale(0.96); background-color: #ffffff; }
+  40%, 100% { transform: scale(1); background-color: #f5f5f7; }
+}
+@keyframes cdStep4Modal {
+  0%, 37% { opacity: 1; transform: scale(1); }
+  44%, 93% { opacity: 0; transform: scale(0.98); }
+  98%, 100% { opacity: 1; transform: scale(1); }
+}
+@keyframes cdStep4Tile {
+  0%, 40% { opacity: 0; transform: translateY(8px) scale(0.98); }
+  47%, 93% { opacity: 1; transform: translateY(0) scale(1); }
+  98%, 100% { opacity: 0; transform: translateY(8px) scale(0.98); }
+}
+@keyframes cdStep4Track {
+  0%, 44% { opacity: 0; }
+  48%, 74% { opacity: 1; }
+  79%, 100% { opacity: 0; }
+}
+@keyframes cdStep4Fill {
+  0%, 46% { transform: scaleX(0.05); }
+  62% { transform: scaleX(0.68); }
+  75%, 100% { transform: scaleX(1); }
+}
+@keyframes cdStep4Status1 {
+  0%, 43% { opacity: 0; }
+  46%, 61% { opacity: 1; }
+  64%, 100% { opacity: 0; }
+}
+@keyframes cdStep4Status2 {
+  0%, 62% { opacity: 0; }
+  65%, 75% { opacity: 1; }
+  78%, 100% { opacity: 0; }
+}
+@keyframes cdStep4Status3 {
+  0%, 76% { opacity: 0; }
+  80%, 93% { opacity: 1; }
+  98%, 100% { opacity: 0; }
+}
+
+.dp-footer {
+  margin-top: 26px;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .dp-preview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .dp-container {
+    padding: 14px 12px 36px;
+  }
+  .dp-title {
+    font-size: 17px;
+  }
+  .dp-preview-body {
+    padding: 14px 12px;
+  }
+  .dp-preview-sliders {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .dp-download-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14.5px;
+  }
+  .dp-step-card {
+    padding: 14px 12px 16px;
+  }
+}

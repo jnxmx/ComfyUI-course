@@ -253,12 +253,13 @@ function getRowFilterBucket(row, maxPrice, minRamGb) {
 function saveOptions() {
   const newManager = document.getElementById("opt-new-manager")?.checked ?? true;
   const restoreBackup = document.getElementById("opt-restore-backup")?.checked ?? true;
+  const beta = document.getElementById("opt-beta")?.checked ?? false;
   const autoRedeploy = document.getElementById("opt-auto-redeploy")?.checked ?? true;
   const shutdownTimer = document.getElementById("opt-shutdown-timer")?.checked ?? true;
   const rawMinutes = parseInt(document.getElementById("opt-shutdown-minutes")?.value, 10);
   const shutdownMinutes = Number.isFinite(rawMinutes) && rawMinutes > 0 ? rawMinutes : 30;
 
-  const data = { newManager, restoreBackup, autoRedeploy, shutdownTimer, shutdownMinutes };
+  const data = { newManager, restoreBackup, beta, autoRedeploy, shutdownTimer, shutdownMinutes };
   try {
     localStorage.setItem(STORAGE_KEYS.OPTIONS, JSON.stringify(data));
   } catch {}
@@ -276,6 +277,10 @@ function loadOptions() {
       if (parsed.restoreBackup !== undefined) {
         const el = document.getElementById("opt-restore-backup");
         if (el) el.checked = !!parsed.restoreBackup;
+      }
+      if (parsed.beta !== undefined) {
+        const el = document.getElementById("opt-beta");
+        if (el) el.checked = !!parsed.beta;
       }
       if (parsed.autoRedeploy !== undefined) {
         const el = document.getElementById("opt-auto-redeploy");
@@ -429,6 +434,7 @@ function updateApiKeyRequirementsBanner() {
   const authInputRow = document.getElementById("auth-input-row");
   const headerLinks = document.getElementById("auth-header-links");
   const forgetBtn = document.getElementById("forget-key-btn");
+  const desktopTopSlot = document.getElementById("desktop-plugin-top-slot");
 
   let hadKeyHint = false;
   try {
@@ -442,6 +448,9 @@ function updateApiKeyRequirementsBanner() {
   if (dashboardMain) dashboardMain.hidden = !showDashboard;
 
   const isSaved = state.statusLoaded && state.hasApiKey;
+  if (desktopTopSlot) {
+    desktopTopSlot.hidden = waitingProfile || !isSaved;
+  }
   if (authCard) {
     authCard.hidden = waitingProfile;
     authCard.classList.toggle("has-saved-key", isSaved);
@@ -745,6 +754,7 @@ function updateAccountBadges() {
   const hfEl = document.getElementById("status-hf-token");
   const civitaiEl = document.getElementById("status-civitai-token");
   const backupEl = document.getElementById("status-backup");
+  const comfyOrgEl = document.getElementById("status-comfy-org");
 
   const secretsByName = new Map();
   for (const s of state.accountSecrets || []) {
@@ -764,6 +774,10 @@ function updateAccountBadges() {
   const backupSecret = secretsByName.get("COMFYUI_BACKUP") || null;
   const isBackupConfigured = Boolean(backupSecret || templateEnv.COMFYUI_BACKUP);
   updateSecretPillElement(backupEl, "COMFYUI_BACKUP", isBackupConfigured, backupSecret);
+
+  const comfyOrgSecret = secretsByName.get("API_KEY_COMFY_ORG") || null;
+  const isComfyOrgConfigured = Boolean(comfyOrgSecret || templateEnv.API_KEY_COMFY_ORG);
+  updateSecretPillElement(comfyOrgEl, "API_KEY_COMFY_ORG", isComfyOrgConfigured, comfyOrgSecret);
 }
 
 /* ==========================================================================
@@ -846,6 +860,8 @@ function updateTemplateUI() {
     }
   }
   if (badgeEl) badgeEl.textContent = tplId;
+  const optsEl = document.getElementById("template-options");
+  if (optsEl) optsEl.hidden = tplId !== DEFAULT_TEMPLATE.templateId;
 }
 
 function initTemplateControls() {
@@ -2957,6 +2973,7 @@ function buildPayload(candidate) {
   const tpl = state.currentTemplate;
 
   const env = {
+    API_KEY_COMFY_ORG: "{{ RUNPOD_SECRET_API_KEY_COMFY_ORG }}",
     CIVITAI_API_KEY: "{{ RUNPOD_SECRET_CIVITAI_API_KEY }}",
     COMFYUI_BACKUP: "{{ RUNPOD_SECRET_COMFYUI_BACKUP }}",
     HF_TOKEN: "{{ RUNPOD_SECRET_HF_TOKEN }}",
@@ -2965,10 +2982,17 @@ function buildPayload(candidate) {
     STUDENT_MODE: "0"
   };
 
-  if (timerEnabled) {
-    env.RUNPOD_SHUTDOWN_MINUTES = String(minutes);
+  const isDefaultTpl = !tpl.templateId || tpl.templateId === DEFAULT_TEMPLATE.templateId;
+  if (!isDefaultTpl) {
+    delete env.NEW_MANAGER;
+    delete env.RESTORE_BACKUP;
   } else {
-    env.DISABLE_SHUTDOWN_TIMER = "1";
+    if (document.getElementById("opt-beta")?.checked) env.NIGHTLY_COMFYUI = "1";
+    if (timerEnabled) {
+      env.RUNPOD_SHUTDOWN_MINUTES = String(minutes);
+    } else {
+      env.DISABLE_SHUTDOWN_TIMER = "1";
+    }
   }
 
   const minRamGb = normalizeMinRamGb(state.minRamGb);
@@ -3960,18 +3984,18 @@ async function init() {
         email: "RunPod REST API",
         checks: {
           rest: { ok: missing.length === 0, missing, allResources: missing.length === 0 },
-          graphql: { ok: Boolean(secretsRes?.ok), status: secretsRes?.status || 0, permissions: configured.length ? `${configured.length}/3` : "0/3" },
+          graphql: { ok: Boolean(secretsRes?.ok), status: secretsRes?.status || 0, permissions: configured.length ? `${configured.length}/4` : "0/4" },
           secrets: { ok: Boolean(secretsRes?.ok), status: secretsRes?.status || 0, configured }
         }
       };
       lastProbedKey = trimmed;
       renderProbeResult(data);
       if (onbGqlDesc && onbGqlStatus && authValid) {
-        const expected = ["HF_TOKEN", "CIVITAI_API_KEY", "COMFYUI_BACKUP"];
+        const expected = ["HF_TOKEN", "CIVITAI_API_KEY", "COMFYUI_BACKUP", "API_KEY_COMFY_ORG"];
         const found = expected.filter((k) => configured.includes(k));
         onbGqlDesc.textContent = found.length ? found.join(", ") : "Секреты не настроены (необязательно)";
-        onbGqlStatus.textContent = `${found.length}/3`;
-        setToneClass(onbGqlStatus, found.length === 3 ? "is-ok" : "is-muted");
+        onbGqlStatus.textContent = `${found.length}/4`;
+        setToneClass(onbGqlStatus, found.length === 4 ? "is-ok" : "is-muted");
       }
       if (onbHeroTitle && authValid) {
         onbHeroTitle.textContent = missing.length === 0 ? "Ключ подтверждён" : "Недостаточно прав";
@@ -4166,7 +4190,7 @@ async function init() {
 
   // Options
   loadOptions();
-  for (const id of ["opt-new-manager", "opt-restore-backup", "opt-auto-redeploy"]) {
+  for (const id of ["opt-new-manager", "opt-restore-backup", "opt-beta", "opt-auto-redeploy"]) {
     document.getElementById(id)?.addEventListener("change", saveOptions);
   }
   const shutdownTimerEl = document.getElementById("opt-shutdown-timer");

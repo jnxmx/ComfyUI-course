@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Плагин для Comfy Desktop — Comfy.Work Deployer</title>
+  <link rel="stylesheet" href="../deploy/styles.css?v=20261125_01">
+  <link rel="stylesheet" href="styles.css?v=20261125_04">
+</head>
+<body>
+  <div class="dp-container">
+    <header class="dp-header">
+      <div class="dp-header-left">
+        <a href="../deploy/" class="btn btn-secondary-sm dp-back-link">← Деплойер</a>
+        <h1 class="dp-title">Плагин для Comfy Desktop</h1>
+      </div>
+    </header>
+
+    <!-- 1. Top showcase: logged-in plugin screen with fake email & balance -->
+    <section class="dp-hero-preview" aria-label="Превью залогиненного интерфейса плагина в Comfy Desktop">
+      <div class="dp-preview-window">
+        <div class="dp-preview-titlebar">
+          <div class="cd-traffic-lights" aria-hidden="true">
+            <span class="cd-tl cd-tl-close"></span>
+            <span class="cd-tl cd-tl-min"></span>
+            <span class="cd-tl cd-tl-max"></span>
+          </div>
+          <div class="dp-preview-tb-left">
+            <span class="dp-preview-tb-build">Comfy Course Deployer</span>
+          </div>
+          <div class="dp-preview-tb-right" aria-hidden="true">
+            <span class="dp-preview-tb-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            </span>
+            <span class="dp-preview-tb-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            </span>
+            <span class="dp-preview-tb-icon">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="dp-preview-body">
+          <div class="dp-preview-grid">
+            <!-- LEFT COLUMN: Balance + Secrets + Active Pod -->
+            <div class="dp-preview-col-left">
+              <div class="balance-card dp-preview-balance">
+                <div class="section-head">
+                  <div class="balance-identity-wrap">
+                    <h2 class="section-title balance-user-name">student@yakushev.fr</h2>
+                    <span class="saved-key-expiry">ключ до 25.12.26</span>
+                  </div>
+                  <div class="balance-head-actions">
+                    <span class="btn btn-secondary-sm btn-forget-key dp-static-btn">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m16 17 5-5-5-5" />
+                        <path d="M21 12H9" />
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      </svg>
+                      <span>Забыть</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="balance-metrics">
+                  <div class="balance-primary">
+                    <span class="balance-amount">$18.40</span>
+                  </div>
+                  <div class="balance-meta-row">
+                    <span class="balance-meta-text">Текущий расход: $0.69/ч</span>
+                    <span class="link-external balance-topup-link">Пополнить ↗</span>
+                  </div>
+                </div>
+
+                <div class="account-info-panel dp-preview-secrets">
+                  <div class="account-secrets-row">
+                    <span class="secrets-key-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" />
+                        <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+                      </svg>
+                    </span>
+                    <div class="account-secrets-box">
+                      <span class="secret-pill secret-ok"><span>HF_TOKEN</span><span class="secret-icon-slot"><span class="secret-state">✓</span></span></span>
+                      <span class="secret-pill secret-ok"><span>CIVITAI_API_KEY</span><span class="secret-icon-slot"><span class="secret-state">✓</span></span></span>
+                      <span class="secret-pill secret-ok"><span>COMFYUI_BACKUP</span><span class="secret-icon-slot"><span class="secret-state">✓</span></span></span>
+                      <span class="secret-pill secret-ok"><span>API_KEY_COMFY_ORG</span><span class="secret-icon-slot"><span class="secret-state">✓</span></span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Pod Card -->
+              <article class="pod-card is-expanded dp-preview-pod">
+                <span class="pod-card-glow" aria-hidden="true"></span>
+                <div class="pod-card-header">
+                  <div class="pod-card-quick-actions">
+                    <span class="pod-spent-counter">$0.48</span>
+                  </div>
+                  <div class="pod-card-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
+                      <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
+                      <line x1="6" x2="6.01" y1="6" y2="6" />
+                      <line x1="6" x2="6.01" y1="18" y2="18" />
+                    </svg>
+                  </div>
+                  <div class="pod-header-content">
+                    <div class="pod-header-top">
+                      <div class="pod-status-wrap">
+                        <span class="pod-status-dot is-ready"></span>
+                        <span class="pod-status-text is-ready">Готов к работе · 42 мин</span>
+                      </div>
+                    </div>
+                    <div class="pod-title">RTX 5090 <span style="opacity:.45;font-weight:400;">↗</span></div>
+                    <div class="pod-specs-text">
+                      <span class="pod-specs-line">32 GB VRAM · 62 GB RAM · $0.69/ч</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="pod-card-body">
+                  <div class="pod-card-action-row">
+                    <div class="ready-actions">
+                      <div class="btn-split-group">
+                        <span class="btn-split-main">Открыть</span>
+                        <span class="btn-split-caret" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </span>
+                      </div>
+                      <span class="btn btn-secondary dp-static-btn">Fizgig ↗</span>
+                      <span class="btn btn-secondary dp-static-btn">Files ↗</span>
+                    </div>
+                    <span class="btn btn-danger-sm pod-delete-btn dp-static-btn">Удалить</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <!-- RIGHT COLUMN: Template + Sliders + Zoomed-out GPU Catalog -->
+            <div class="dp-preview-col-right">
+              <div class="card deploy-card gpu-card dp-preview-deploy">
+                <div class="template-section">
+                  <div class="template-header-row">
+                    <div class="template-name-row">
+                      <span class="template-tag">Темплейт:</span>
+                      <span class="template-name">comfy.course</span>
+                      <code class="template-id-badge">casls01eko</code>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="card-divider">
+
+                <div class="dp-preview-sliders">
+                  <div class="dp-mock-slider">
+                    <div class="dp-mock-slider-head">
+                      <span>Макс. цена:</span>
+                      <strong>0.50 $/ч</strong>
+                    </div>
+                    <div class="dp-mock-track" style="--pct: 22%;">
+                      <span class="dp-mock-fill"></span>
+                      <span class="dp-mock-thumb"></span>
+                    </div>
+                  </div>
+                  <div class="dp-mock-slider is-active">
+                    <div class="dp-mock-slider-head">
+                      <span>Мин. RAM:</span>
+                      <strong>32 ГБ</strong>
+                    </div>
+                    <div class="dp-mock-track" style="--pct: 25%;">
+                      <span class="dp-mock-fill"></span>
+                      <span class="dp-mock-thumb"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="dp-preview-table-wrap">
+                  <table class="dp-preview-gpu-table">
+                    <thead>
+                      <tr>
+                        <th>Видеокарта</th>
+                        <th>Цена</th>
+                        <th>Скорость</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">RTX 5080</span><sup class="vram-sup">16G</sup><span class="arch-pill arch-blackwell">Blackwell</span></span>
+                            <span class="cloud-pill community">Community</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.39</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:85%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:45%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">PRO 4500</span><sup class="vram-sup">32G</sup><span class="arch-pill arch-blackwell">Blackwell</span></span>
+                            <span class="cloud-pill community">Community</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.34</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:74%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:52%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">4080 Super</span><sup class="vram-sup">16G</sup><span class="arch-pill arch-ada">Ada</span></span>
+                            <span class="cloud-pill community">Community</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.35</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:70%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:30%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">5000 Ada</span><sup class="vram-sup">32G</sup><span class="arch-pill arch-ada">Ada</span></span>
+                            <span class="cloud-pill community">Community</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.44</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:68%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:38%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">RTX 4070 Ti</span><sup class="vram-sup">12G</sup><span class="arch-pill arch-ada">Ada</span></span>
+                            <span class="cloud-pill community">Community</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.24</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:45%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:88%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">RTX 3090</span><sup class="vram-sup">24G</sup><span class="arch-pill arch-ampere">Ampere</span></span>
+                            <span class="cloud-pill community">Community</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.22</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:32%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:80%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">L4</span><sup class="vram-sup">24G</sup><span class="arch-pill arch-ada">Ada</span></span>
+                            <span class="cloud-pill secure">Secure</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.44</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:20%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:70%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:0%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                      <tr class="row-exceeds-price">
+                        <td>
+                          <div class="gpu-name-cell">
+                            <span class="gpu-title-wrap"><span class="gpu-title-text">RTX 5090</span><sup class="vram-sup">32G</sup><span class="arch-pill arch-blackwell">Blackwell</span></span>
+                            <span class="cloud-pill community">Community</span>
+                          </div>
+                        </td>
+                        <td><span class="price-text">$0.69</span><span class="price-unit">/ч</span></td>
+                        <td>
+                          <div class="power-bars power-v4" aria-hidden="true">
+                            <div class="power-track power-track-pic"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:76%"></span></span></div>
+                            <div class="power-track power-track-vid"><span class="power-seg is-first"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:100%"></span></span><span class="power-seg"><span class="power-seg-fill" style="width:82%"></span></span><span class="power-seg is-last"><span class="power-seg-fill" style="width:0%"></span></span></div>
+                          </div>
+                        </td>
+                        <td class="col-action"><span class="btn btn-primary-sm dp-static-btn">Запустить</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Lead description + Big white snapshot download button at the top -->
+    <section class="dp-download-section" aria-label="Скачать snapshot плагина">
+      <p class="dp-lead">Запуск подов на RunPod прямо внутри приложения Comfy Desktop — без необходимости открывать сайт RunPod, использовать браузер и настраивать билды.</p>
+      <a href="runpod-deployer.snapshot.json" download="runpod-deployer.snapshot.json" class="dp-download-btn">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" x2="12" y1="15" y2="3" />
+        </svg>
+        <span>Скачать</span>
+      </a>
+      <p class="dp-download-meta">
+        <a href="https://www.comfy.org/download" target="_blank" rel="noopener noreferrer" class="link-inline">Скачать Comfy Desktop ↗</a>
+      </p>
+    </section>
+
+    <!-- 3. 4 step-by-step Comfy Desktop 800x600 animations -->
+    <section class="dp-steps-section" aria-label="Пошаговая установка в Comfy Desktop">
+      <div class="dp-steps-head">
+        <h2 class="dp-steps-title">Установка за 4 шага</h2>
+        <button type="button" id="dp-motion-toggle" class="btn btn-secondary-sm">Пауза анимаций</button>
+      </div>
+
+      <div class="dp-steps-list">
+        <!-- STEP 1: Narrowest/lowest Home window -> cursor goes to Builds -->
+        <article class="dp-step-card">
+          <div class="dp-step-header">
+            <span class="dp-step-num">1</span>
+            <div class="dp-step-copy">
+              <h3>Откройте раздел <code>Builds</code></h3>
+              <p>В главном окне Comfy Desktop на экране <strong>Home</strong> перейдите на вкладку <strong>Builds</strong> в левом меню.</p>
+            </div>
+          </div>
+
+          <div class="cd-stage">
+            <div class="cd-window cd-anim-step1" aria-hidden="true">
+              <div class="cd-titlebar">
+                <div class="cd-traffic-lights"><span class="cd-tl cd-tl-close"></span><span class="cd-tl cd-tl-min"></span><span class="cd-tl cd-tl-max"></span></div>
+                <div class="cd-tb-actions">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
+                </div>
+              </div>
+              <div class="cd-frame">
+                <aside class="cd-sidebar">
+                  <div class="cd-sb-header">
+                    <svg class="cd-wordmark" viewBox="0 0 173 48" fill="none"><path d="M35.0985 11.4955C34.8675 11.1769 34.6116 10.8708 34.3307 10.5897C33.1767 9.43402 31.6546 8.79057 30.0513 8.75933H29.9765H17.2747C14.8668 8.75933 12.8333 10.3711 12.1908 12.5763L11.0617 16.5307C10.9432 16.968 10.5502 17.2866 10.0761 17.2866H6.74539C4.33747 17.2866 2.31019 18.8921 1.66142 21.0911L0.0900337 26.5947C0.0276524 26.8196 0 27.057 0 27.3006C0 28.7125 1.14158 29.8557 2.55139 29.8557H5.48955C6.05098 29.8557 6.50636 30.3118 6.50636 30.874C6.50636 30.9615 6.49388 31.049 6.46893 31.1302L4.97178 36.3652C4.9094 36.5901 4.87821 36.8275 4.87821 37.0711C4.87821 38.483 6.01979 39.6263 7.4296 39.6263H17.4556C17.493 39.6263 17.5242 39.6263 17.5616 39.62C20.2378 39.5575 22.6332 37.7833 23.4005 35.1095L24.0805 32.7356C24.199 32.3046 24.592 31.986 25.0661 31.986H27.7921C30.2001 31.986 32.2273 30.3805 32.8761 28.1815L35.9952 17.2554C36.0638 17.0305 36.095 16.7931 36.095 16.5432C36.095 16.3683 36.0762 16.1934 36.0388 16.0247C36.3133 14.3755 35.9827 12.7138 35.0923 11.4955H35.0985Z" fill="currentColor"/><path d="M170.474 8.75283H164.716C162.302 8.75283 160.269 10.3646 159.626 12.5762L157.543 19.8603C157.424 20.2913 157.031 20.6099 156.557 20.6099H144.861C144.3 20.6099 143.844 20.1539 143.844 19.5916C143.844 19.4979 143.857 19.4104 143.882 19.323L146.795 9.15267C146.863 8.92779 146.895 8.69041 146.895 8.44054C146.895 7.02879 145.753 5.88564 144.343 5.88564H138.573C136.153 5.88564 134.113 7.51 133.483 9.72757L129.404 24.0012C129.279 24.4259 128.886 24.7383 128.424 24.7383H125.093C124.532 24.7383 124.076 24.2823 124.076 23.72C124.076 23.62 124.089 23.5201 124.12 23.4326L127.089 13.0631C127.152 12.8445 127.189 12.6071 127.189 12.3572C127.189 10.9455 126.047 9.80234 124.638 9.80234H118.88C116.46 9.80234 114.414 11.4327 113.784 13.6503L113.522 14.5686C113.397 14.9933 113.011 15.2994 112.549 15.2994H106.592C106.592 14.3749 106.342 13.4379 105.812 12.7133C104.589 11.0267 102.312 10.2209 99.6486 10.9705C99.0435 11.1391 98.4883 11.4265 97.9893 11.8013C97.8146 11.5327 97.6088 11.289 97.3717 11.0704C96.3612 10.1271 94.8453 9.75234 93.1111 10.2396C91.7762 10.6144 90.6908 11.5202 90.0295 12.6633C89.9422 12.6508 89.8486 12.6383 89.7613 12.6383H83.9915C83.7981 12.6383 83.6048 12.6571 83.4176 12.6821C83.2242 12.401 82.9997 12.1449 82.7502 11.9075C81.7396 10.9642 80.2238 10.5894 78.4896 11.0767C77.0923 11.4703 75.957 12.4385 75.3144 13.6691C75.2833 13.6691 75.2521 13.6691 75.2209 13.6691C74.9963 13.6691 74.778 13.6941 74.5659 13.7378C74.516 13.6503 74.4598 13.5629 74.4037 13.4817C73.1873 11.8013 70.9166 11.0017 68.2591 11.7513C66.9616 12.1199 65.9136 12.9757 65.2461 14.0752C65.1713 14.0752 65.0964 14.0627 65.0216 14.0627H59.2642C59.102 14.0627 58.9398 14.0752 58.7839 14.0939C58.6591 13.9003 58.5219 13.7129 58.366 13.538C56.8252 11.8388 54.0867 11.3516 50.9427 12.2386C45.3284 13.8191 40.9182 16.9237 38.4979 20.9966C36.6889 24.045 36.1774 27.6057 37.0445 31.029C37.5435 33.0155 38.5727 34.7271 40.0075 35.9827C41.5483 37.3321 43.5195 38.0754 45.7028 38.0754C46.7945 38.0754 47.9235 37.888 49.09 37.5632C51.6601 36.8386 53.6812 35.3393 54.7667 33.3465L55.1534 34.9207C55.4341 36.1014 54.7729 37.1322 54.4859 37.5757C54.3736 37.7506 54.2738 37.9317 54.199 38.1192C53.6812 39.4247 54.3237 40.9052 55.6275 41.4237C56.1016 41.6111 56.6006 41.6673 57.0934 41.5736C57.6236 41.4737 58.3597 41.1801 58.7714 40.4242C59.2206 39.5996 59.8943 37.9817 60.0128 36.1888C60.0315 35.8703 60.0377 35.5579 60.0377 35.2581H59.9566L59.9005 35.458C59.2642 37.6696 57.2244 39.2814 54.8103 39.2814H54.8228ZM92.5819 35.4642C91.9331 37.6631 89.9058 39.2689 87.498 39.2689H81.7282C80.3184 39.2689 79.1769 38.1259 79.1769 36.7141C79.1769 36.4767 79.208 36.2456 79.2704 36.0269L82.957 23.1525C82.9819 23.0588 82.9944 22.9651 82.9944 22.8652C82.9944 22.3029 82.539 21.8468 81.9776 21.8468H80.8985C80.4307 21.8468 80.0439 22.1592 79.9192 22.584L76.2388 35.4455C75.5963 37.6569 73.5628 39.2689 71.1487 39.2626H65.4224C64.0127 39.2626 62.8711 38.1196 62.8711 36.7079C62.8711 36.4642 62.9085 36.2269 62.9709 36.002L63.3889 34.5526C63.4138 34.4651 63.4263 34.3714 63.4263 34.2777C63.4263 33.7155 62.9709 33.2594 62.4095 33.2594H61.293C60.8189 33.2594 60.4259 33.578 60.3074 34.0153L59.8957 35.4584C59.2595 37.6638 57.2197 39.2756 54.8056 39.2756C54.8056 39.2756 54.8181 39.2756 54.8306 39.2756L54.8056 39.2756L55.1737 38.0137C55.3483 37.414 55.4419 36.7955 55.4419 36.1707C55.4419 35.8021 55.4107 35.4335 55.3483 35.0712C55.3171 34.89 55.2859 34.7026 55.2485 34.5214C55.1487 34.0466 55.0177 33.578 54.8368 33.1219C54.7807 32.9783 54.7183 32.8408 54.6497 32.7034C54.631 32.6659 54.6122 32.6284 54.5935 32.5909C53.6704 30.8354 51.6742 30.1607 49.6406 30.7292C47.7443 31.2602 45.9603 31.1165 44.7564 30.3418C44.2012 29.9795 43.3716 29.2173 43.3217 27.6741C43.2593 25.7312 44.3197 23.7195 46.2971 21.9953C46.3033 21.9953 46.3033 21.989 46.3095 21.989C46.3407 21.964 46.3657 21.939 46.3969 21.9141C46.4655 21.8578 46.5341 21.7954 46.609 21.7391C46.6339 21.7204 46.6589 21.7016 46.6838 21.6767C46.7524 21.6267 46.821 21.5705 46.8959 21.5142C46.9209 21.4955 46.9458 21.4768 46.9708 21.458C47.0456 21.4018 47.1205 21.3518 47.1953 21.2956C47.2265 21.2768 47.2514 21.2518 47.2826 21.2331C47.3637 21.1769 47.451 21.1207 47.5384 21.0644C47.6132 21.0145 47.6943 20.9707 47.7691 20.9208C47.7941 20.9083 47.8128 20.8958 47.8377 20.877C47.9251 20.8271 48.0062 20.7771 48.0935 20.7334C48.106 20.7271 48.1184 20.7209 48.1247 20.7146C48.212 20.6646 48.3056 20.6209 48.3991 20.5772C48.4241 20.5647 48.4552 20.546 48.4802 20.5335C48.555 20.496 48.6299 20.4585 48.711 20.4273C48.7359 20.4148 48.7671 20.4023 48.7983 20.3835C48.8981 20.3398 48.9979 20.2961 49.0977 20.2586C49.1102 20.2524 49.1226 20.2461 49.1414 20.2399C49.553 20.0712 49.9834 19.9275 50.4325 19.8026C52.1292 19.3278 53.9132 19.3403 55.1422 19.8338C55.4541 19.9587 55.7285 20.1149 55.9406 20.2961C55.9469 20.2961 55.9469 20.3023 55.9531 20.3086C56.4085 20.7021 56.6019 21.2206 56.4896 21.6204L55.3418 25.6374C55.2233 26.0684 54.8303 26.3808 54.3625 26.3808H54.2252C53.6638 26.3808 53.2084 26.8368 53.2084 27.3991C53.2084 27.4928 53.2209 27.5865 53.2459 27.674L52.8903 28.9109C52.8279 29.1358 52.7905 29.3732 52.7905 29.6169C52.7905 31.0288 53.932 32.1721 55.3418 32.1721H61.0931C61.2927 32.1721 61.4861 32.1471 61.6732 32.1096C62.2034 32.7906 63.0268 33.2404 63.9563 33.2653L63.3827 34.5526C63.4076 34.4651 63.4201 34.3714 63.4201 34.2777C63.4201 33.7155 62.9647 33.2594 62.4033 33.2594H61.2867C60.8127 33.2594 60.4197 33.578 60.3012 34.0153L59.8895 35.4584C59.2532 37.6638 57.2134 39.2756 54.7994 39.2756L54.8056 39.2819C57.2197 39.2819 59.2595 37.6701 59.8957 35.4647L60.3074 34.0215C60.4259 33.5842 60.8189 33.2656 61.293 33.2656H62.4095C62.9709 33.2656 63.4263 33.7217 63.4263 34.284C63.4263 34.3777 63.4138 34.4714 63.3889 34.5588L62.9709 36.0082C62.9085 36.2331 62.8711 36.4705 62.8711 36.7141C62.8711 38.126 64.0127 39.2694 65.4224 39.2694H71.1487C73.5628 39.2756 75.5963 37.6638 76.2388 35.4522L79.9192 22.5885C80.0439 22.1636 80.4307 21.8512 80.8985 21.8512H81.9776C82.539 21.8512 82.9944 22.3073 82.9944 22.8695C82.9944 22.9695 82.9819 23.0632 82.957 23.1569L79.2704 36.0332C79.208 36.2518 79.1769 36.4829 79.1769 36.7204C79.1769 38.1323 80.3184 39.2756 81.7282 39.2756H87.498C89.9058 39.2756 91.9331 37.67 92.5819 35.4709L96.2685 22.5885C96.387 22.1636 96.78 21.845 97.2478 21.845H98.3394C98.9008 21.845 99.3562 22.301 99.3562 22.8633C99.3562 22.9633 99.3437 23.057 99.3188 23.1444L95.6384 36.002C95.5761 36.2268 95.5387 36.4642 95.5387 36.7141C95.5387 38.126 96.6802 39.2694 98.09 39.2694H103.86C106.28 39.2694 108.32 37.6451 108.95 35.4272L111.863 25.2624C111.988 24.8375 112.375 24.5314 112.843 24.5314H113.953C114.514 24.5314 114.97 24.9875 114.97 25.5498C114.97 25.6497 114.957 25.7497 114.926 25.8372L109.517 44.7297C109.455 44.9484 109.424 45.1858 109.424 45.4232C109.424 46.8351 110.565 47.9784 111.975 47.9784H117.733C120.153 47.9784 122.199 46.3478 122.829 44.1299L126.485 31.3536C126.622 30.8851 127.052 30.5415 127.563 30.5415H130.876C133.284 30.5415 135.311 28.9359 135.96 26.7305L136.378 25.2749C136.496 24.8438 136.889 24.5252 137.357 24.5252H138.467C139.029 24.5252 139.484 24.9813 139.484 25.5435C139.484 25.6372 139.472 25.7247 139.447 25.8122L139.029 27.2804C138.967 27.5052 138.929 27.7426 138.929 27.9863C138.929 29.3982 140.071 30.5415 141.48 30.5415L153.07 30.554C153.632 30.554 154.087 31.0101 154.087 31.5724C154.087 31.6723 154.075 31.7723 154.043 31.8598L153.388 34.1463C153.27 34.5774 152.877 34.8897 152.409 34.8897H148.928C146.502 34.8897 144.462 36.5204 143.832 38.7445L142.129 44.6984C142.06 44.9296 142.023 45.167 142.023 45.4232C142.023 46.8351 143.164 47.9784 144.574 47.9784H150.332C152.752 47.9784 154.792 46.354 155.422 44.1361L156.601 40.0252C156.713 39.5879 157.112 39.2694 157.586 39.2694H161.105C163.512 39.2694 165.54 37.6638 166.189 35.4584L172.894 12.0237C172.963 11.7988 172.994 11.5551 172.994 11.3052C172.994 9.89334 171.852 8.75005 170.443 8.75005L170.474 8.75283ZM50.2707 23.1347L47.1081 34.1804C46.9833 34.599 46.5904 34.8989 46.135 34.8989H45.0621C44.5007 34.8989 44.0453 34.4428 44.0453 33.8805C44.0453 33.793 44.0578 33.7056 44.0765 33.6244L47.2391 22.5912C47.3576 22.1601 47.7506 21.8477 48.2184 21.8477H49.2851C49.8465 21.8477 50.3019 22.3038 50.3019 22.8661C50.3019 22.9598 50.2894 23.0535 50.2644 23.141L50.2707 23.1347Z" fill="currentColor"/></svg>
+                    <svg class="cd-sb-toggle" width="16" height="16" viewBox="0 0 18 18" fill="none"><rect x="2.25" y="3.25" width="13.5" height="11.5" rx="3.25" stroke="currentColor" stroke-width="1.6"/><path d="M6.25 6.25v5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                  </div>
+                  <nav class="cd-sb-nav">
+                    <div class="cd-sb-row cd-step1-home-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                      <span>Home</span>
+                    </div>
+                    <div class="cd-sb-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/><path d="M6 4v16"/></svg>
+                      <span>Apps</span>
+                    </div>
+                    <div class="cd-sb-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
+                      <span>Assets</span>
+                    </div>
+                    <div class="cd-sb-builds-group">
+                      <div class="cd-sb-builds-row cd-step1-builds-row">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                        <span>Builds</span>
+                        <span class="cd-sb-plus">+</span>
+                      </div>
+                      <div class="cd-sb-subrow">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/><path d="M20.054 15.987H3.946"/></svg>
+                        <span>ComfyUI</span>
+                      </div>
+                    </div>
+                  </nav>
+                  <div class="cd-sb-footer">
+                    <div class="cd-sb-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <span>Desktop settings</span>
+                    </div>
+                  </div>
+                </aside>
+
+                <main class="cd-main cd-home-main">
+                  <div class="cd-home-top-cta">
+                    <div class="cd-split-btn">
+                      <span class="cd-split-main">Open ComfyUI</span>
+                      <span class="cd-split-caret"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></span>
+                    </div>
+                  </div>
+                  <div class="cd-home-content">
+                    <div class="cd-home-title">Welcome. Let's create!</div>
+                    <div class="cd-home-carousel">
+                      <div class="cd-home-card cd-home-card-side"><span>Image Gen</span></div>
+                      <div class="cd-home-card cd-home-card-center"><span>Comfy Apps</span></div>
+                      <div class="cd-home-card cd-home-card-side"><span>Video Flow</span></div>
+                    </div>
+                    <div class="cd-home-see-all">See all apps →</div>
+                    <div class="cd-home-builds-peek">
+                      <div class="cd-home-builds-heading">Builds ›</div>
+                      <div class="cd-home-builds-grid">
+                        <div class="cd-tile cd-tile-sm">
+                          <div class="cd-tile-art"></div>
+                          <div><div class="cd-tile-sub">Used 1h ago</div><div class="cd-tile-name">ComfyUI</div></div>
+                        </div>
+                        <div class="cd-tile-new">+ New build</div>
+                      </div>
+                    </div>
+                  </div>
+                </main>
+              </div>
+              <span class="cd-click-ring cd-step1-ring"></span>
+              <span class="cd-cursor cd-step1-cursor">
+                <svg width="20" height="24" viewBox="0 0 20 24" fill="none"><path d="M3 2L17 13.5L10.5 14.3L13.8 21.2L11 22.5L7.8 15.6L3 19.8V2Z" fill="#ffffff" stroke="#0b0b0c" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <!-- STEP 2: Inside Builds -> cursor clicks side caret of New build -> Load snapshot -->
+        <article class="dp-step-card">
+          <div class="dp-step-header">
+            <span class="dp-step-num">2</span>
+            <div class="dp-step-copy">
+              <h3>Нажмите на стрелку у <code>New build</code> и выберите <code>Load snapshot</code></h3>
+              <p>Наведите курсор на правую часть кнопки <strong>+ New build</strong> (стрелка ▾) и выберите пункт <strong>Load snapshot</strong>.</p>
+            </div>
+          </div>
+
+          <div class="cd-stage">
+            <div class="cd-window cd-anim-step2" aria-hidden="true">
+              <div class="cd-titlebar">
+                <div class="cd-traffic-lights"><span class="cd-tl cd-tl-close"></span><span class="cd-tl cd-tl-min"></span><span class="cd-tl cd-tl-max"></span></div>
+                <div class="cd-tb-actions">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
+                </div>
+              </div>
+              <div class="cd-frame">
+                <aside class="cd-sidebar">
+                  <div class="cd-sb-header">
+                    <svg class="cd-wordmark" viewBox="0 0 173 48" fill="none"><path d="M35.0985 11.4955C34.8675 11.1769 34.6116 10.8708 34.3307 10.5897C33.1767 9.43402 31.6546 8.79057 30.0513 8.75933H29.9765H17.2747C14.8668 8.75933 12.8333 10.3711 12.1908 12.5763L11.0617 16.5307C10.9432 16.968 10.5502 17.2866 10.0761 17.2866H6.74539C4.33747 17.2866 2.31019 18.8921 1.66142 21.0911L0.0900337 26.5947C0.0276524 26.8196 0 27.057 0 27.3006C0 28.7125 1.14158 29.8557 2.55139 29.8557H5.48955C6.05098 29.8557 6.50636 30.3118 6.50636 30.874C6.50636 30.9615 6.49388 31.049 6.46893 31.1302L4.97178 36.3652C4.9094 36.5901 4.87821 36.8275 4.87821 37.0711C4.87821 38.483 6.01979 39.6263 7.4296 39.6263H17.4556C17.493 39.6263 17.5242 39.6263 17.5616 39.62C20.2378 39.5575 22.6332 37.7833 23.4005 35.1095L24.0805 32.7356C24.199 32.3046 24.592 31.986 25.0661 31.986H27.7921C30.2001 31.986 32.2273 30.3805 32.8761 28.1815L35.9952 17.2554C36.0638 17.0305 36.095 16.7931 36.095 16.5432C36.095 16.3683 36.0762 16.1934 36.0388 16.0247C36.3133 14.3755 35.9827 12.7138 35.0923 11.4955H35.0985Z" fill="currentColor"/><path d="M170.474 8.75283H164.716C162.302 8.75283 160.269 10.3646 159.626 12.5762L157.543 19.8603C157.424 20.2913 157.031 20.6099 156.557 20.6099H144.861C144.3 20.6099 143.844 20.1539 143.844 19.5916C143.844 19.4979 143.857 19.4104 143.882 19.323L146.795 9.15267C146.863 8.92779 146.895 8.69041 146.895 8.44054C146.895 7.02879 145.753 5.88564 144.343 5.88564H138.573C136.153 5.88564 134.113 7.51 133.483 9.72757L129.404 24.0012C129.279 24.4259 128.886 24.7383 128.424 24.7383H125.093C124.532 24.7383 124.076 24.2823 124.076 23.72C124.076 23.62 124.089 23.5201 124.12 23.4326L127.089 13.0631C127.152 12.8445 127.189 12.6071 127.189 12.3572C127.189 10.9455 126.047 9.80234 124.638 9.80234H118.88C116.46 9.80234 114.414 11.4327 113.784 13.6503L113.522 14.5686C113.397 14.9933 113.011 15.2994 112.549 15.2994H106.592C106.592 14.3749 106.342 13.4379 105.812 12.7133C104.589 11.0267 102.312 10.2209 99.6486 10.9705C99.0435 11.1391 98.4883 11.4265 97.9893 11.8013C97.8146 11.5327 97.6088 11.289 97.3717 11.0704C96.3612 10.1271 94.8453 9.75234 93.1111 10.2396C91.7762 10.6144 90.6908 11.5202 90.0295 12.6633C89.9422 12.6508 89.8486 12.6383 89.7613 12.6383H83.9915C83.7981 12.6383 83.6048 12.6571 83.4176 12.6821C83.2242 12.401 82.9997 12.1449 82.7502 11.9075C81.7396 10.9642 80.2238 10.5894 78.4896 11.0767C77.0923 11.4703 75.957 12.4385 75.3144 13.6691C75.2833 13.6691 75.2521 13.6691 75.2209 13.6691C74.9963 13.6691 74.778 13.6941 74.5659 13.7378C74.516 13.6503 74.4598 13.5629 74.4037 13.4817C73.1873 11.8013 70.9166 11.0017 68.2591 11.7513C66.9616 12.1199 65.9136 12.9757 65.2461 14.0752C65.1713 14.0752 65.0964 14.0627 65.0216 14.0627H59.2642C59.102 14.0627 58.9398 14.0752 58.7839 14.0939C58.6591 13.9003 58.5219 13.7129 58.366 13.538C56.8252 11.8388 54.0867 11.3516 50.9427 12.2386C45.3284 13.8191 40.9182 16.9237 38.4979 20.9966C36.6889 24.045 36.1774 27.6057 37.0445 31.029C37.5435 33.0155 38.5727 34.7271 40.0075 35.9827C41.5483 37.3321 43.5195 38.0754 45.7028 38.0754C46.7945 38.0754 47.9235 37.888 49.09 37.5632C51.6601 36.8386 53.6812 35.3393 54.7667 33.3465L55.1534 34.9207C55.4341 36.1014 54.7729 37.1322 54.4859 37.5757C54.3736 37.7506 54.2738 37.9317 54.199 38.1192C53.6812 39.4247 54.3237 40.9052 55.6275 41.4237C56.1016 41.6111 56.6006 41.6673 57.0934 41.5736C57.6236 41.4737 58.3597 41.1801 58.7714 40.4242C59.2206 39.5996 59.8943 37.9817 60.0128 36.1888C60.0315 35.8703 60.0377 35.5579 60.0377 35.2581H59.9566L59.9005 35.458C59.2642 37.6696 57.2244 39.2814 54.8103 39.2814H54.8228ZM92.5819 35.4642C91.9331 37.6631 89.9058 39.2689 87.498 39.2689H81.7282C80.3184 39.2689 79.1769 38.1259 79.1769 36.7141C79.1769 36.4767 79.208 36.2456 79.2704 36.0269L82.957 23.1525C82.9819 23.0588 82.9944 22.9651 82.9944 22.8652C82.9944 22.3029 82.539 21.8468 81.9776 21.8468H80.8985C80.4307 21.8468 80.0439 22.1592 79.9192 22.584L76.2388 35.4455C75.5963 37.6569 73.5628 39.2689 71.1487 39.2626H65.4224C64.0127 39.2626 62.8711 38.1196 62.8711 36.7079C62.8711 36.4642 62.9085 36.2269 62.9709 36.002L63.3889 34.5526C63.4138 34.4651 63.4263 34.3714 63.4263 34.2777C63.4263 33.7155 62.9709 33.2594 62.4095 33.2594H61.293C60.8189 33.2594 60.4259 33.578 60.3074 34.0153L59.8957 35.4584C59.2595 37.6638 57.2197 39.2756 54.8056 39.2756C54.8056 39.2756 54.8181 39.2756 54.8306 39.2756L54.8056 39.2756L55.1737 38.0137C55.3483 37.414 55.4419 36.7955 55.4419 36.1707C55.4419 35.8021 55.4107 35.4335 55.3483 35.0712C55.3171 34.89 55.2859 34.7026 55.2485 34.5214C55.1487 34.0466 55.0177 33.578 54.8368 33.1219C54.7807 32.9783 54.7183 32.8408 54.6497 32.7034C54.631 32.6659 54.6122 32.6284 54.5935 32.5909C53.6704 30.8354 51.6742 30.1607 49.6406 30.7292C47.7443 31.2602 45.9603 31.1165 44.7564 30.3418C44.2012 29.9795 43.3716 29.2173 43.3217 27.6741C43.2593 25.7312 44.3197 23.7195 46.2971 21.9953C46.3033 21.9953 46.3033 21.989 46.3095 21.989C46.3407 21.964 46.3657 21.939 46.3969 21.9141C46.4655 21.8578 46.5341 21.7954 46.609 21.7391C46.6339 21.7204 46.6589 21.7016 46.6838 21.6767C46.7524 21.6267 46.821 21.5705 46.8959 21.5142C46.9209 21.4955 46.9458 21.4768 46.9708 21.458C47.0456 21.4018 47.1205 21.3518 47.1953 21.2956C47.2265 21.2768 47.2514 21.2518 47.2826 21.2331C47.3637 21.1769 47.451 21.1207 47.5384 21.0644C47.6132 21.0145 47.6943 20.9707 47.7691 20.9208C47.7941 20.9083 47.8128 20.8958 47.8377 20.877C47.9251 20.8271 48.0062 20.7771 48.0935 20.7334C48.106 20.7271 48.1184 20.7209 48.1247 20.7146C48.212 20.6646 48.3056 20.6209 48.3991 20.5772C48.4241 20.5647 48.4552 20.546 48.4802 20.5335C48.555 20.496 48.6299 20.4585 48.711 20.4273C48.7359 20.4148 48.7671 20.4023 48.7983 20.3835C48.8981 20.3398 48.9979 20.2961 49.0977 20.2586C49.1102 20.2524 49.1226 20.2461 49.1414 20.2399C49.553 20.0712 49.9834 19.9275 50.4325 19.8026C52.1292 19.3278 53.9132 19.3403 55.1422 19.8338C55.4541 19.9587 55.7285 20.1149 55.9406 20.2961C55.9469 20.2961 55.9469 20.3023 55.9531 20.3086C56.4085 20.7021 56.6019 21.2206 56.4896 21.6204L55.3418 25.6374C55.2233 26.0684 54.8303 26.3808 54.3625 26.3808H54.2252C53.6638 26.3808 53.2084 26.8368 53.2084 27.3991C53.2084 27.4928 53.2209 27.5865 53.2459 27.674L52.8903 28.9109C52.8279 29.1358 52.7905 29.3732 52.7905 29.6169C52.7905 31.0288 53.932 32.1721 55.3418 32.1721H61.0931C61.2927 32.1721 61.4861 32.1471 61.6732 32.1096C62.2034 32.7906 63.0268 33.2404 63.9563 33.2653L63.3827 34.5526C63.4076 34.4651 63.4201 34.3714 63.4201 34.2777C63.4201 33.7155 62.9647 33.2594 62.4033 33.2594H61.2867C60.8127 33.2594 60.4197 33.578 60.3012 34.0153L59.8895 35.4584C59.2532 37.6638 57.2134 39.2756 54.7994 39.2756L54.8056 39.2819C57.2197 39.2819 59.2595 37.6701 59.8957 35.4647L60.3074 34.0215C60.4259 33.5842 60.8189 33.2656 61.293 33.2656H62.4095C62.9709 33.2656 63.4263 33.7217 63.4263 34.284C63.4263 34.3777 63.4138 34.4714 63.3889 34.5588L62.9709 36.0082C62.9085 36.2331 62.8711 36.4705 62.8711 36.7141C62.8711 38.126 64.0127 39.2694 65.4224 39.2694H71.1487C73.5628 39.2756 75.5963 37.6638 76.2388 35.4522L79.9192 22.5885C80.0439 22.1636 80.4307 21.8512 80.8985 21.8512H81.9776C82.539 21.8512 82.9944 22.3073 82.9944 22.8695C82.9944 22.9695 82.9819 23.0632 82.957 23.1569L79.2704 36.0332C79.208 36.2518 79.1769 36.4829 79.1769 36.7204C79.1769 38.1323 80.3184 39.2756 81.7282 39.2756H87.498C89.9058 39.2756 91.9331 37.67 92.5819 35.4709L96.2685 22.5885C96.387 22.1636 96.78 21.845 97.2478 21.845H98.3394C98.9008 21.845 99.3562 22.301 99.3562 22.8633C99.3562 22.9633 99.3437 23.057 99.3188 23.1444L95.6384 36.002C95.5761 36.2268 95.5387 36.4642 95.5387 36.7141C95.5387 38.126 96.6802 39.2694 98.09 39.2694H103.86C106.28 39.2694 108.32 37.6451 108.95 35.4272L111.863 25.2624C111.988 24.8375 112.375 24.5314 112.843 24.5314H113.953C114.514 24.5314 114.97 24.9875 114.97 25.5498C114.97 25.6497 114.957 25.7497 114.926 25.8372L109.517 44.7297C109.455 44.9484 109.424 45.1858 109.424 45.4232C109.424 46.8351 110.565 47.9784 111.975 47.9784H117.733C120.153 47.9784 122.199 46.3478 122.829 44.1299L126.485 31.3536C126.622 30.8851 127.052 30.5415 127.563 30.5415H130.876C133.284 30.5415 135.311 28.9359 135.96 26.7305L136.378 25.2749C136.496 24.8438 136.889 24.5252 137.357 24.5252H138.467C139.029 24.5252 139.484 24.9813 139.484 25.5435C139.484 25.6372 139.472 25.7247 139.447 25.8122L139.029 27.2804C138.967 27.5052 138.929 27.7426 138.929 27.9863C138.929 29.3982 140.071 30.5415 141.48 30.5415L153.07 30.554C153.632 30.554 154.087 31.0101 154.087 31.5724C154.087 31.6723 154.075 31.7723 154.043 31.8598L153.388 34.1463C153.27 34.5774 152.877 34.8897 152.409 34.8897H148.928C146.502 34.8897 144.462 36.5204 143.832 38.7445L142.129 44.6984C142.06 44.9296 142.023 45.167 142.023 45.4232C142.023 46.8351 143.164 47.9784 144.574 47.9784H150.332C152.752 47.9784 154.792 46.354 155.422 44.1361L156.601 40.0252C156.713 39.5879 157.112 39.2694 157.586 39.2694H161.105C163.512 39.2694 165.54 37.6638 166.189 35.4584L172.894 12.0237C172.963 11.7988 172.994 11.5551 172.994 11.3052C172.994 9.89334 171.852 8.75005 170.443 8.75005L170.474 8.75283ZM50.2707 23.1347L47.1081 34.1804C46.9833 34.599 46.5904 34.8989 46.135 34.8989H45.0621C44.5007 34.8989 44.0453 34.4428 44.0453 33.8805C44.0453 33.793 44.0578 33.7056 44.0765 33.6244L47.2391 22.5912C47.3576 22.1601 47.7506 21.8477 48.2184 21.8477H49.2851C49.8465 21.8477 50.3019 22.3038 50.3019 22.8661C50.3019 22.9598 50.2894 23.0535 50.2644 23.141L50.2707 23.1347Z" fill="currentColor"/></svg>
+                    <svg class="cd-sb-toggle" width="16" height="16" viewBox="0 0 18 18" fill="none"><rect x="2.25" y="3.25" width="13.5" height="11.5" rx="3.25" stroke="currentColor" stroke-width="1.6"/><path d="M6.25 6.25v5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                  </div>
+                  <nav class="cd-sb-nav">
+                    <div class="cd-sb-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                      <span>Home</span>
+                    </div>
+                    <div class="cd-sb-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/><path d="M6 4v16"/></svg>
+                      <span>Apps</span>
+                    </div>
+                    <div class="cd-sb-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
+                      <span>Assets</span>
+                    </div>
+                    <div class="cd-sb-builds-group">
+                      <div class="cd-sb-builds-row is-active">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                        <span>Builds</span>
+                        <span class="cd-sb-plus">+</span>
+                      </div>
+                      <div class="cd-sb-subrow">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/><path d="M20.054 15.987H3.946"/></svg>
+                        <span>ComfyUI</span>
+                      </div>
+                    </div>
+                  </nav>
+                  <div class="cd-sb-footer">
+                    <div class="cd-sb-row">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <span>Desktop settings</span>
+                    </div>
+                  </div>
+                </aside>
+
+                <main class="cd-main cd-builds-main">
+                  <div class="cd-builds-header">
+                    <div class="cd-builds-title">Builds</div>
+                    <div class="cd-split-wrap">
+                      <div class="cd-split-btn">
+                        <span class="cd-split-main">+ New build</span>
+                        <span class="cd-split-caret cd-step2-caret"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg></span>
+                      </div>
+                      <div class="cd-split-menu cd-step2-menu">
+                        <div class="cd-split-menu-item">Add existing build</div>
+                        <div class="cd-split-menu-item cd-step2-load-item">Load snapshot</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cd-builds-toolbar">
+                    <div class="cd-seg-control"><span class="is-active">All</span><span>This computer</span></div>
+                    <div class="cd-toolbar-right">
+                      <span class="cd-select-pill">Last used ▾</span>
+                      <span class="cd-search-pill">Search builds</span>
+                    </div>
+                  </div>
+                  <div class="cd-builds-grid">
+                    <div class="cd-tile">
+                      <div class="cd-tile-art"></div>
+                      <div>
+                        <div class="cd-tile-sub">Used 1h ago</div>
+                        <div class="cd-tile-name">ComfyUI</div>
+                        <div class="cd-tile-meta">Standalone · 0.3.70</div>
+                      </div>
+                    </div>
+                  </div>
+                </main>
+              </div>
+              <span class="cd-click-ring cd-step2-ring-caret"></span>
+              <span class="cd-click-ring cd-step2-ring-item"></span>
+              <span class="cd-cursor cd-step2-cursor">
+                <svg width="20" height="24" viewBox="0 0 20 24" fill="none"><path d="M3 2L17 13.5L10.5 14.3L13.8 21.2L11 22.5L7.8 15.6L3 19.8V2Z" fill="#ffffff" stroke="#0b0b0c" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <!-- STEP 3: Drag & Drop downloaded JSON into Load snapshot -->
+        <article class="dp-step-card">
+          <div class="dp-step-header">
+            <span class="dp-step-num">3</span>
+            <div class="dp-step-copy">
+              <h3>Перетащите скачанный <code>.json</code> в окно <code>Load snapshot</code></h3>
+              <p>Перетащите файл <strong>runpod-deployer.snapshot.json</strong> в пунктирную область (или выберите через Browse).</p>
+            </div>
+          </div>
+
+          <div class="cd-stage">
+            <div class="cd-window cd-anim-step3" aria-hidden="true">
+              <div class="cd-titlebar">
+                <div class="cd-traffic-lights"><span class="cd-tl cd-tl-close"></span><span class="cd-tl cd-tl-min"></span><span class="cd-tl cd-tl-max"></span></div>
+              </div>
+              <div class="cd-frame cd-frame-dimmed">
+                <aside class="cd-sidebar"></aside>
+                <main class="cd-main"></main>
+              </div>
+              <div class="cd-modal-overlay">
+                <div class="cd-modal-panel">
+                  <div class="cd-modal-close">✕</div>
+                  <div class="cd-modal-body">
+                    <div class="cd-modal-title">Load snapshot</div>
+                    <div class="cd-modal-lead">Load a snapshot file to install a build.</div>
+                    <div class="cd-dropzone cd-step3-dropzone">
+                      <div class="cd-dropzone-empty">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                        <div class="cd-dropzone-hint">Drop a snapshot .json file here</div>
+                        <div class="cd-dropzone-or">or</div>
+                        <div class="cd-dropzone-browse">Browse</div>
+                      </div>
+                      <div class="cd-dropzone-dropped">
+                        <div class="cd-dropped-badge">✓ runpod-deployer.snapshot.json</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cd-modal-footer">
+                    <span class="cd-btn-primary is-disabled">Create build</span>
+                  </div>
+                </div>
+              </div>
+              <div class="cd-drag-file cd-step3-file">
+                <span class="cd-drag-file-icon">JSON</span>
+                <span>runpod-deployer.snapshot.json</span>
+              </div>
+              <span class="cd-cursor cd-step3-cursor">
+                <svg width="20" height="24" viewBox="0 0 20 24" fill="none"><path d="M3 2L17 13.5L10.5 14.3L13.8 21.2L11 22.5L7.8 15.6L3 19.8V2Z" fill="#ffffff" stroke="#0b0b0c" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </div>
+        </article>
+
+        <!-- STEP 4: Click Create build -> instance installs & starts -->
+        <article class="dp-step-card">
+          <div class="dp-step-header">
+            <span class="dp-step-num">4</span>
+            <div class="dp-step-copy">
+              <h3>Нажмите <code>Create build</code> — инстанция установится и запустится</h3>
+              <p>Кнопка <strong>Create build</strong> создаст лёгкую CPU-инстанцию <strong>Comfy Course Deployer</strong> и сразу откроет её.</p>
+            </div>
+          </div>
+
+          <div class="cd-stage">
+            <div class="cd-window cd-anim-step4" aria-hidden="true">
+              <div class="cd-titlebar">
+                <div class="cd-traffic-lights"><span class="cd-tl cd-tl-close"></span><span class="cd-tl cd-tl-min"></span><span class="cd-tl cd-tl-max"></span></div>
+                <div class="cd-tb-actions">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
+                </div>
+              </div>
+              <div class="cd-frame">
+                <aside class="cd-sidebar">
+                  <div class="cd-sb-header">
+                    <svg class="cd-wordmark" viewBox="0 0 173 48" fill="none"><path d="M35.0985 11.4955C34.8675 11.1769 34.6116 10.8708 34.3307 10.5897C33.1767 9.43402 31.6546 8.79057 30.0513 8.75933H29.9765H17.2747C14.8668 8.75933 12.8333 10.3711 12.1908 12.5763L11.0617 16.5307C10.9432 16.968 10.5502 17.2866 10.0761 17.2866H6.74539C4.33747 17.2866 2.31019 18.8921 1.66142 21.0911L0.0900337 26.5947C0.0276524 26.8196 0 27.057 0 27.3006C0 28.7125 1.14158 29.8557 2.55139 29.8557H5.48955C6.05098 29.8557 6.50636 30.3118 6.50636 30.874C6.50636 30.9615 6.49388 31.049 6.46893 31.1302L4.97178 36.3652C4.9094 36.5901 4.87821 36.8275 4.87821 37.0711C4.87821 38.483 6.01979 39.6263 7.4296 39.6263H17.4556C17.493 39.6263 17.5242 39.6263 17.5616 39.62C20.2378 39.5575 22.6332 37.7833 23.4005 35.1095L24.0805 32.7356C24.199 32.3046 24.592 31.986 25.0661 31.986H27.7921C30.2001 31.986 32.2273 30.3805 32.8761 28.1815L35.9952 17.2554C36.0638 17.0305 36.095 16.7931 36.095 16.5432C36.095 16.3683 36.0762 16.1934 36.0388 16.0247C36.3133 14.3755 35.9827 12.7138 35.0923 11.4955H35.0985Z" fill="currentColor"/><path d="M170.474 8.75283H164.716C162.302 8.75283 160.269 10.3646 159.626 12.5762L157.543 19.8603C157.424 20.2913 157.031 20.6099 156.557 20.6099H144.861C144.3 20.6099 143.844 20.1539 143.844 19.5916C143.844 19.4979 143.857 19.4104 143.882 19.323L146.795 9.15267C146.863 8.92779 146.895 8.69041 146.895 8.44054C146.895 7.02879 145.753 5.88564 144.343 5.88564H138.573C136.153 5.88564 134.113 7.51 133.483 9.72757L129.404 24.0012C129.279 24.4259 128.886 24.7383 128.424 24.7383H125.093C124.532 24.7383 124.076 24.2823 124.076 23.72C124.076 23.62 124.089 23.5201 124.12 23.4326L127.089 13.0631C127.152 12.8445 127.189 12.6071 127.189 12.3572C127.189 10.9455 126.047 9.80234 124.638 9.80234H118.88C116.46 9.80234 114.414 11.4327 113.784 13.6503L113.522 14.5686C113.397 14.9933 113.011 15.2994 112.549 15.2994H106.592C106.592 14.3749 106.342 13.4379 105.812 12.7133C104.589 11.0267 102.312 10.2209 99.6486 10.9705C99.0435 11.1391 98.4883 11.4265 97.9893 11.8013C97.8146 11.5327 97.6088 11.289 97.3717 11.0704C96.3612 10.1271 94.8453 9.75234 93.1111 10.2396C91.7762 10.6144 90.6908 11.5202 90.0295 12.6633C89.9422 12.6508 89.8486 12.6383 89.7613 12.6383H83.9915C83.7981 12.6383 83.6048 12.6571 83.4176 12.6821C83.2242 12.401 82.9997 12.1449 82.7502 11.9075C81.7396 10.9642 80.2238 10.5894 78.4896 11.0767C77.0923 11.4703 75.957 12.4385 75.3144 13.6691C75.2833 13.6691 75.2521 13.6691 75.2209 13.6691C74.9963 13.6691 74.778 13.6941 74.5659 13.7378C74.516 13.6503 74.4598 13.5629 74.4037 13.4817C73.1873 11.8013 70.9166 11.0017 68.2591 11.7513C66.9616 12.1199 65.9136 12.9757 65.2461 14.0752C65.1713 14.0752 65.0964 14.0627 65.0216 14.0627H59.2642C59.102 14.0627 58.9398 14.0752 58.7839 14.0939C58.6591 13.9003 58.5219 13.7129 58.366 13.538C56.8252 11.8388 54.0867 11.3516 50.9427 12.2386C45.3284 13.8191 40.9182 16.9237 38.4979 20.9966C36.6889 24.045 36.1774 27.6057 37.0445 31.029C37.5435 33.0155 38.5727 34.7271 40.0075 35.9827C41.5483 37.3321 43.5195 38.0754 45.7028 38.0754C46.7945 38.0754 47.9235 37.888 49.09 37.5632C51.6601 36.8386 53.6812 35.3393 54.7667 33.3465L55.1534 34.9207C55.4341 36.1014 54.7729 37.1322 54.4859 37.5757C54.3736 37.7506 54.2738 37.9317 54.199 38.1192C53.6812 39.4247 54.3237 40.9052 55.6275 41.4237C56.1016 41.6111 56.6006 41.6673 57.0934 41.5736C57.6236 41.4737 58.3597 41.1801 58.7714 40.4242C59.2206 39.5996 59.8943 37.9817 60.0128 36.1888C60.0315 35.8703 60.0377 35.5579 60.0377 35.2581H59.9566L59.9005 35.458C59.2642 37.6696 57.2244 39.2814 54.8103 39.2814H54.8228ZM92.5819 35.4642C91.9331 37.6631 89.9058 39.2689 87.498 39.2689H81.7282C80.3184 39.2689 79.1769 38.1259 79.1769 36.7141C79.1769 36.4767 79.208 36.2456 79.2704 36.0269L82.957 23.1525C82.9819 23.0588 82.9944 22.9651 82.9944 22.8652C82.9944 22.3029 82.539 21.8468 81.9776 21.8468H80.8985C80.4307 21.8468 80.0439 22.1592 79.9192 22.584L76.2388 35.4455C75.5963 37.6569 73.5628 39.2689 71.1487 39.2626H65.4224C64.0127 39.2626 62.8711 38.1196 62.8711 36.7079C62.8711 36.4642 62.9085 36.2269 62.9709 36.002L63.3889 34.5526C63.4138 34.4651 63.4263 34.3714 63.4263 34.2777C63.4263 33.7155 62.9709 33.2594 62.4095 33.2594H61.293C60.8189 33.2594 60.4259 33.578 60.3074 34.0153L59.8957 35.4584C59.2595 37.6638 57.2197 39.2756 54.8056 39.2756C54.8056 39.2756 54.8181 39.2756 54.8306 39.2756L54.8056 39.2756L55.1737 38.0137C55.3483 37.414 55.4419 36.7955 55.4419 36.1707C55.4419 35.8021 55.4107 35.4335 55.3483 35.0712C55.3171 34.89 55.2859 34.7026 55.2485 34.5214C55.1487 34.0466 55.0177 33.578 54.8368 33.1219C54.7807 32.9783 54.7183 32.8408 54.6497 32.7034C54.631 32.6659 54.6122 32.6284 54.5935 32.5909C53.6704 30.8354 51.6742 30.1607 49.6406 30.7292C47.7443 31.2602 45.9603 31.1165 44.7564 30.3418C44.2012 29.9795 43.3716 29.2173 43.3217 27.6741C43.2593 25.7312 44.3197 23.7195 46.2971 21.9953C46.3033 21.9953 46.3033 21.989 46.3095 21.989C46.3407 21.964 46.3657 21.939 46.3969 21.9141C46.4655 21.8578 46.5341 21.7954 46.609 21.7391C46.6339 21.7204 46.6589 21.7016 46.6838 21.6767C46.7524 21.6267 46.821 21.5705 46.8959 21.5142C46.9209 21.4955 46.9458 21.4768 46.9708 21.458C47.0456 21.4018 47.1205 21.3518 47.1953 21.2956C47.2265 21.2768 47.2514 21.2518 47.2826 21.2331C47.3637 21.1769 47.451 21.1207 47.5384 21.0644C47.6132 21.0145 47.6943 20.9707 47.7691 20.9208C47.7941 20.9083 47.8128 20.8958 47.8377 20.877C47.9251 20.8271 48.0062 20.7771 48.0935 20.7334C48.106 20.7271 48.1184 20.7209 48.1247 20.7146C48.212 20.6646 48.3056 20.6209 48.3991 20.5772C48.4241 20.5647 48.4552 20.546 48.4802 20.5335C48.555 20.496 48.6299 20.4585 48.711 20.4273C48.7359 20.4148 48.7671 20.4023 48.7983 20.3835C48.8981 20.3398 48.9979 20.2961 49.0977 20.2586C49.1102 20.2524 49.1226 20.2461 49.1414 20.2399C49.553 20.0712 49.9834 19.9275 50.4325 19.8026C52.1292 19.3278 53.9132 19.3403 55.1422 19.8338C55.4541 19.9587 55.7285 20.1149 55.9406 20.2961C55.9469 20.2961 55.9469 20.3023 55.9531 20.3086C56.4085 20.7021 56.6019 21.2206 56.4896 21.6204L55.3418 25.6374C55.2233 26.0684 54.8303 26.3808 54.3625 26.3808H54.2252C53.6638 26.3808 53.2084 26.8368 53.2084 27.3991C53.2084 27.4928 53.2209 27.5865 53.2459 27.674L52.8903 28.9109C52.8279 29.1358 52.7905 29.3732 52.7905 29.6169C52.7905 31.0288 53.932 32.1721 55.3418 32.1721H61.0931C61.2927 32.1721 61.4861 32.1471 61.6732 32.1096C62.2034 32.7906 63.0268 33.2404 63.9563 33.2653L63.3827 34.5526C63.4076 34.4651 63.4201 34.3714 63.4201 34.2777C63.4201 33.7155 62.9647 33.2594 62.4033 33.2594H61.2867C60.8127 33.2594 60.4197 33.578 60.3012 34.0153L59.8895 35.4584C59.2532 37.6638 57.2134 39.2756 54.7994 39.2756L54.8056 39.2819C57.2197 39.2819 59.2595 37.6701 59.8957 35.4647L60.3074 34.0215C60.4259 33.5842 60.8189 33.2656 61.293 33.2656H62.4095C62.9709 33.2656 63.4263 33.7217 63.4263 34.284C63.4263 34.3777 63.4138 34.4714 63.3889 34.5588L62.9709 36.0082C62.9085 36.2331 62.8711 36.4705 62.8711 36.7141C62.8711 38.126 64.0127 39.2694 65.4224 39.2694H71.1487C73.5628 39.2756 75.5963 37.6638 76.2388 35.4522L79.9192 22.5885C80.0439 22.1636 80.4307 21.8512 80.8985 21.8512H81.9776C82.539 21.8512 82.9944 22.3073 82.9944 22.8695C82.9944 22.9695 82.9819 23.0632 82.957 23.1569L79.2704 36.0332C79.208 36.2518 79.1769 36.4829 79.1769 36.7204C79.1769 38.1323 80.3184 39.2756 81.7282 39.2756H87.498C89.9058 39.2756 91.9331 37.67 92.5819 35.4709L96.2685 22.5885C96.387 22.1636 96.78 21.845 97.2478 21.845H98.3394C98.9008 21.845 99.3562 22.301 99.3562 22.8633C99.3562 22.9633 99.3437 23.057 99.3188 23.1444L95.6384 36.002C95.5761 36.2268 95.5387 36.4642 95.5387 36.7141C95.5387 38.126 96.6802 39.2694 98.09 39.2694H103.86C106.28 39.2694 108.32 37.6451 108.95 35.4272L111.863 25.2624C111.988 24.8375 112.375 24.5314 112.843 24.5314H113.953C114.514 24.5314 114.97 24.9875 114.97 25.5498C114.97 25.6497 114.957 25.7497 114.926 25.8372L109.517 44.7297C109.455 44.9484 109.424 45.1858 109.424 45.4232C109.424 46.8351 110.565 47.9784 111.975 47.9784H117.733C120.153 47.9784 122.199 46.3478 122.829 44.1299L126.485 31.3536C126.622 30.8851 127.052 30.5415 127.563 30.5415H130.876C133.284 30.5415 135.311 28.9359 135.96 26.7305L136.378 25.2749C136.496 24.8438 136.889 24.5252 137.357 24.5252H138.467C139.029 24.5252 139.484 24.9813 139.484 25.5435C139.484 25.6372 139.472 25.7247 139.447 25.8122L139.029 27.2804C138.967 27.5052 138.929 27.7426 138.929 27.9863C138.929 29.3982 140.071 30.5415 141.48 30.5415L153.07 30.554C153.632 30.554 154.087 31.0101 154.087 31.5724C154.087 31.6723 154.075 31.7723 154.043 31.8598L153.388 34.1463C153.27 34.5774 152.877 34.8897 152.409 34.8897H148.928C146.502 34.8897 144.462 36.5204 143.832 38.7445L142.129 44.6984C142.06 44.9296 142.023 45.167 142.023 45.4232C142.023 46.8351 143.164 47.9784 144.574 47.9784H150.332C152.752 47.9784 154.792 46.354 155.422 44.1361L156.601 40.0252C156.713 39.5879 157.112 39.2694 157.586 39.2694H161.105C163.512 39.2694 165.54 37.6638 166.189 35.4584L172.894 12.0237C172.963 11.7988 172.994 11.5551 172.994 11.3052C172.994 9.89334 171.852 8.75005 170.443 8.75005L170.474 8.75283ZM50.2707 23.1347L47.1081 34.1804C46.9833 34.599 46.5904 34.8989 46.135 34.8989H45.0621C44.5007 34.8989 44.0453 34.4428 44.0453 33.8805C44.0453 33.793 44.0578 33.7056 44.0765 33.6244L47.2391 22.5912C47.3576 22.1601 47.7506 21.8477 48.2184 21.8477H49.2851C49.8465 21.8477 50.3019 22.3038 50.3019 22.8661C50.3019 22.9598 50.2894 23.0535 50.2644 23.141L50.2707 23.1347Z" fill="currentColor"/></svg>
+                    <svg class="cd-sb-toggle" width="16" height="16" viewBox="0 0 18 18" fill="none"><rect x="2.25" y="3.25" width="13.5" height="11.5" rx="3.25" stroke="currentColor" stroke-width="1.6"/><path d="M6.25 6.25v5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                  </div>
+                  <nav class="cd-sb-nav">
+                    <div class="cd-sb-row"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
+                    <div class="cd-sb-row"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/><path d="M6 4v16"/></svg><span>Apps</span></div>
+                    <div class="cd-sb-row"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg><span>Assets</span></div>
+                    <div class="cd-sb-builds-group">
+                      <div class="cd-sb-builds-row is-active"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg><span>Builds</span><span class="cd-sb-plus">+</span></div>
+                      <div class="cd-sb-subrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/><path d="M20.054 15.987H3.946"/></svg><span>ComfyUI</span></div>
+                    </div>
+                  </nav>
+                  <div class="cd-sb-footer">
+                    <div class="cd-sb-row"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Desktop settings</span></div>
+                  </div>
+                </aside>
+
+                <main class="cd-main cd-builds-main">
+                  <div class="cd-builds-header">
+                    <div class="cd-builds-title">Builds</div>
+                  </div>
+                  <div class="cd-builds-toolbar">
+                    <div class="cd-seg-control"><span class="is-active">All</span><span>This computer</span></div>
+                    <div class="cd-toolbar-right">
+                      <span class="cd-select-pill">Last used ▾</span>
+                      <span class="cd-search-pill">Search builds</span>
+                    </div>
+                  </div>
+                  <div class="cd-builds-grid">
+                    <div class="cd-tile">
+                      <div class="cd-tile-art"></div>
+                      <div>
+                        <div class="cd-tile-sub">Used 1h ago</div>
+                        <div class="cd-tile-name">ComfyUI</div>
+                        <div class="cd-tile-meta">Standalone · 0.3.70</div>
+                      </div>
+                    </div>
+                    <div class="cd-tile cd-tile-added cd-step4-new-tile">
+                      <div class="cd-tile-art"></div>
+                      <div class="cd-tile-body">
+                        <div class="cd-tile-status-installing">Installing ComfyUI…</div>
+                        <div class="cd-tile-status-starting">Starting ComfyUI…</div>
+                        <div class="cd-tile-status-running"><span class="cd-live-dot"></span>Running</div>
+                        <div class="cd-tile-name">Comfy Course Deployer</div>
+                        <div class="cd-tile-meta">Standalone · CPU</div>
+                      </div>
+                      <div class="cd-tile-progress-track"><span class="cd-tile-progress-fill"></span></div>
+                    </div>
+                  </div>
+                </main>
+              </div>
+
+              <!-- Snapshot loaded modal (fades out after Create build click) -->
+              <div class="cd-modal-overlay cd-step4-modal-overlay">
+                <div class="cd-modal-panel cd-modal-panel-loaded">
+                  <div class="cd-modal-close">✕</div>
+                  <div class="cd-modal-body">
+                    <div class="cd-modal-title">Load snapshot</div>
+                    <div class="cd-modal-lead">Load a snapshot file to install a build.</div>
+                    <div class="cd-form-stack">
+                      <div class="cd-form-row">
+                        <span class="cd-form-label">Snapshot file</span>
+                        <span class="cd-form-box">~/Downloads/runpod-deployer.snapshot.json</span>
+                      </div>
+                      <div class="cd-form-row">
+                        <span class="cd-form-label">Name</span>
+                        <span class="cd-form-box">Comfy Course Deployer</span>
+                      </div>
+                      <div class="cd-form-row">
+                        <span class="cd-form-label">Hardware</span>
+                        <span class="cd-form-box">CPU (Recommended)</span>
+                      </div>
+                      <div class="cd-form-row cd-form-row-top">
+                        <span class="cd-form-label">Contents</span>
+                        <div class="cd-contents-card">
+                          <div class="cd-contents-row"><span class="cd-dot-info"></span><span>RunPod-Desktop</span><span class="cd-tag-git">GIT</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cd-modal-footer">
+                    <span class="cd-btn-primary cd-step4-create-btn">Create build</span>
+                  </div>
+                </div>
+              </div>
+
+              <span class="cd-click-ring cd-step4-ring"></span>
+              <span class="cd-cursor cd-step4-cursor">
+                <svg width="20" height="24" viewBox="0 0 20 24" fill="none"><path d="M3 2L17 13.5L10.5 14.3L13.8 21.2L11 22.5L7.8 15.6L3 19.8V2Z" fill="#ffffff" stroke="#0b0b0c" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="dp-footer">
+      <a href="../deploy/" class="link-inline">← Вернуться на страницу деплоя</a>
+    </footer>
+  </div>
+
+  <script type="module" src="app.js?v=20261125_01"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "type": "comfyui-desktop-2-snapshot",
+  "version": 1,
+  "exportedAt": "2026-11-23T20:00:00.000Z",
+  "installationName": "Comfy Course Deployer",
+  "snapshots": [
+    {
+      "version": 1,
+      "createdAt": "2026-11-23T20:00:00.000Z",
+      "trigger": "manual",
+      "label": "Comfy Course Deployer",
+      "comfyui": {
+        "ref": "",
+        "commit": null,
+        "releaseTag": "",
+        "variant": "cpu"
+      },
+      "customNodes": [
+        {
+          "dirName": "RunPod-Desktop",
+          "id": "RunPod-Desktop",
+          "type": "git",
+          "url": "https://github.com/jnxmx/RunPod-Desktop.git",
+          "enabled": true
+        }
+      ],
+      "pipPackages": {},
+      "skipPipSync": true,
+      "updateChannel": "stable"
+    }
+  ]
+}
