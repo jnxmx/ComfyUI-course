@@ -10,7 +10,6 @@
     "Liberation Mono", "Courier New", monospace;
 
   --bg-window: #0a0a0a;
-  --bg-window: oklch(0.14 0 0);
   --bg-card: #1d1d1d;
   --bg-card: oklch(0.23 0 0);
   --bg-card-header: #1f1f24;
