@@ -17,10 +17,10 @@
       },
       "customNodes": [
         {
-          "dirName": "RunPod-Desktop",
-          "id": "RunPod-Desktop",
-          "type": "git",
-          "url": "https://github.com/jnxmx/RunPod-Desktop.git",
+          "dirName": "comfyui-runpod-desktop",
+          "id": "comfyui-runpod-desktop",
+          "type": "cnr",
+          "version": "0.1.0",
           "enabled": true
         }
       ],
