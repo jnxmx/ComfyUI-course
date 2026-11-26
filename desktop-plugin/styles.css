@@ -8,6 +8,7 @@
   max-width: 1080px;
   margin-inline: auto;
   padding: 24px 26px 56px;
+  overflow-x: clip;
 }
 
 .dp-header {
@@ -63,10 +64,18 @@
 }
 
 .dp-hero-preview {
+  position: relative;
+  width: 100%;
   margin-bottom: 20px;
 }
 
 .dp-preview-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1028px;
+  transform-origin: top left;
+  transform: scale(var(--dp-preview-scale, 1));
   border-radius: 16px;
   overflow: hidden;
   background-color: #0e0e0f;
@@ -1500,9 +1509,6 @@ html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-
     min-height: auto;
     padding-bottom: 18px;
   }
-  .dp-preview-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 680px) {
@@ -1511,13 +1517,6 @@ html.dp-motion-opt-in:not(.dp-animations-paused) .cd-anim-step4 .cd-tile-status-
   }
   .dp-title {
     font-size: 17px;
-  }
-  .dp-preview-body {
-    padding: 14px 12px;
-  }
-  .dp-preview-sliders {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
   }
   .dp-download-btn {
     width: 100%;
