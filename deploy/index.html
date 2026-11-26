@@ -68,8 +68,8 @@
               <div class="onboarding-guide-title">Как получить ключ</div>
               <ol class="onboarding-guide-copy">
                 <li>Нажмите «Открыть API Keys» сверху и выберите Create API Key.</li>
-                <li>В списке REST API поставьте обе галочки у All resources (Read и Write).</li>
-                <li>Сверните REST API, откройте GraphQL и выберите Read, Write (достаточно Read only).</li>
+                <li>В списке Developer API поставьте обе галочки у All resources (Read и Write).</li>
+                <li>Сверните Developer API, откройте GraphQL и выберите Read, Write (достаточно Read only).</li>
                 <li>Нажмите Create, скопируйте ключ и вставьте его в поле API Key выше.</li>
               </ol>
             </div>
@@ -95,14 +95,14 @@
             </div>
           </div>
 
-          <!-- Bottom Spec Table Card: REST API & Secrets -->
+          <!-- Bottom Spec Table Card: Developer API & Secrets -->
           <div id="onboarding-specs-card" class="onboarding-specs-card">
             <div class="onboarding-spec-row">
               <div class="onboarding-spec-label">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
                 </svg>
-                <span>REST API</span>
+                <span>Developer API</span>
               </div>
               <span id="probe-rest-desc" class="onboarding-spec-val">Pods, Templates, Secrets, Catalog</span>
               <span id="probe-rest-status" class="onboarding-spec-right is-muted">Ожидает ключ</span>
@@ -257,7 +257,7 @@
             </div>
             <div id="api-key-req-errors" class="api-key-req-errors" hidden></div>
             <ul class="api-key-req-list">
-              <li><strong>REST API:</strong> <code>Pods (Read + Write)</code>, <code>Templates (Read)</code>, <code>Secrets (Read)</code>, <code>Catalog (Read)</code>.</li>
+              <li><strong>Developer API:</strong> <code>Pods (Read + Write)</code>, <code>Templates (Read)</code>, <code>Secrets (Read)</code>, <code>Catalog (Read)</code>.</li>
               <li><strong>GraphQL API:</strong> <code>Read only</code> (для потоковых логов подов).</li>
               <li>Или создайте ключ со всеми правами (All permissions).</li>
             </ul>

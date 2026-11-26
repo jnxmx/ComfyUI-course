@@ -348,7 +348,7 @@ export function buildSegmentedPowerBars(rating) {
   const vidPct = Math.max(1, Math.min(100, rating.vid));
   const hasPlus = Boolean(rating.plus || rating.pic > 100);
 
-  const buildSegmentedTrack = (trackClass, pct) => {
+  const buildSegmentedTrack = (trackClass, pct, withPlus = false) => {
     const track = document.createElement("div");
     track.className = `power-track ${trackClass}`;
     for (let i = 0; i < 10; i += 1) {
@@ -356,12 +356,23 @@ export function buildSegmentedPowerBars(rating) {
       seg.className = "power-seg";
       if (i === 0) seg.classList.add("is-first");
       if (i === 9) seg.classList.add("is-last");
-      const segPct = Math.max(0, Math.min(100, (pct - i * 10) * 10));
-      if (segPct > 0) {
+      if (withPlus && i === 9) {
+        seg.classList.add("power-seg-plus");
         const fill = document.createElement("span");
         fill.className = "power-seg-fill";
-        fill.style.width = `${segPct}%`;
-        seg.appendChild(fill);
+        const plus = document.createElement("span");
+        plus.className = "power-plus";
+        plus.textContent = "+";
+        plus.setAttribute("aria-hidden", "true");
+        seg.append(fill, plus);
+      } else {
+        const segPct = Math.max(0, Math.min(100, (pct - i * 10) * 10));
+        if (segPct > 0) {
+          const fill = document.createElement("span");
+          fill.className = "power-seg-fill";
+          fill.style.width = `${segPct}%`;
+          seg.appendChild(fill);
+        }
       }
       track.appendChild(seg);
     }
@@ -369,19 +380,11 @@ export function buildSegmentedPowerBars(rating) {
   };
 
   bars.append(
-    buildSegmentedTrack("power-track-pic", picPct),
+    buildSegmentedTrack("power-track-pic", picPct, hasPlus),
     buildSegmentedTrack("power-track-vid", vidPct)
   );
 
   wrap.appendChild(bars);
-
-  if (hasPlus) {
-    const plus = document.createElement("span");
-    plus.className = "power-plus-badge";
-    plus.textContent = "+";
-    plus.setAttribute("aria-hidden", "true");
-    wrap.appendChild(plus);
-  }
   return wrap;
 }
 

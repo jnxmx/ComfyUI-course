@@ -2354,21 +2354,21 @@ tr.row-exceeds-price td {
 }
 
 .col-power {
-  width: clamp(120px, 18cqi, 196px);
-  min-width: 120px;
-  max-width: 196px;
+  width: clamp(104px, 16cqi, 174px);
+  min-width: 104px;
+  max-width: 174px;
+  padding-right: 6px !important;
 }
 .power-bars-wrap {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  width: 100%;
 }
 .power-bars {
   display: flex;
   flex-direction: column;
-  width: clamp(92px, 16cqi, 166px);
+  width: 100%;
   min-width: 92px;
-  max-width: 166px;
   opacity: 1;
 }
 .power-track {
@@ -2383,6 +2383,28 @@ tr.row-exceeds-price td {
   background-color: rgba(255, 255, 255, 0.09);
   overflow: hidden;
 }
+.power-seg.power-seg-plus {
+  background-color: transparent;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.power-seg.power-seg-plus .power-seg-fill {
+  width: 35%;
+  flex-shrink: 0;
+}
+.power-plus {
+  color: #f4f4f5;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 5px;
+  height: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
 .power-seg-fill {
   display: block;
   height: 100%;
@@ -2392,14 +2414,6 @@ tr.row-exceeds-price td {
 }
 .power-track-vid .power-seg-fill {
   background-color: #76767f;
-}
-.power-plus-badge {
-  color: #f4f4f5;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-left: -2px;
 }
 
 .power-v4 .power-track {
@@ -2447,8 +2461,9 @@ tr.row-exceeds-price td {
 }
 
 .col-action {
-  width: 98px;
-  min-width: 98px;
+  width: 92px;
+  min-width: 92px;
+  padding-left: 6px !important;
   text-align: right !important;
   white-space: nowrap;
 }

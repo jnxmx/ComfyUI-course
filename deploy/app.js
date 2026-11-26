@@ -341,7 +341,7 @@ function getScopeLabelForPath(path) {
   if (path.startsWith("/templates/")) return "Templates (Read)";
   if (path.startsWith("/catalog/")) return "Catalog (Read)";
   if (path.startsWith("/pods")) return "Pods (Read + Write)";
-  return "REST API";
+  return "Developer API";
 }
 
 function formatRussianDays(days) {
@@ -3812,7 +3812,7 @@ async function init() {
       if (onbRestDesc) {
         onbRestDesc.textContent = rest.ok
           ? (rest.allResources ? "All resources (Read + Write)" : "Pods · Templates · Catalog доступны")
-          : `Не хватает: ${(rest.missing || []).join(", ") || "доступа REST"}`;
+          : `Не хватает: ${(rest.missing || []).join(", ") || "доступа Developer API"}`;
       }
       if (onbRestStatus) onbRestStatus.textContent = isExpired ? "Недоступно" : (rest.ok ? "Подтверждено" : "Неполные права");
       setToneClass(onbRestStatus, isExpired ? "is-muted" : (rest.ok ? "is-ok" : "is-warn"));
@@ -3981,7 +3981,7 @@ async function init() {
         authValid,
         networkError: anyNetErr,
         error: all401 ? "Недействительный или просроченный API-ключ (HTTP 401)." : (anyNetErr ? "Не удалось подключиться к api.runpod.io." : null),
-        email: "RunPod REST API",
+        email: "RunPod Developer API",
         checks: {
           rest: { ok: missing.length === 0, missing, allResources: missing.length === 0 },
           graphql: { ok: Boolean(secretsRes?.ok), status: secretsRes?.status || 0, permissions: configured.length ? `${configured.length}/4` : "0/4" },
@@ -4002,7 +4002,7 @@ async function init() {
       }
       if (onbHeroSub && authValid) {
         onbHeroSub.textContent = missing.length === 0
-          ? "REST API доступен — можно войти и запускать поды"
+          ? "Developer API доступен — можно войти и запускать поды"
           : `Нет доступа: ${missing.join(", ")}`;
       }
     } catch {
