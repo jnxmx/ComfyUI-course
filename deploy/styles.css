@@ -1629,9 +1629,13 @@ a:focus-visible {
 .logs-details[open] .logs-caret {
   transform: rotate(0deg);
 }
+.terminal-logs-wrap {
+  position: relative;
+  margin-top: 6px;
+}
 .terminal-logs {
-  margin: 6px 0 0;
-  padding: 12px 14px;
+  margin: 0;
+  padding: 12px 38px 12px 14px;
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.04);
   background-color: color-mix(in oklch, oklch(0.955 0 0) 4%, transparent);
@@ -1644,6 +1648,34 @@ a:focus-visible {
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
+}
+.btn-copy-logs {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(24, 24, 27, 0.78);
+  color: rgba(255, 255, 255, 0.58);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.14s ease, border-color 0.14s ease, background-color 0.14s ease;
+}
+.btn-copy-logs:hover {
+  color: #f5f5f7;
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(39, 39, 42, 0.92);
+}
+.btn-copy-logs.is-copied {
+  color: var(--success);
+  border-color: var(--success-border);
+  background-color: var(--success-bg);
 }
 
 .pod-held-retry-box {

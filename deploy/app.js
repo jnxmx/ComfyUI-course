@@ -2375,11 +2375,43 @@ function createPodCardElement(ctrl) {
     ctrl.logsUserToggled = true;
   });
 
+  const logWrap = document.createElement("div");
+  logWrap.className = "terminal-logs-wrap";
+
+  const copyLogsBtn = document.createElement("button");
+  copyLogsBtn.type = "button";
+  copyLogsBtn.className = "btn-copy-logs";
+  copyLogsBtn.title = "Копировать логи";
+  copyLogsBtn.setAttribute("aria-label", "Копировать логи");
+  const copyIconSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+  const checkIconSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>`;
+  copyLogsBtn.innerHTML = copyIconSvg;
+
   const logPre = document.createElement("pre");
   logPre.className = "terminal-logs";
   logPre.tabIndex = 0;
   logPre.textContent = `Подключение к логам пода ${ctrl.podId}...\n`;
-  logDetails.append(logSummary, logPre);
+
+  let copyResetTimer = null;
+  copyLogsBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const text = ctrl.logLines.length > 0 ? ctrl.logLines.join("\n") : (logPre.textContent || "");
+    const ok = await copyTextToClipboard(text);
+    if (!ok) return;
+    copyLogsBtn.classList.add("is-copied");
+    copyLogsBtn.innerHTML = checkIconSvg;
+    copyLogsBtn.title = "Скопировано";
+    if (copyResetTimer) clearTimeout(copyResetTimer);
+    copyResetTimer = setTimeout(() => {
+      copyLogsBtn.classList.remove("is-copied");
+      copyLogsBtn.innerHTML = copyIconSvg;
+      copyLogsBtn.title = "Копировать логи";
+      copyResetTimer = null;
+    }, 1600);
+  });
+
+  logWrap.append(logPre, copyLogsBtn);
+  logDetails.append(logSummary, logWrap);
 
   body.append(alertBox, actionRow, readyBox, logDetails);
   card.append(glow, header, body);
