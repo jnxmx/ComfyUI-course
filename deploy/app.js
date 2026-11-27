@@ -14,7 +14,7 @@ import {
  */
 
 const RUNPOD_API_BASE = "https://api.runpod.io/v2";
-const CATALOG_AUTO_REFRESH_MS = 12000;
+const CATALOG_AUTO_REFRESH_MS = 30000;
 
 const PRICE_STEPS = Object.freeze([
   ...Array.from({ length: 29 }, (_, i) => Number((0.2 + i * 0.05).toFixed(2))),
@@ -125,6 +125,11 @@ const state = {
   catalogFetchStartedAt: 0,
   catalogLastFetchedAt: 0,
   catalogRefreshTimerId: null,
+  balanceLastFetchedAt: 0,
+  lastWakeRefreshAt: 0,
+  wakeListenersAttached: false,
+  rateLimitedUntilMs: 0,
+  rateLimitStreak: 0,
   ipGeoCache: new Map(),
   apiKeyPermissionErrors: new Map(),
   heldRetryInfo: null
@@ -531,6 +536,27 @@ function clearApiKeyPermissionError(scope) {
   }
 }
 
+function isRateLimited() {
+  return Date.now() < state.rateLimitedUntilMs;
+}
+
+function noteRateLimit(retryAfterHeader = null) {
+  state.rateLimitStreak = Math.min(state.rateLimitStreak + 1, 5);
+  let delayMs = Math.min(300000, 60000 * (2 ** Math.min(state.rateLimitStreak - 1, 2)));
+  if (retryAfterHeader !== null && retryAfterHeader !== undefined) {
+    const parsedSec = Number.parseFloat(String(retryAfterHeader).trim());
+    if (Number.isFinite(parsedSec) && parsedSec > 0) {
+      delayMs = Math.min(300000, Math.max(5000, Math.ceil(parsedSec * 1000)));
+    }
+  }
+  state.rateLimitedUntilMs = Math.max(state.rateLimitedUntilMs, Date.now() + delayMs);
+}
+
+function clearRateLimitBackoff() {
+  state.rateLimitStreak = 0;
+  state.rateLimitedUntilMs = 0;
+}
+
 async function runpodFetch(path, options = {}) {
   if (!state.apiKey) {
     throw new Error("Не указан RunPod API Secret Key.");
@@ -582,9 +608,13 @@ async function runpodFetch(path, options = {}) {
     if ((response.status === 401 || response.status === 403) && !isRemoteTransition) {
       setApiKeyPermissionError(scopeLabel, response.status);
     }
+    if (response.status === 429) {
+      noteRateLimit(response.headers.get("Retry-After"));
+    }
     throw new Error(`Ошибка RunPod (${response.status}): ${detail}`);
   }
 
+  clearRateLimitBackoff();
   clearApiKeyPermissionError(scopeLabel);
   if (response.status === 204) return null;
   return response.json();
@@ -1838,11 +1868,13 @@ function getOrCreatePodController(podId, initData = {}) {
       cudaStagePassed: false,
       cudaFatalTriggered: false,
       initialProbeDone: initData.fromApiDiscovery ? !isOur : true,
-      pollTimerId: null
+      pollTimerId: null,
+      pollInFlight: false,
+      lastPollAt: 0
     };
     if (initData.pod) syncPodStateFromApi(ctrl, initData.pod);
     state.podControllers.set(podId, ctrl);
-    ctrl.pollTimerId = setInterval(() => pollHealthForPod(ctrl), 2500);
+    ctrl.pollTimerId = setInterval(() => pollHealthForPod(ctrl), 4000);
     pollHealthForPod(ctrl);
     if (isOur || ctrl.isExpanded) startLogStreamForPod(ctrl);
   }
@@ -2582,7 +2614,7 @@ function togglePodExpanded(ctrl, cardEl) {
     if (!ctrl.logAbortController) startLogStreamForPod(ctrl);
     if (!ctrl.pollTimerId) {
       pollHealthForPod(ctrl);
-      ctrl.pollTimerId = setInterval(() => pollHealthForPod(ctrl), 2500);
+      ctrl.pollTimerId = setInterval(() => pollHealthForPod(ctrl), 4000);
     }
   } else if (!ctrl.isOurPod && ctrl.stages.ready === "done") {
     if (ctrl.logRetryTimerId) {
@@ -2603,12 +2635,16 @@ function scheduleLogStreamRetry(ctrl, delayMs = 3000) {
     ctrl.logRetryTimerId = null;
   }
   if (!ctrl.isExpanded || !state.podControllers.has(ctrl.podId)) return;
+  const effectiveDelayMs = isRateLimited()
+    ? Math.max(delayMs, state.rateLimitedUntilMs - Date.now())
+    : delayMs;
   ctrl.logRetryTimerId = setTimeout(() => {
     ctrl.logRetryTimerId = null;
+    if (document.hidden) return;
     if (ctrl.isExpanded && state.podControllers.has(ctrl.podId) && !ctrl.logAbortController) {
       startLogStreamForPod(ctrl);
     }
-  }, delayMs);
+  }, effectiveDelayMs);
 }
 
 function setLogPlaceholderMessage(ctrl, message) {
@@ -2646,6 +2682,13 @@ async function startLogStreamForPod(ctrl) {
         setLogPlaceholderMessage(
           ctrl,
           `[HTTP ${res.status}] Нет доступа к логам пода ${ctrl.podId}. Проверьте права API-ключа RunPod (Pods: Read & Write и GraphQL: Read only).\n`
+        );
+      } else if (res.status === 429) {
+        noteRateLimit(res.headers.get("Retry-After"));
+        retryDelayMs = 60000;
+        setLogPlaceholderMessage(
+          ctrl,
+          `Подключение к логам пода ${ctrl.podId}... (HTTP 429, повтор через 60с)\n`
         );
       } else {
         retryDelayMs = 2500;
@@ -2973,7 +3016,13 @@ function handlePodLog(ctrl, entry, deferUi = false) {
 }
 
 async function pollHealthForPod(ctrl) {
-  if (state.redeployInProgress || state.isTransitioningToPod) return;
+  if (state.redeployInProgress || state.isTransitioningToPod || document.hidden || ctrl.pollInFlight || isRateLimited()) return;
+  const isSettled = ctrl.status === "EXITED" || ctrl.stages?.ready === "done" || (!ctrl.isOurPod && ctrl.initialProbeDone);
+  const minIntervalMs = isSettled ? 30000 : 3800;
+  if (ctrl.lastPollAt && (Date.now() - ctrl.lastPollAt) < minIntervalMs) return;
+
+  ctrl.pollInFlight = true;
+  ctrl.lastPollAt = Date.now();
   try {
     const pod = await runpodFetch(`/pods/${encodeURIComponent(ctrl.podId)}?includeMachine=true`);
     if (!pod || state.isTransitioningToPod) return;
@@ -3079,7 +3128,10 @@ async function pollHealthForPod(ctrl) {
 
     const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
     if (card) updatePodCardElement(ctrl, card);
-  } catch {}
+  } catch {
+  } finally {
+    ctrl.pollInFlight = false;
+  }
 }
 
 function buildPayload(candidate) {
@@ -3670,19 +3722,23 @@ function hasAnyDesiredGpuMatchingFilters() {
 function startAutoRefreshLoop() {
   if (state.catalogRefreshTimerId) clearInterval(state.catalogRefreshTimerId);
   state.catalogRefreshTimerId = setInterval(() => {
-    if (!document.hidden && state.hasApiKey && !state.redeployInProgress && !state.isTransitioningToPod) {
+    if (!document.hidden && state.hasApiKey && !state.redeployInProgress && !state.isTransitioningToPod && !isRateLimited()) {
       fetchGpuCatalog(true);
       fetchActivePods();
-      fetchBalance();
+      if (Date.now() - state.balanceLastFetchedAt >= 55000) fetchBalance();
     }
   }, CATALOG_AUTO_REFRESH_MS);
 
+  if (state.wakeListenersAttached) return;
+  state.wakeListenersAttached = true;
+
   const refreshOnWake = () => {
-    if (!document.hidden && state.hasApiKey && !state.redeployInProgress && !state.isTransitioningToPod) {
-      if (Date.now() - state.catalogLastFetchedAt > 2500) fetchGpuCatalog(true);
-      fetchActivePods();
-      fetchBalance();
-    }
+    if (document.hidden || !state.hasApiKey || state.redeployInProgress || state.isTransitioningToPod || isRateLimited()) return;
+    if (Date.now() - state.lastWakeRefreshAt < 15000) return;
+    state.lastWakeRefreshAt = Date.now();
+    if (Date.now() - state.catalogLastFetchedAt > 15000) fetchGpuCatalog(true);
+    fetchActivePods();
+    if (Date.now() - state.balanceLastFetchedAt >= 55000) fetchBalance();
   };
 
   document.addEventListener("visibilitychange", refreshOnWake);
