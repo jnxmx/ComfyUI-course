@@ -1193,6 +1193,47 @@ function isGpuDesiredByUser(row) {
   return row.tierRank <= DEFAULT_MAX_RANK;
 }
 
+function computeSpeedValueDealRowIds(displayRows, maxPrice, minRamGb) {
+  const result = new Set();
+  if (state.sortBy !== "speed") return result;
+
+  const eligible = displayRows.filter((r) => {
+    if (r.price > maxPrice || rowFailsRamFilter(r, minRamGb)) return false;
+    if (r.gpuId === "NVIDIA GeForce RTX 4090" && r.cloud === "COMMUNITY") return false;
+    return true;
+  });
+  if (eligible.length < 2) return result;
+
+  let weakestSortOrder = -Infinity;
+  let weakestSubRank = -Infinity;
+  for (const r of eligible) {
+    if (r.sortOrder > weakestSortOrder || (r.sortOrder === weakestSortOrder && r.subRank > weakestSubRank)) {
+      weakestSortOrder = r.sortOrder;
+      weakestSubRank = r.subRank;
+    }
+  }
+
+  for (const r of eligible) {
+    if (r.sortOrder === weakestSortOrder && r.subRank === weakestSubRank) continue;
+    const isBeaten = eligible.some((other) => {
+      if (other === r) return false;
+      const otherFaster =
+        other.sortOrder < r.sortOrder ||
+        (other.sortOrder === r.sortOrder && other.subRank < r.subRank);
+      const otherFasterOrEqual =
+        otherFaster ||
+        (other.sortOrder === r.sortOrder && other.subRank === r.subRank);
+      if (other.price < r.price && otherFasterOrEqual) return true;
+      if (other.price === r.price && otherFaster) return true;
+      return false;
+    });
+    if (!isBeaten) {
+      result.add(r.rowId);
+    }
+  }
+  return result;
+}
+
 function renderGpuTable() {
   const tbody = document.getElementById("gpu-tbody");
   tbody.replaceChildren();
@@ -1253,6 +1294,8 @@ function renderGpuTable() {
 
     return a.price - b.price;
   });
+
+  const valueDealRowIds = computeSpeedValueDealRowIds(displayRows, maxPrice, minRamGb);
 
   let addedRamDivider = false;
   let addedPriceDivider = false;
@@ -1377,7 +1420,7 @@ function renderGpuTable() {
     const tdPrice = document.createElement("td");
     tdPrice.className = "col-price";
     const priceText = document.createElement("span");
-    priceText.className = "price-text";
+    priceText.className = valueDealRowIds.has(row.rowId) ? "price-text is-value-deal" : "price-text";
     priceText.textContent = row.price.toFixed(2);
     const priceUnit = document.createElement("span");
     priceUnit.className = "price-unit";

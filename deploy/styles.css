@@ -2397,6 +2397,9 @@ tr.row-exceeds-price td {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+.price-text.is-value-deal {
+  color: var(--success);
+}
 .price-unit {
   color: var(--muted);
   font-size: 11px;
