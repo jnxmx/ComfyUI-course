@@ -6,7 +6,7 @@ import {
   buildSegmentedPowerBars,
   isAnomalousGpuPrice,
   isRecommendedGpu
-} from "./gpu_data.js?v=20261124_01";
+} from "./gpu_data.js?v=20261127_01";
 
 /**
  * course.yakushev.fr/deploy — Comfy.Work RunPod Deployer (Web Direct)
@@ -106,6 +106,7 @@ const state = {
   secureOnly: false,
   showUnavailable: false,
   minRamGb: 0,
+  sortBy: "speed",
   activePods: [],
   podControllers: new Map(),
   currentTemplate: { ...DEFAULT_TEMPLATE },
@@ -713,7 +714,10 @@ async function fetchAccountInfo() {
   ]);
 
   if (secretsRes.status === "fulfilled") {
-    state.accountSecrets = Array.isArray(secretsRes.value?.secrets) ? secretsRes.value.secrets : [];
+    const rawSecrets = Array.isArray(secretsRes.value)
+      ? secretsRes.value
+      : (Array.isArray(secretsRes.value?.secrets) ? secretsRes.value.secrets : []);
+    state.accountSecrets = rawSecrets;
   } else {
     console.debug("fetch secrets:", secretsRes.reason?.message);
     state.accountSecrets = [];
@@ -750,6 +754,20 @@ function updateSecretPillElement(el, label, isConfigured, secretObj) {
   }
 }
 
+function hasLiteralTemplateEnvValue(templateEnv, ...keys) {
+  if (!templateEnv || typeof templateEnv !== "object") return false;
+  const targets = new Set(keys.map((k) => String(k || "").trim().toUpperCase()));
+  for (const [rawKey, rawVal] of Object.entries(templateEnv)) {
+    const key = String(rawKey || "").trim().toUpperCase();
+    if (!targets.has(key) || rawVal == null) continue;
+    const val = String(rawVal).trim();
+    if (!val) continue;
+    if (/^\{\{\s*RUNPOD_SECRET_[^}]+\s*\}\}$/i.test(val)) continue;
+    return true;
+  }
+  return false;
+}
+
 function updateAccountBadges() {
   const hfEl = document.getElementById("status-hf-token");
   const civitaiEl = document.getElementById("status-civitai-token");
@@ -764,19 +782,19 @@ function updateAccountBadges() {
   const templateEnv = state.currentTemplate?.env || {};
 
   const hfSecret = secretsByName.get("HF_TOKEN") || secretsByName.get("HD_TOKEN") || null;
-  const isHfConfigured = Boolean(hfSecret || templateEnv.HF_TOKEN || templateEnv.HD_TOKEN);
+  const isHfConfigured = Boolean(hfSecret || hasLiteralTemplateEnvValue(templateEnv, "HF_TOKEN", "HD_TOKEN"));
   updateSecretPillElement(hfEl, "HF_TOKEN", isHfConfigured, hfSecret);
 
   const civitaiSecret = secretsByName.get("CIVITAI_API_KEY") || null;
-  const isCivitaiConfigured = Boolean(civitaiSecret || templateEnv.CIVITAI_API_KEY);
+  const isCivitaiConfigured = Boolean(civitaiSecret || hasLiteralTemplateEnvValue(templateEnv, "CIVITAI_API_KEY"));
   updateSecretPillElement(civitaiEl, "CIVITAI_API_KEY", isCivitaiConfigured, civitaiSecret);
 
   const backupSecret = secretsByName.get("COMFYUI_BACKUP") || null;
-  const isBackupConfigured = Boolean(backupSecret || templateEnv.COMFYUI_BACKUP);
+  const isBackupConfigured = Boolean(backupSecret || hasLiteralTemplateEnvValue(templateEnv, "COMFYUI_BACKUP"));
   updateSecretPillElement(backupEl, "COMFYUI_BACKUP", isBackupConfigured, backupSecret);
 
   const comfyOrgSecret = secretsByName.get("API_KEY_COMFY_ORG") || null;
-  const isComfyOrgConfigured = Boolean(comfyOrgSecret || templateEnv.API_KEY_COMFY_ORG);
+  const isComfyOrgConfigured = Boolean(comfyOrgSecret || hasLiteralTemplateEnvValue(templateEnv, "API_KEY_COMFY_ORG"));
   updateSecretPillElement(comfyOrgEl, "API_KEY_COMFY_ORG", isComfyOrgConfigured, comfyOrgSecret);
 }
 
@@ -824,7 +842,7 @@ async function loadTemplate(templateId, showFeedback = false) {
         ports: data.ports || DEFAULT_TEMPLATE.ports,
         env: data.env || {}
       };
-      await persistCustomTemplateId(cleanId);
+      await persistCustomTemplateId(cleanId === DEFAULT_TEMPLATE.templateId ? null : cleanId);
       if (showFeedback && msgEl) {
         msgEl.hidden = false;
         msgEl.className = "template-edit-msg msg-success";
@@ -836,7 +854,8 @@ async function loadTemplate(templateId, showFeedback = false) {
     state.currentTemplate = {
       ...DEFAULT_TEMPLATE,
       templateId: cleanId,
-      name: cleanId === DEFAULT_TEMPLATE.templateId ? DEFAULT_TEMPLATE.name : `Темплейт ${cleanId}`
+      name: cleanId === DEFAULT_TEMPLATE.templateId ? DEFAULT_TEMPLATE.name : `Темплейт ${cleanId}`,
+      env: {}
     };
     if (showFeedback && msgEl) {
       msgEl.hidden = false;
@@ -847,6 +866,37 @@ async function loadTemplate(templateId, showFeedback = false) {
 
   updateTemplateUI();
   updateAccountBadges();
+}
+
+function getTemplateEnvKeySet(tpl) {
+  const keys = new Set();
+  const env = tpl?.env;
+  if (env && typeof env === "object") {
+    for (const k of Object.keys(env)) {
+      const norm = String(k || "").trim().toUpperCase();
+      if (norm) keys.add(norm);
+    }
+  }
+  return keys;
+}
+
+function getTemplateSupportedOptions(tpl = state.currentTemplate) {
+  const tplId = tpl?.templateId || DEFAULT_TEMPLATE.templateId;
+  if (tplId === DEFAULT_TEMPLATE.templateId) {
+    return {
+      newManager: true,
+      restoreBackup: true,
+      beta: true,
+      shutdownTimer: true
+    };
+  }
+  const envKeys = getTemplateEnvKeySet(tpl);
+  return {
+    newManager: envKeys.has("NEW_MANAGER"),
+    restoreBackup: envKeys.has("RESTORE_BACKUP"),
+    beta: envKeys.has("NIGHTLY_COMFYUI") || envKeys.has("COMFYUI_NIGHTLY") || envKeys.has("USE_NIGHTLY"),
+    shutdownTimer: envKeys.has("RUNPOD_SHUTDOWN_MINUTES") || envKeys.has("DISABLE_SHUTDOWN_TIMER")
+  };
 }
 
 function updateTemplateUI() {
@@ -860,8 +910,26 @@ function updateTemplateUI() {
     }
   }
   if (badgeEl) badgeEl.textContent = tplId;
+
+  const supported = getTemplateSupportedOptions(state.currentTemplate);
+  const newManagerWrap = document.getElementById("opt-new-manager")?.closest(".checkbox-control");
+  if (newManagerWrap) newManagerWrap.hidden = !supported.newManager;
+  const restoreBackupWrap = document.getElementById("opt-restore-backup")?.closest(".checkbox-control");
+  if (restoreBackupWrap) restoreBackupWrap.hidden = !supported.restoreBackup;
+  const betaWrap = document.getElementById("opt-beta")?.closest(".checkbox-control");
+  if (betaWrap) betaWrap.hidden = !supported.beta;
+  const shutdownWrap = document.getElementById("opt-shutdown-timer")?.closest(".shutdown-control-group");
+  if (shutdownWrap) shutdownWrap.hidden = !supported.shutdownTimer;
+
   const optsEl = document.getElementById("template-options");
-  if (optsEl) optsEl.hidden = tplId !== DEFAULT_TEMPLATE.templateId;
+  if (optsEl) {
+    optsEl.hidden = !(
+      supported.newManager ||
+      supported.restoreBackup ||
+      supported.beta ||
+      supported.shutdownTimer
+    );
+  }
 }
 
 function initTemplateControls() {
@@ -1132,6 +1200,14 @@ function renderGpuTable() {
   displayRows.sort((a, b) => {
     const bucketDiff = getRowFilterBucket(a, maxPrice, minRamGb) - getRowFilterBucket(b, maxPrice, minRamGb);
     if (bucketDiff !== 0) return bucketDiff;
+
+    if (state.sortBy === "price") {
+      const otherA = a.tierRank === 99 ? 1 : 0;
+      const otherB = b.tierRank === 99 ? 1 : 0;
+      if (otherA !== otherB) return otherA - otherB;
+
+      if (a.price !== b.price) return a.price - b.price;
+    }
 
     if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
     if (a.subRank !== b.subRank) return a.subRank - b.subRank;
@@ -1730,7 +1806,11 @@ function getOrCreatePodController(podId, initData = {}) {
       pod: initData.pod || null,
       status: initData.status || initData.pod?.status || "STARTING",
       containerStarted: isPodRuntimeActive(initData.pod),
-      restoreBackup: initData.restoreBackup ?? (document.getElementById("opt-restore-backup")?.checked ?? true),
+      restoreBackup: initData.restoreBackup ?? (
+        getTemplateSupportedOptions().restoreBackup
+          ? (document.getElementById("opt-restore-backup")?.checked ?? true)
+          : false
+      ),
       stages: {
         provision: "active",
         container: "pending",
@@ -1915,6 +1995,7 @@ function isPodRestoreBackupEnabled(ctrl) {
   const envVal = ctrl?.pod?.env?.RESTORE_BACKUP;
   if (envVal !== undefined) return String(envVal) === "1";
   if (ctrl?.restoreBackup !== undefined) return Boolean(ctrl.restoreBackup);
+  if (!getTemplateSupportedOptions().restoreBackup) return false;
   return document.getElementById("opt-restore-backup")?.checked ?? true;
 }
 
@@ -2972,22 +3053,39 @@ function buildPayload(candidate) {
   const slug = String(rawName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "gpu";
   const tpl = state.currentTemplate;
 
-  const env = {
-    API_KEY_COMFY_ORG: "{{ RUNPOD_SECRET_API_KEY_COMFY_ORG }}",
-    CIVITAI_API_KEY: "{{ RUNPOD_SECRET_CIVITAI_API_KEY }}",
-    COMFYUI_BACKUP: "{{ RUNPOD_SECRET_COMFYUI_BACKUP }}",
-    HF_TOKEN: "{{ RUNPOD_SECRET_HF_TOKEN }}",
-    NEW_MANAGER: newManager,
-    RESTORE_BACKUP: restoreBackup,
-    STUDENT_MODE: "0"
+  const secretsByName = new Map();
+  for (const s of state.accountSecrets || []) {
+    const rawName = String(s?.name || "").trim();
+    if (rawName) secretsByName.set(rawName.toUpperCase(), rawName);
+  }
+  const secretRef = (canonicalName) => {
+    const actualName = secretsByName.get(String(canonicalName).toUpperCase()) || canonicalName;
+    return `{{ RUNPOD_SECRET_${actualName} }}`;
   };
 
-  const isDefaultTpl = !tpl.templateId || tpl.templateId === DEFAULT_TEMPLATE.templateId;
-  if (!isDefaultTpl) {
-    delete env.NEW_MANAGER;
-    delete env.RESTORE_BACKUP;
-  } else {
-    if (document.getElementById("opt-beta")?.checked) env.NIGHTLY_COMFYUI = "1";
+  const env = {
+    API_KEY_COMFY_ORG: secretRef("API_KEY_COMFY_ORG"),
+    CIVITAI_API_KEY: secretRef("CIVITAI_API_KEY"),
+    COMFYUI_BACKUP: secretRef("COMFYUI_BACKUP"),
+    HF_TOKEN: secretRef("HF_TOKEN")
+  };
+
+  const tplId = tpl.templateId || DEFAULT_TEMPLATE.templateId;
+  const supported = getTemplateSupportedOptions(tpl);
+  const envKeys = getTemplateEnvKeySet(tpl);
+  if (tplId === DEFAULT_TEMPLATE.templateId || envKeys.has("STUDENT_MODE")) {
+    env.STUDENT_MODE = "0";
+  }
+  if (supported.newManager) {
+    env.NEW_MANAGER = newManager;
+  }
+  if (supported.restoreBackup) {
+    env.RESTORE_BACKUP = restoreBackup;
+  }
+  if (supported.beta && document.getElementById("opt-beta")?.checked) {
+    env.NIGHTLY_COMFYUI = "1";
+  }
+  if (supported.shutdownTimer) {
     if (timerEnabled) {
       env.RUNPOD_SHUTDOWN_MINUTES = String(minutes);
     } else {
@@ -3657,6 +3755,34 @@ async function init() {
     }
   }
 
+  // Table Column Sort (ephemeral — resets to speed on page reload)
+  const sortPriceBtn = document.getElementById("sort-price-btn");
+  const sortPowerBtn = document.getElementById("sort-power-btn");
+  const updateSortHeaderUi = () => {
+    const isPrice = state.sortBy === "price";
+    if (sortPriceBtn) {
+      sortPriceBtn.classList.toggle("is-active", isPrice);
+      sortPriceBtn.closest("th")?.setAttribute("aria-sort", isPrice ? "ascending" : "none");
+    }
+    if (sortPowerBtn) {
+      sortPowerBtn.classList.toggle("is-active", !isPrice);
+      sortPowerBtn.closest("th")?.setAttribute("aria-sort", !isPrice ? "descending" : "none");
+    }
+  };
+  updateSortHeaderUi();
+  sortPriceBtn?.addEventListener("click", () => {
+    if (state.sortBy === "price") return;
+    state.sortBy = "price";
+    updateSortHeaderUi();
+    renderGpuTable();
+  });
+  sortPowerBtn?.addEventListener("click", () => {
+    if (state.sortBy === "speed") return;
+    state.sortBy = "speed";
+    updateSortHeaderUi();
+    renderGpuTable();
+  });
+
   // Key Visibility & Safety Info
   const keyInput = document.getElementById("runpod-api-key");
   const toggleKeyBtn = document.getElementById("toggle-key-btn");
@@ -3992,7 +4118,8 @@ async function init() {
       renderProbeResult(data);
       if (onbGqlDesc && onbGqlStatus && authValid) {
         const expected = ["HF_TOKEN", "CIVITAI_API_KEY", "COMFYUI_BACKUP", "API_KEY_COMFY_ORG"];
-        const found = expected.filter((k) => configured.includes(k));
+        const configuredUpper = new Set(configured.map((k) => String(k || "").trim().toUpperCase()));
+        const found = expected.filter((k) => configuredUpper.has(k));
         onbGqlDesc.textContent = found.length ? found.join(", ") : "Секреты не настроены (необязательно)";
         onbGqlStatus.textContent = `${found.length}/4`;
         setToneClass(onbGqlStatus, found.length === 4 ? "is-ok" : "is-muted");
@@ -4253,7 +4380,7 @@ async function init() {
     refreshPodsBtn.addEventListener("click", async () => {
       refreshPodsBtn.classList.add("is-spinning");
       try {
-        await Promise.all([fetchActivePods(), fetchBalance()]);
+        await Promise.all([fetchActivePods(), fetchBalance(), fetchAccountInfo()]);
       } finally {
         refreshPodsBtn.classList.remove("is-spinning");
       }

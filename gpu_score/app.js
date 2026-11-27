@@ -5,7 +5,7 @@ import {
   buildSegmentedPowerBars,
   isAnomalousGpuPrice,
   GPU_FALLBACK_PRICES
-} from "../deploy/gpu_data.js?v=20261124_01";
+} from "../deploy/gpu_data.js?v=20261127_01";
 
 const STORAGE_KEYS = Object.freeze({
   API_KEY: "yakushev_runpod_api_key_v1"
