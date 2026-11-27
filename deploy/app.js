@@ -130,6 +130,8 @@ const state = {
   wakeListenersAttached: false,
   rateLimitedUntilMs: 0,
   rateLimitStreak: 0,
+  waitingCandidates: new Map(),
+  activeWaitSession: null,
   ipGeoCache: new Map(),
   apiKeyPermissionErrors: new Map(),
   heldRetryInfo: null
@@ -1060,7 +1062,7 @@ async function fetchGpuCatalog(silent = false) {
     tbody.replaceChildren();
     const loadingRow = document.createElement("tr");
     const loadingTd = document.createElement("td");
-    loadingTd.colSpan = 5;
+    loadingTd.colSpan = 4;
     loadingTd.className = "empty-cell";
     loadingTd.textContent = "Загрузка доступных видеокарт (CUDA >= 13.0)...";
     loadingRow.appendChild(loadingTd);
@@ -1144,7 +1146,7 @@ async function fetchGpuCatalog(silent = false) {
         tbody.replaceChildren();
         const errRow = document.createElement("tr");
         const errTd = document.createElement("td");
-        errTd.colSpan = 5;
+        errTd.colSpan = 4;
         errTd.className = "empty-cell";
         errTd.textContent = `Ошибка загрузки: ${err.message}`;
         errRow.appendChild(errTd);
@@ -1191,14 +1193,6 @@ function isGpuDesiredByUser(row) {
   return row.tierRank <= DEFAULT_MAX_RANK;
 }
 
-function updateSelectedGpuCount() {
-  const el = document.getElementById("selected-gpu-count");
-  if (!el) return;
-  const tbody = document.getElementById("gpu-tbody");
-  const count = tbody ? tbody.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)').length : 0;
-  el.textContent = `Выбрано: ${count}`;
-}
-
 function renderGpuTable() {
   const tbody = document.getElementById("gpu-tbody");
   tbody.replaceChildren();
@@ -1214,7 +1208,7 @@ function renderGpuTable() {
     displayRows = displayRows.filter((r) => r.availability !== "NONE");
   }
 
-  const gpuColCount = state.showUnavailable ? 5 : 4;
+  const gpuColCount = 4;
 
   if (displayRows.length === 0) {
     const tr = document.createElement("tr");
@@ -1224,7 +1218,6 @@ function renderGpuTable() {
     td.textContent = state.hasApiKey ? "Нет видеокарт по выбранным фильтрам" : "Введите API ключ слева для загрузки";
     tr.appendChild(td);
     tbody.appendChild(tr);
-    updateSelectedGpuCount();
     return;
   }
 
@@ -1281,7 +1274,6 @@ function renderGpuTable() {
     const exceedsPrice = row.price > maxPrice;
     const failsRam = rowFailsRamFilter(row, minRamGb);
     const failsFilter = exceedsPrice || failsRam;
-    const isDesired = isGpuDesiredByUser(row);
 
     if (!exceedsPrice && failsRam && !addedRamDivider) {
       addedRamDivider = true;
@@ -1315,36 +1307,6 @@ function renderGpuTable() {
       mismatchReason = `Превышает лимит ${maxPrice.toFixed(2)} $/ч.`;
     } else if (failsRam) {
       mismatchReason = `Доступная RAM ниже фильтра ${minRamGb} ГБ.`;
-    }
-
-    const isChecked = !failsFilter && isDesired;
-    tr.classList.toggle("is-selected", state.showUnavailable && isChecked);
-
-    const tdCheck = document.createElement("td");
-    tdCheck.className = "col-check";
-    const chk = document.createElement("input");
-    chk.type = "checkbox";
-    chk.checked = isChecked;
-    chk.disabled = failsFilter;
-    if (mismatchReason) chk.title = mismatchReason;
-    chk.addEventListener("change", () => {
-      state.userSelectionOverrides.set(row.rowId, chk.checked);
-      tr.classList.toggle("is-selected", state.showUnavailable && chk.checked);
-      persistSelections();
-      updateSelectedGpuCount();
-    });
-    tdCheck.appendChild(chk);
-
-    if (!failsFilter && state.showUnavailable) {
-      tr.classList.add("row-selectable");
-      tr.addEventListener("click", (e) => {
-        if (e.target.closest("input, button, a, label, .col-action")) return;
-        chk.checked = !chk.checked;
-        state.userSelectionOverrides.set(row.rowId, chk.checked);
-        tr.classList.toggle("is-selected", chk.checked);
-        persistSelections();
-        updateSelectedGpuCount();
-      });
     }
 
     const tdName = document.createElement("td");
@@ -1432,22 +1394,38 @@ function renderGpuTable() {
     const tdAction = document.createElement("td");
     tdAction.className = "col-action";
     const isUnavailable = row.availability === "NONE";
+    const isWaiting = state.waitingCandidates.has(row.rowId);
     const launchBtn = document.createElement("button");
     launchBtn.type = "button";
-    launchBtn.className = isUnavailable ? "btn btn-subtle-sm btn-hunt" : "btn btn-subtle-sm";
-    launchBtn.textContent = isUnavailable ? "Охотиться" : "Запустить";
-    launchBtn.disabled = failsFilter;
-    if (mismatchReason) launchBtn.title = mismatchReason;
-    launchBtn.addEventListener("click", () => {
-      startDeploymentSequence([row], null, { singleGpuOnly: true, huntMode: isUnavailable });
-    });
+    if (isWaiting) {
+      launchBtn.className = "btn btn-subtle-sm btn-hunt is-waiting";
+      launchBtn.textContent = "Отменить";
+      launchBtn.disabled = false;
+      launchBtn.addEventListener("click", () => {
+        removeWaitingCandidate(row.rowId);
+      });
+    } else if (isUnavailable) {
+      launchBtn.className = "btn btn-subtle-sm btn-hunt";
+      launchBtn.textContent = "Ожидать";
+      launchBtn.disabled = failsFilter;
+      if (mismatchReason) launchBtn.title = mismatchReason;
+      launchBtn.addEventListener("click", () => {
+        addWaitingCandidate(row);
+      });
+    } else {
+      launchBtn.className = "btn btn-subtle-sm";
+      launchBtn.textContent = "Запустить";
+      launchBtn.disabled = failsFilter;
+      if (mismatchReason) launchBtn.title = mismatchReason;
+      launchBtn.addEventListener("click", () => {
+        startDeploymentSequence([row], null, { singleGpuOnly: true, huntMode: false });
+      });
+    }
     tdAction.appendChild(launchBtn);
 
-    tr.append(tdCheck, tdName, tdPrice, tdPower, tdAction);
+    tr.append(tdName, tdPrice, tdPower, tdAction);
     tbody.appendChild(tr);
   }
-
-  updateSelectedGpuCount();
 }
 
 /* ==========================================================================
@@ -3245,6 +3223,46 @@ function formatElapsedShort(ms) {
   return `${mins}:${String(secs).padStart(2, "0")}`;
 }
 
+function cancelWaitingSession() {
+  state.waitingCandidates.clear();
+  state.activeWaitSession = null;
+  state.currentDeploySessionId = null;
+  state.redeployInProgress = false;
+  state.heldRetryInfo = null;
+  const pendingCard = document.getElementById("pending-deploy-card");
+  if (pendingCard) pendingCard.hidden = true;
+  updateLeftColumnOrder();
+  renderPodsList();
+  renderGpuTable();
+}
+
+function addWaitingCandidate(row) {
+  if (!row) return;
+  const rowId = row.rowId || `${row.gpuId}__${row.cloud}`;
+  state.waitingCandidates.set(rowId, { ...row, rowId });
+  if (state.activeWaitSession) {
+    state.activeWaitSession.syncUI();
+    renderGpuTable();
+    return;
+  }
+  renderGpuTable();
+  startDeploymentSequence(Array.from(state.waitingCandidates.values()), null, {
+    singleGpuOnly: false,
+    huntMode: true
+  });
+}
+
+function removeWaitingCandidate(rowId) {
+  if (!rowId) return;
+  state.waitingCandidates.delete(rowId);
+  if (state.waitingCandidates.size === 0) {
+    cancelWaitingSession();
+    return;
+  }
+  state.activeWaitSession?.syncUI();
+  renderGpuTable();
+}
+
 async function startDeploymentSequence(candidates, oldBadPodId = null, { singleGpuOnly = false, huntMode = false } = {}) {
   if (singleGpuOnly && !state.deployCreateInFlight) {
     state.currentDeploySessionId = null;
@@ -3274,6 +3292,17 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
   const sessionId = Symbol("deploy-session");
   const sessionStartedAt = Date.now();
   state.currentDeploySessionId = sessionId;
+  if (huntMode) {
+    if (state.waitingCandidates.size === 0) {
+      for (const c of candidates) {
+        const id = c.rowId || `${c.gpuId}__${c.cloud}`;
+        state.waitingCandidates.set(id, { ...c, rowId: id });
+      }
+    }
+  } else {
+    state.waitingCandidates.clear();
+    state.activeWaitSession = null;
+  }
   updateLeftColumnOrder();
 
   const isSingleCandidate = Boolean(singleGpuOnly && candidates.length === 1);
@@ -3282,17 +3311,16 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
   const getHuntTitle = (list, isSingle, isHunt, hasHeld) => {
     if (hasHeld) return "Поиск замены";
-    if (isHunt && list.length > 1) return "Охота за GPU";
-    if (isHunt && list[0]) return `Охота: ${list[0].displayName}`;
+    if (isHunt) return "Ожидание свободных (не закрывайте вкладку)";
     if (isSingle && list[0]) return `Запуск: ${list[0].displayName}`;
     return "Поиск свободной GPU";
   };
 
-  const formatHuntMeta = () => `Попытка ${Math.max(1, state.redeployCount)} · ${formatElapsedShort(Date.now() - sessionStartedAt)}`;
+  const formatHuntMeta = () => formatElapsedShort(Date.now() - sessionStartedAt);
 
   const syncPendingRetryUI = ({ title, sub, alertText, alertClass, candidatesList }) => {
-    let sourceList = candidatesList?.length ? candidatesList : candidates;
-    if (!sourceList?.length && !isSingleCandidate) {
+    let sourceList = candidatesList?.length ? candidatesList : (huntMode ? Array.from(state.waitingCandidates.values()) : candidates);
+    if (!sourceList?.length && !isSingleCandidate && !huntMode) {
       sourceList = state.catalogRows.filter((r) => isGpuDesiredByUser(r));
     }
     const gpuIds = new Set((sourceList || []).map((c) => c.gpuId).filter(Boolean));
@@ -3313,7 +3341,7 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     if (pendingSub) pendingSub.textContent = sub || "";
 
     if (pendingGpus) {
-      const gpuKey = (sourceList || []).map((c) => `${c.gpuId}:${c.cloud}:${c.price}`).join("|");
+      const gpuKey = `${huntMode ? "hunt" : "std"}|` + (sourceList || []).map((c) => `${c.rowId || `${c.gpuId}__${c.cloud}`}:${c.price}`).join("|");
       if (gpuKey !== lastGpuKey) {
         lastGpuKey = gpuKey;
         pendingGpus.replaceChildren();
@@ -3321,9 +3349,24 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
           pendingGpus.hidden = false;
           for (const c of sourceList) {
             const pill = document.createElement("span");
-            pill.className = "badge badge-subtle";
+            pill.className = huntMode ? "badge badge-subtle pending-gpu-pill" : "badge badge-subtle";
             const cloudLabel = String(c.cloud || "COMMUNITY").toUpperCase() === "SECURE" ? "Secure" : "Community";
-            pill.textContent = `${c.displayName} · ${cloudLabel}`;
+            const labelSpan = document.createElement("span");
+            labelSpan.textContent = `${c.displayName} · ${cloudLabel}`;
+            pill.appendChild(labelSpan);
+            if (huntMode) {
+              const removeBtn = document.createElement("button");
+              removeBtn.type = "button";
+              removeBtn.className = "pending-gpu-remove";
+              removeBtn.title = `Убрать ${c.displayName} из ожидания`;
+              removeBtn.setAttribute("aria-label", `Убрать ${c.displayName} из ожидания`);
+              removeBtn.textContent = "×";
+              removeBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                removeWaitingCandidate(c.rowId || `${c.gpuId}__${c.cloud}`);
+              });
+              pill.appendChild(removeBtn);
+            }
             pendingGpus.appendChild(pill);
           }
         } else {
@@ -3349,6 +3392,20 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     }
   };
 
+  if (huntMode) {
+    state.activeWaitSession = {
+      sessionId,
+      syncUI: () => syncPendingRetryUI({
+        title: getHuntTitle(Array.from(state.waitingCandidates.values()), false, true, Boolean(oldBadPodId || state.heldBadPodIds.size > 0)),
+        sub: formatHuntMeta(),
+        alertText: "",
+        alertClass: "monitor-alert",
+        candidatesList: Array.from(state.waitingCandidates.values())
+      }),
+      cancel: cancelWaitingSession
+    };
+  }
+
   syncPendingRetryUI({
     title: getHuntTitle(candidates, isSingleCandidate, huntMode, Boolean(oldBadPodId)),
     sub: candidates[0] && isSingleCandidate && !huntMode
@@ -3356,11 +3413,15 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
       : formatHuntMeta(),
     alertText: "",
     alertClass: "monitor-alert",
-    candidatesList: candidates
+    candidatesList: huntMode ? Array.from(state.waitingCandidates.values()) : candidates
   });
 
   if (cancelBtn) {
     cancelBtn.onclick = () => {
+      if (huntMode) {
+        cancelWaitingSession();
+        return;
+      }
       state.currentDeploySessionId = null;
       state.redeployInProgress = false;
       state.heldRetryInfo = null;
@@ -3372,10 +3433,12 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
   while (state.currentDeploySessionId === sessionId) {
     let currentCandidates = candidates;
-    if (huntMode && !isSingleCandidate) {
-      const avail = getSelectedCandidatesQueue();
-      const unavail = getSelectedUnavailableCandidates();
-      currentCandidates = avail.length > 0 ? avail : (unavail.length > 0 ? unavail : candidates);
+    if (huntMode) {
+      currentCandidates = Array.from(state.waitingCandidates.values());
+      if (currentCandidates.length === 0) {
+        cancelWaitingSession();
+        return;
+      }
     } else if (!isSingleCandidate) {
       currentCandidates = getSelectedCandidatesQueue();
     }
@@ -3439,6 +3502,9 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         if (pendingCard) pendingCard.hidden = true;
         if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
         state.heldRetryInfo = null;
+        state.waitingCandidates.clear();
+        state.activeWaitSession = null;
+        renderGpuTable();
 
         const ctrl = getOrCreatePodController(newPodId, {
           displayName: candidate.displayName,
@@ -3462,8 +3528,11 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
       if (isFatalAuthOrBilling) {
         if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
+        state.waitingCandidates.clear();
+        state.activeWaitSession = null;
+        renderGpuTable();
         syncPendingRetryUI({
-          title: "Охота остановлена",
+          title: "Ожидание остановлено",
           sub: formatHuntMeta(),
           alertText: `Критическая ошибка: ${lastErrorMessage}`,
           alertClass: "monitor-alert alert-error",
@@ -3474,12 +3543,17 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
       for (let sec = 3; sec > 0; sec--) {
         if (state.currentDeploySessionId !== sessionId) return;
+        const liveList = Array.from(state.waitingCandidates.values());
+        if (liveList.length === 0) {
+          cancelWaitingSession();
+          return;
+        }
         syncPendingRetryUI({
-          title: getHuntTitle(currentCandidates, isSingleCandidate, huntMode, Boolean(oldBadPodId || state.heldBadPodIds.size > 0)),
+          title: getHuntTitle(liveList, isSingleCandidate, huntMode, Boolean(oldBadPodId || state.heldBadPodIds.size > 0)),
           sub: formatHuntMeta(),
           alertText: "",
           alertClass: "monitor-alert",
-          candidatesList: currentCandidates
+          candidatesList: liveList
         });
         await new Promise((r) => setTimeout(r, 1000));
       }
@@ -3537,6 +3611,11 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         if (pendingCard) pendingCard.hidden = true;
         if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
         state.heldRetryInfo = null;
+        if (huntMode) {
+          state.waitingCandidates.clear();
+          state.activeWaitSession = null;
+          renderGpuTable();
+        }
 
         const ctrl = getOrCreatePodController(newPodId, {
           displayName: candidate.displayName,
@@ -3567,8 +3646,13 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
 
     if (isFatalAuthOrBilling) {
       if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
+      if (huntMode) {
+        state.waitingCandidates.clear();
+        state.activeWaitSession = null;
+        renderGpuTable();
+      }
       syncPendingRetryUI({
-        title: "Запуск остановлен",
+        title: huntMode ? "Ожидание остановлено" : "Запуск остановлен",
         sub: formatHuntMeta(),
         alertText: `Критическая ошибка: ${lastErrorMessage}`,
         alertClass: "monitor-alert alert-error",
@@ -3595,12 +3679,17 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
     const waitSeconds = huntMode ? 3 : 5;
     for (let sec = waitSeconds; sec > 0; sec--) {
       if (state.currentDeploySessionId !== sessionId) return;
+      const liveList = huntMode ? Array.from(state.waitingCandidates.values()) : currentCandidates;
+      if (huntMode && liveList.length === 0) {
+        cancelWaitingSession();
+        return;
+      }
       syncPendingRetryUI({
-        title: getHuntTitle(currentCandidates, isSingleCandidate, huntMode, Boolean(oldBadPodId || state.heldBadPodIds.size > 0)),
+        title: getHuntTitle(liveList, isSingleCandidate, huntMode, Boolean(oldBadPodId || state.heldBadPodIds.size > 0)),
         sub: formatHuntMeta(),
         alertText: "",
         alertClass: "monitor-alert",
-        candidatesList: currentCandidates
+        candidatesList: liveList
       });
       await new Promise((r) => setTimeout(r, 1000));
     }
@@ -4360,6 +4449,8 @@ async function init() {
     state.initialProfileLoaded = true;
     state.currentDeploySessionId = null;
     state.heldRetryInfo = null;
+    state.waitingCandidates.clear();
+    state.activeWaitSession = null;
     state.apiKeyPermissionErrors.clear();
     state.catalogRows = [];
     try {
@@ -4383,40 +4474,32 @@ async function init() {
     tbody.replaceChildren();
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 5;
+    td.colSpan = 4;
     td.className = "empty-cell";
     td.textContent = "Ключ удалён. Введите RunPod API Secret Key слева.";
     tr.appendChild(td);
     tbody.appendChild(tr);
 
-    updateSelectedGpuCount();
     onbKeyInput?.focus();
   });
 
-  // Secure Only & Show Unavailable
+  // Secure Only & Available Only (ephemeral defaults on every page open)
   const btnSecureOnly = document.getElementById("btn-secure-only");
   if (btnSecureOnly) {
-    if (localStorage.getItem(STORAGE_KEYS.SECURE_ONLY) === "true") {
-      state.secureOnly = true;
-      btnSecureOnly.checked = true;
-    }
+    state.secureOnly = false;
+    btnSecureOnly.checked = false;
     btnSecureOnly.addEventListener("change", () => {
       state.secureOnly = Boolean(btnSecureOnly.checked);
-      localStorage.setItem(STORAGE_KEYS.SECURE_ONLY, state.secureOnly ? "true" : "false");
       renderGpuTable();
     });
   }
 
-  const gpuCardEl = document.querySelector(".gpu-card");
   const btnShowUnavailable = document.getElementById("btn-show-unavailable");
   if (btnShowUnavailable) {
-    state.showUnavailable = localStorage.getItem(STORAGE_KEYS.SHOW_UNAVAILABLE) === "true";
-    btnShowUnavailable.checked = !state.showUnavailable;
-    if (gpuCardEl) gpuCardEl.classList.toggle("show-unavailable-mode", state.showUnavailable);
+    state.showUnavailable = false;
+    btnShowUnavailable.checked = true;
     btnShowUnavailable.addEventListener("change", () => {
       state.showUnavailable = !btnShowUnavailable.checked;
-      if (gpuCardEl) gpuCardEl.classList.toggle("show-unavailable-mode", state.showUnavailable);
-      localStorage.setItem(STORAGE_KEYS.SHOW_UNAVAILABLE, state.showUnavailable ? "true" : "false");
       renderGpuTable();
     });
   }
@@ -4436,50 +4519,6 @@ async function init() {
     shutdownMinutesEl.addEventListener("input", saveOptions);
     shutdownMinutesEl.addEventListener("change", saveOptions);
   }
-
-  document.getElementById("btn-select-none")?.addEventListener("click", () => {
-    state.userSelectionOverrides.clear();
-    for (const row of state.catalogRows) {
-      state.userSelectionOverrides.set(row.rowId, false);
-    }
-    persistSelections();
-    renderGpuTable();
-  });
-
-  document.getElementById("deploy-best-btn").addEventListener("click", async (e) => {
-    const btn = e.currentTarget;
-    const origText = btn.textContent;
-    const isCatalogStale = !state.catalogLastFetchedAt
-      || Date.now() - state.catalogLastFetchedAt > 3000
-      || !!state.catalogFetchPromise
-      || state.catalogRows.length === 0;
-
-    if (isCatalogStale) {
-      btn.disabled = true;
-      btn.textContent = "Обновление списка GPU...";
-      try { await fetchGpuCatalog(true); } finally {
-        btn.disabled = false;
-        btn.textContent = origText;
-      }
-    }
-
-    const queue = getSelectedCandidatesQueue();
-    if (queue.length === 0) {
-      const unavailableQueue = getSelectedUnavailableCandidates();
-      if (unavailableQueue.length > 0) {
-        startDeploymentSequence(unavailableQueue, null, { singleGpuOnly: false, huntMode: true });
-        return;
-      }
-      const autoRedeployChecked = document.getElementById("opt-auto-redeploy")?.checked;
-      if (autoRedeployChecked && hasAnyDesiredGpuMatchingFilters()) {
-        startDeploymentSequence([], null, { singleGpuOnly: false });
-        return;
-      }
-      alert("Нет доступных видеокарт среди выбранных по текущим фильтрам.");
-      return;
-    }
-    startDeploymentSequence(queue, null, { singleGpuOnly: false });
-  });
 
   const refreshPodsBtn = document.getElementById("refresh-pods-btn");
   if (refreshPodsBtn) {
@@ -4543,7 +4582,6 @@ async function init() {
     updateTemplateUI();
     fetchBalance();
   }
-  updateSelectedGpuCount();
 }
 
 document.addEventListener("DOMContentLoaded", init);

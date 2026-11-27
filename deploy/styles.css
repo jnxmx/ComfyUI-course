@@ -1236,6 +1236,36 @@ a:focus-visible {
   gap: 4px;
   margin-top: 4px;
 }
+.pending-gpu-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-right: 4px;
+}
+.pending-gpu-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.12s ease, background-color 0.12s ease;
+}
+.pending-gpu-remove:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+.btn-hunt.is-waiting {
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
 .pending-deploy-card .monitor-alert {
   margin: 0 16px 14px;
 }
@@ -1925,10 +1955,6 @@ a:focus-visible {
   margin-inline: -20px;
   padding: 12px 20px 0;
   border-top: 1px solid var(--border-card-divider);
-}
-.gpu-card:not(.show-unavailable-mode) .col-check,
-.gpu-card:not(.show-unavailable-mode) .gpu-toolbar-actions {
-  display: none;
 }
 
 .gpu-selection-controls {

@@ -9,7 +9,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Comfy.Work Deployer</title>
-  <link rel="stylesheet" href="styles.css?v=20261127_02">
+  <link rel="stylesheet" href="styles.css?v=20261127_05">
 </head>
 <body>
   <div class="app-shell">
@@ -428,24 +428,10 @@
                   <input type="checkbox" id="btn-secure-only">
                   <span>Только Secure</span>
                 </label>
-                <label class="checkbox-control" for="btn-show-unavailable" title="Показывать только доступные сейчас видеокарты (снимите галочку, чтобы охотиться на недоступные)">
+                <label class="checkbox-control" for="btn-show-unavailable" title="Показывать только доступные сейчас видеокарты (снимите галочку, чтобы ожидать недоступные)">
                   <input type="checkbox" id="btn-show-unavailable" checked>
                   <span>Только доступные</span>
                 </label>
-              </div>
-            </div>
-
-            <div class="gpu-toolbar-actions">
-              <div class="gpu-selection-controls">
-                <button type="button" id="btn-select-none" class="btn btn-subtle">
-                  Сбросить
-                </button>
-                <span id="selected-gpu-count" class="selected-count-badge">Выбрано: 0</span>
-              </div>
-              <div class="gpu-deploy-group">
-                <button type="button" id="deploy-best-btn" class="btn btn-primary btn-deploy-main">
-                  Поиск на выбранных
-                </button>
               </div>
             </div>
           </div>
@@ -454,7 +440,6 @@
             <table id="gpu-table">
               <thead>
                 <tr>
-                  <th scope="col" class="col-check" aria-label="Выбор"></th>
                   <th scope="col" class="col-name">Видеокарта</th>
                   <th scope="col" class="col-price" aria-sort="none">
                     <button type="button" id="sort-price-btn" class="th-sort-btn" title="Сортировать по цене">
@@ -479,7 +464,7 @@
               </thead>
               <tbody id="gpu-tbody">
                 <tr>
-                  <td colspan="5" class="empty-cell">
+                  <td colspan="4" class="empty-cell">
                     Введите RunPod API Secret Key слева для загрузки доступных видеокарт...
                   </td>
                 </tr>
@@ -556,6 +541,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=20261127_04"></script>
+  <script type="module" src="app.js?v=20261127_05"></script>
 </body>
 </html>
