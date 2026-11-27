@@ -2020,7 +2020,7 @@ function isPodRestoreBackupEnabled(ctrl) {
 
 function getPodDeployStageLabel(ctrl) {
   if (!ctrl.isOurPod) {
-    return ctrl.status || "Запуск...";
+    return isPodRuntimeActive(ctrl.pod) ? "Запуск ComfyUI" : "Загрузка контейнера";
   }
   if (!ctrl.initialProbeDone && !ctrl.cudaStagePassed) {
     return "Загрузка статуса...";
@@ -2044,12 +2044,12 @@ function getPodLiveStatus(ctrl) {
   if (!ctrl.isOurPod) {
     const rawStatus = ctrl.status || "UNKNOWN";
     const isErr = rawStatus === "ERROR" || rawStatus === "EXITED";
-    const isRunning = rawStatus === "RUNNING";
+    const isReady = ctrl.stages.ready === "done";
     const billing = rawStatus === "EXITED" ? "" : formatPodBillingParts(ctrl);
     return {
       text: isErr ? (billing ? `${rawStatus} · ${billing}` : rawStatus) : formatPodReadyMetrics(ctrl),
-      tone: isErr ? "error" : isRunning ? "ready" : "active",
-      spinning: !isErr && !isRunning
+      tone: isErr ? "error" : isReady ? "ready" : "active",
+      spinning: !isErr && !isReady
     };
   }
 
@@ -2494,7 +2494,7 @@ function updatePodCardElement(ctrl, cardEl) {
   }
 
   const statusInfo = getPodLiveStatus(ctrl);
-  const isComfyReady = ctrl.isOurPod ? ctrl.stages.ready === "done" : ctrl.status === "RUNNING";
+  const isComfyReady = ctrl.stages.ready === "done";
   const isError = statusInfo.tone === "error";
 
   cardEl.classList.toggle("pod-running", isComfyReady && !isError);
@@ -2995,7 +2995,7 @@ function handlePodLog(ctrl, entry, deferUi = false) {
 
 async function pollHealthForPod(ctrl) {
   if (state.redeployInProgress || state.isTransitioningToPod || document.hidden || ctrl.pollInFlight || isRateLimited()) return;
-  const isSettled = ctrl.status === "EXITED" || ctrl.stages?.ready === "done" || (!ctrl.isOurPod && ctrl.initialProbeDone);
+  const isSettled = ctrl.status === "EXITED" || ctrl.stages?.ready === "done";
   const minIntervalMs = isSettled ? 30000 : 3800;
   if (ctrl.lastPollAt && (Date.now() - ctrl.lastPollAt) < minIntervalMs) return;
 
@@ -3007,42 +3007,37 @@ async function pollHealthForPod(ctrl) {
 
     syncPodStateFromApi(ctrl, pod);
 
-    if (!ctrl.isOurPod) {
-      ctrl.initialProbeDone = true;
-      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
-      if (card) updatePodCardElement(ctrl, card);
-      return;
-    }
-
-    const podErrStr = String(pod.error || pod.lastStatusChange || "").toLowerCase();
-    if (
-      podErrStr.includes("not enough gpus free") ||
-      (podErrStr.includes("error creating container") && podErrStr.includes("gpu"))
-    ) {
-      ctrl.stages.cuda = "error";
-      ctrl.stages.container = "error";
-      ctrl.subtitle = "✗ Ошибка хоста: not enough GPUs free (CUDA недоступна)";
-      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
-      if (card) updatePodCardElement(ctrl, card);
-      if (!ctrl.cudaFatalTriggered) {
-        ctrl.cudaFatalTriggered = true;
-        triggerRedeploy(ctrl.podId, "Сбой GPU на хосте (not enough GPUs free)");
+    if (ctrl.isOurPod) {
+      const podErrStr = String(pod.error || pod.lastStatusChange || "").toLowerCase();
+      if (
+        podErrStr.includes("not enough gpus free") ||
+        (podErrStr.includes("error creating container") && podErrStr.includes("gpu"))
+      ) {
+        ctrl.stages.cuda = "error";
+        ctrl.stages.container = "error";
+        ctrl.subtitle = "✗ Ошибка хоста: not enough GPUs free (CUDA недоступна)";
+        const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+        if (card) updatePodCardElement(ctrl, card);
+        if (!ctrl.cudaFatalTriggered) {
+          ctrl.cudaFatalTriggered = true;
+          triggerRedeploy(ctrl.podId, "Сбой GPU на хосте (not enough GPUs free)");
+        }
+        return;
       }
-      return;
-    }
 
-    const podErrContainerReason = getContainerFatalReason(podErrStr, "system");
-    if (podErrContainerReason) {
-      ctrl.stages.provision = "done";
-      ctrl.stages.container = "error";
-      ctrl.subtitle = `✗ ${podErrContainerReason}`;
-      const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
-      if (card) updatePodCardElement(ctrl, card);
-      if (!ctrl.cudaFatalTriggered) {
-        ctrl.cudaFatalTriggered = true;
-        triggerRedeploy(ctrl.podId, podErrContainerReason);
+      const podErrContainerReason = getContainerFatalReason(podErrStr, "system");
+      if (podErrContainerReason) {
+        ctrl.stages.provision = "done";
+        ctrl.stages.container = "error";
+        ctrl.subtitle = `✗ ${podErrContainerReason}`;
+        const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+        if (card) updatePodCardElement(ctrl, card);
+        if (!ctrl.cudaFatalTriggered) {
+          ctrl.cudaFatalTriggered = true;
+          triggerRedeploy(ctrl.podId, podErrContainerReason);
+        }
+        return;
       }
-      return;
     }
 
     if (pod.status === "TERMINATED") {
@@ -3062,9 +3057,12 @@ async function pollHealthForPod(ctrl) {
     }
 
     if (pod.status === "ERROR") {
-      if (!ctrl.cudaFatalTriggered) {
+      if (ctrl.isOurPod && !ctrl.cudaFatalTriggered) {
         ctrl.cudaFatalTriggered = true;
         triggerRedeploy(ctrl.podId, `Статус пода: ${pod.status}`);
+      } else {
+        const card = document.querySelector(`.pod-card[data-pod-id="${ctrl.podId}"]`);
+        if (card) updatePodCardElement(ctrl, card);
       }
       return;
     }
