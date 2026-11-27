@@ -107,6 +107,7 @@ const state = {
   showUnavailable: false,
   minRamGb: 0,
   sortBy: "speed",
+  sortDir: "desc",
   activePods: [],
   podControllers: new Map(),
   currentTemplate: { ...DEFAULT_TEMPLATE },
@@ -1201,16 +1202,24 @@ function renderGpuTable() {
     const bucketDiff = getRowFilterBucket(a, maxPrice, minRamGb) - getRowFilterBucket(b, maxPrice, minRamGb);
     if (bucketDiff !== 0) return bucketDiff;
 
-    if (state.sortBy === "price") {
-      const otherA = a.tierRank === 99 ? 1 : 0;
-      const otherB = b.tierRank === 99 ? 1 : 0;
-      if (otherA !== otherB) return otherA - otherB;
+    const otherA = a.tierRank === 99 ? 1 : 0;
+    const otherB = b.tierRank === 99 ? 1 : 0;
+    if (otherA !== otherB) return otherA - otherB;
 
-      if (a.price !== b.price) return a.price - b.price;
+    if (state.sortBy === "price") {
+      const priceDiff = state.sortDir === "asc" ? a.price - b.price : b.price - a.price;
+      if (priceDiff !== 0) return priceDiff;
     }
 
-    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
-    if (a.subRank !== b.subRank) return a.subRank - b.subRank;
+    const speedDiff = state.sortBy === "speed" && state.sortDir === "asc"
+      ? b.sortOrder - a.sortOrder
+      : a.sortOrder - b.sortOrder;
+    if (speedDiff !== 0) return speedDiff;
+
+    const subDiff = state.sortBy === "speed" && state.sortDir === "asc"
+      ? b.subRank - a.subRank
+      : a.subRank - b.subRank;
+    if (subDiff !== 0) return subDiff;
 
     const cloudScoreA = a.cloud === "COMMUNITY" ? 0 : 1;
     const cloudScoreB = b.cloud === "COMMUNITY" ? 0 : 1;
@@ -3760,25 +3769,36 @@ async function init() {
   const sortPowerBtn = document.getElementById("sort-power-btn");
   const updateSortHeaderUi = () => {
     const isPrice = state.sortBy === "price";
+    const isAsc = state.sortDir === "asc";
     if (sortPriceBtn) {
       sortPriceBtn.classList.toggle("is-active", isPrice);
-      sortPriceBtn.closest("th")?.setAttribute("aria-sort", isPrice ? "ascending" : "none");
+      sortPriceBtn.classList.toggle("is-asc", isPrice && isAsc);
+      sortPriceBtn.closest("th")?.setAttribute("aria-sort", isPrice ? (isAsc ? "ascending" : "descending") : "none");
     }
     if (sortPowerBtn) {
       sortPowerBtn.classList.toggle("is-active", !isPrice);
-      sortPowerBtn.closest("th")?.setAttribute("aria-sort", !isPrice ? "descending" : "none");
+      sortPowerBtn.classList.toggle("is-asc", !isPrice && isAsc);
+      sortPowerBtn.closest("th")?.setAttribute("aria-sort", !isPrice ? (isAsc ? "ascending" : "descending") : "none");
     }
   };
   updateSortHeaderUi();
   sortPriceBtn?.addEventListener("click", () => {
-    if (state.sortBy === "price") return;
-    state.sortBy = "price";
+    if (state.sortBy === "price") {
+      state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+    } else {
+      state.sortBy = "price";
+      state.sortDir = "asc";
+    }
     updateSortHeaderUi();
     renderGpuTable();
   });
   sortPowerBtn?.addEventListener("click", () => {
-    if (state.sortBy === "speed") return;
-    state.sortBy = "speed";
+    if (state.sortBy === "speed") {
+      state.sortDir = state.sortDir === "desc" ? "asc" : "desc";
+    } else {
+      state.sortBy = "speed";
+      state.sortDir = "desc";
+    }
     updateSortHeaderUi();
     renderGpuTable();
   });

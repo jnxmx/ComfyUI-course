@@ -2541,11 +2541,14 @@ tr.row-exceeds-price td {
   flex-shrink: 0;
   color: var(--subtle-foreground);
   opacity: 0.7;
-  transition: color 0.14s ease, opacity 0.14s ease;
+  transition: color 0.14s ease, opacity 0.14s ease, transform 0.14s ease;
 }
 .th-sort-btn.is-active .th-sort-arrow {
   color: #ffffff;
   opacity: 1;
+}
+.th-sort-btn.is-active.is-asc .th-sort-arrow {
+  transform: rotate(180deg);
 }
 
 .gpu-broken-warn {
