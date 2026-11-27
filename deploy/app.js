@@ -4354,13 +4354,11 @@ async function init() {
   const gpuCardEl = document.querySelector(".gpu-card");
   const btnShowUnavailable = document.getElementById("btn-show-unavailable");
   if (btnShowUnavailable) {
-    if (localStorage.getItem(STORAGE_KEYS.SHOW_UNAVAILABLE) === "true") {
-      state.showUnavailable = true;
-      btnShowUnavailable.checked = true;
-    }
+    state.showUnavailable = localStorage.getItem(STORAGE_KEYS.SHOW_UNAVAILABLE) === "true";
+    btnShowUnavailable.checked = !state.showUnavailable;
     if (gpuCardEl) gpuCardEl.classList.toggle("show-unavailable-mode", state.showUnavailable);
     btnShowUnavailable.addEventListener("change", () => {
-      state.showUnavailable = Boolean(btnShowUnavailable.checked);
+      state.showUnavailable = !btnShowUnavailable.checked;
       if (gpuCardEl) gpuCardEl.classList.toggle("show-unavailable-mode", state.showUnavailable);
       localStorage.setItem(STORAGE_KEYS.SHOW_UNAVAILABLE, state.showUnavailable ? "true" : "false");
       renderGpuTable();
