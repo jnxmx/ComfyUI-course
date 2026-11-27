@@ -1519,6 +1519,25 @@ function isPodRuntimeActive(pod) {
   return (Number(rt.uptime) || 0) > 0 || (Array.isArray(rt.ports) && rt.ports.length > 0);
 }
 
+function podExposesHttpPort(pod, portNum) {
+  if (!pod) return false;
+  const target = Number(portNum);
+  const declared = Array.isArray(pod.ports) ? pod.ports : [];
+  for (const entry of declared) {
+    const raw = String(entry || "").trim().toLowerCase();
+    if (!raw) continue;
+    if (raw === String(target) || raw === `${target}/http`) return true;
+  }
+  const rtPorts = Array.isArray(pod.runtime?.ports) ? pod.runtime.ports : [];
+  for (const p of rtPorts) {
+    if (!p) continue;
+    const priv = Number(p.privatePort ?? p.private_port);
+    const kind = String(p.type || "http").toLowerCase();
+    if (priv === target && kind === "http") return true;
+  }
+  return false;
+}
+
 function getContainerFatalReason(lowerLine, source = "system") {
   if (!lowerLine) return null;
   if (lowerLine.includes("mount_attr_idmap")) {
@@ -2020,7 +2039,8 @@ function isPodRestoreBackupEnabled(ctrl) {
 
 function getPodDeployStageLabel(ctrl) {
   if (!ctrl.isOurPod) {
-    return isPodRuntimeActive(ctrl.pod) ? "Запуск ComfyUI" : "Загрузка контейнера";
+    if (!isPodRuntimeActive(ctrl.pod)) return "Загрузка контейнера";
+    return podExposesHttpPort(ctrl.pod, 7860) ? "Запуск ComfyUI" : "Запуск...";
   }
   if (!ctrl.initialProbeDone && !ctrl.cudaStagePassed) {
     return "Загрузка статуса...";
@@ -2516,9 +2536,13 @@ function updatePodCardElement(ctrl, cardEl) {
     statusTextEl.className = `pod-status-text is-${statusInfo.tone}`;
   }
 
+  const has7860 = ctrl.isOurPod || podExposesHttpPort(ctrl.pod, 7860);
+  const has7861 = ctrl.isOurPod || podExposesHttpPort(ctrl.pod, 7861);
+  const has7862 = ctrl.isOurPod || podExposesHttpPort(ctrl.pod, 7862);
+
   const quickOpenBtn = cardEl.querySelector(".btn-quick-open");
   if (quickOpenBtn) {
-    quickOpenBtn.hidden = !isComfyReady || ctrl.isExpanded;
+    quickOpenBtn.hidden = !isComfyReady || !has7860 || ctrl.isExpanded;
   }
 
   const alertBox = cardEl.querySelector(".pod-card-alert");
@@ -2538,7 +2562,13 @@ function updatePodCardElement(ctrl, cardEl) {
 
   const mainActionsEl = cardEl.querySelector(".pod-card-main-actions");
   if (mainActionsEl) {
-    mainActionsEl.hidden = !isComfyReady;
+    mainActionsEl.hidden = !isComfyReady || (!has7860 && !has7861 && !has7862);
+    const splitGroup = mainActionsEl.querySelector(".btn-split-group");
+    if (splitGroup) splitGroup.hidden = !has7860;
+    const fbLink = mainActionsEl.querySelector(".btn-link-filebrowser");
+    if (fbLink) fbLink.hidden = !has7861;
+    const fizgigLink = mainActionsEl.querySelector(".btn-link-fizgig");
+    if (fizgigLink) fizgigLink.hidden = !has7862;
   }
 
   const deployMetricsEl = cardEl.querySelector(".pod-deploy-metrics");
@@ -3070,33 +3100,53 @@ async function pollHealthForPod(ctrl) {
     syncPodStateFromApi(ctrl, pod);
 
     if (isPodRuntimeActive(pod)) {
-      try {
-        const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, {
-          cache: "no-store"
-        });
-        if (statsRes.ok && ctrl.stages.cuda !== "error") {
-          const statsData = await statsRes.json().catch(() => null);
-          const argv = statsData?.system?.argv;
-          if (Array.isArray(argv)) {
-            const hasFastDisk = argv.some((arg) => String(arg).includes("fast-disk"));
-            ctrl.diskStatus = hasFastDisk ? "fast" : "slow";
-          } else if (!ctrl.diskStatus) {
-            ctrl.diskStatus = "slow";
-          }
+      if (!ctrl.isOurPod && !podExposesHttpPort(pod, 7860)) {
+        if (pod.status === "RUNNING") {
           ctrl.containerStarted = true;
           ctrl.stages.provision = "done";
           ctrl.stages.container = "done";
-          ctrl.cudaStagePassed = true;
-          ctrl.stages.cuda = "done";
-          ctrl.stages.update = "done";
           ctrl.stages.ready = "done";
           ctrl.liveStepLabel = "";
-          ctrl.status = "RUNNING";
-          ctrl.subtitle = "ComfyUI и Fizgig доступны и готовы к работе!";
+          ctrl.subtitle = "Контейнер запущен и готов к работе.";
         }
-      } catch {
-      } finally {
         ctrl.initialProbeDone = true;
+      } else {
+        try {
+          const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, {
+            cache: "no-store"
+          });
+          if (statsRes.ok && ctrl.stages.cuda !== "error") {
+            const statsData = await statsRes.json().catch(() => null);
+            const argv = statsData?.system?.argv;
+            if (Array.isArray(argv)) {
+              const hasFastDisk = argv.some((arg) => String(arg).includes("fast-disk"));
+              ctrl.diskStatus = hasFastDisk ? "fast" : "slow";
+            } else if (!ctrl.diskStatus) {
+              ctrl.diskStatus = "slow";
+            }
+            ctrl.containerStarted = true;
+            ctrl.stages.provision = "done";
+            ctrl.stages.container = "done";
+            ctrl.cudaStagePassed = true;
+            ctrl.stages.cuda = "done";
+            ctrl.stages.update = "done";
+            ctrl.stages.ready = "done";
+            ctrl.liveStepLabel = "";
+            ctrl.status = "RUNNING";
+            ctrl.subtitle = "ComfyUI и Fizgig доступны и готовы к работе!";
+          } else if (!ctrl.isOurPod && (statsRes.status === 404 || statsRes.status === 405)) {
+            ctrl.containerStarted = true;
+            ctrl.stages.provision = "done";
+            ctrl.stages.container = "done";
+            ctrl.stages.ready = "done";
+            ctrl.liveStepLabel = "";
+            ctrl.status = "RUNNING";
+            ctrl.subtitle = "Сервис на порту 7860 запущен.";
+          }
+        } catch {
+        } finally {
+          ctrl.initialProbeDone = true;
+        }
       }
     } else {
       ctrl.initialProbeDone = true;
