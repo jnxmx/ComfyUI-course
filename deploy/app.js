@@ -25,7 +25,7 @@ const DEFAULT_PRICE_STEP_INDEX = 20; // 1.20 $/ч
 
 const DEFAULT_TEMPLATE = Object.freeze({
   templateId: "casls01eko",
-  name: "comfy.work CUDA 13.0 with New Manager",
+  name: "comfy.work CUDA 13",
   image: "jnxmx/comfy26:test",
   containerDiskGb: 15,
   volumeDiskGb: 200,
@@ -36,6 +36,44 @@ const DEFAULT_TEMPLATE = Object.freeze({
     "8188/tcp", "8080/tcp", "8888/tcp"
   ]
 });
+
+const PRESET_TEMPLATES = Object.freeze([
+  {
+    templateId: "casls01eko",
+    name: "comfy.work CUDA 13",
+    allowedCudaVersions: ["13.0", "13.1", "13.2", "13.3", "13.4"]
+  },
+  {
+    templateId: "0fqzfjy6f3",
+    name: "AI Toolkit - ostris - ui - official",
+    allowedCudaVersions: ["13.0", "13.1", "13.2", "13.3"],
+    forceHfToken: true
+  },
+  {
+    templateId: "bdrdew7hxw",
+    name: "Fizgig",
+    allowedCudaVersions: ["13.0", "13.1", "13.2", "13.3", "13.4"],
+    forceHfToken: true
+  },
+  {
+    templateId: "2r7vn2nysz",
+    name: "ComfyUI 0.45.0 - CUDA 12.8 - Template 2.5.0 (official runpod)",
+    nameSuffix: " (official runpod)",
+    allowedCudaVersions: ["12.8", "12.9", "13.0", "13.1", "13.2", "13.3", "13.4"]
+  },
+  {
+    templateId: "z5gu64v59g",
+    name: "ComfyUI 0.45.0 - CUDA 13.0 - Template 2.5.0 (official runpod)",
+    nameSuffix: " (official runpod)",
+    allowedCudaVersions: ["13.0", "13.1", "13.2", "13.3", "13.4"]
+  },
+  {
+    templateId: "4v1ivyxoy1",
+    name: "ComfyUI 0.45.0 - CUDA 13.2 - Template 2.5.0 (official runpod)",
+    nameSuffix: " (official runpod)",
+    allowedCudaVersions: ["13.2", "13.3", "13.4"]
+  }
+]);
 
 function buildGpuSortOrder() {
   const benchmarkRank = new Map();
@@ -860,18 +898,25 @@ async function loadTemplate(templateId, showFeedback = false) {
   if (!cleanId) return;
 
   const msgEl = document.getElementById("template-edit-msg");
+  const preset = PRESET_TEMPLATES.find((p) => p.templateId === cleanId) || null;
 
   try {
     const data = await runpodFetch(`/templates/${encodeURIComponent(cleanId)}`);
     if (data && data.id) {
+      let resolvedName = data.name || preset?.name || cleanId;
+      if (preset?.nameSuffix && !resolvedName.endsWith(preset.nameSuffix)) {
+        resolvedName += preset.nameSuffix;
+      }
       state.currentTemplate = {
         templateId: data.id,
-        name: data.name || cleanId,
+        name: resolvedName,
         image: data.image || DEFAULT_TEMPLATE.image,
         containerDiskGb: data.disk || DEFAULT_TEMPLATE.containerDiskGb,
         volumeDiskGb: data.mounts?.persistent?.size || DEFAULT_TEMPLATE.volumeDiskGb,
         volumeMountPath: data.mounts?.persistent?.path || DEFAULT_TEMPLATE.volumeMountPath,
-        allowedCudaVersions: data.allowedCudaVersions?.length ? data.allowedCudaVersions : DEFAULT_TEMPLATE.allowedCudaVersions,
+        allowedCudaVersions: data.allowedCudaVersions?.length
+          ? data.allowedCudaVersions
+          : (preset?.allowedCudaVersions || DEFAULT_TEMPLATE.allowedCudaVersions),
         ports: data.ports || DEFAULT_TEMPLATE.ports,
         env: data.env || {}
       };
@@ -879,7 +924,7 @@ async function loadTemplate(templateId, showFeedback = false) {
       if (showFeedback && msgEl) {
         msgEl.hidden = false;
         msgEl.className = "template-edit-msg msg-success";
-        msgEl.textContent = `Темплейт "${data.name || cleanId}" успешно применён!`;
+        msgEl.textContent = `Темплейт "${resolvedName}" успешно применён!`;
       }
     }
   } catch (err) {
@@ -887,9 +932,11 @@ async function loadTemplate(templateId, showFeedback = false) {
     state.currentTemplate = {
       ...DEFAULT_TEMPLATE,
       templateId: cleanId,
-      name: cleanId === DEFAULT_TEMPLATE.templateId ? DEFAULT_TEMPLATE.name : `Темплейт ${cleanId}`,
+      name: preset?.name || (cleanId === DEFAULT_TEMPLATE.templateId ? DEFAULT_TEMPLATE.name : `Темплейт ${cleanId}`),
+      allowedCudaVersions: preset?.allowedCudaVersions || DEFAULT_TEMPLATE.allowedCudaVersions,
       env: {}
     };
+    await persistCustomTemplateId(cleanId === DEFAULT_TEMPLATE.templateId ? null : cleanId);
     if (showFeedback && msgEl) {
       msgEl.hidden = false;
       msgEl.className = "template-edit-msg msg-error";
@@ -899,6 +946,7 @@ async function loadTemplate(templateId, showFeedback = false) {
 
   updateTemplateUI();
   updateAccountBadges();
+  if (state.catalogRows.length > 0) renderGpuTable();
 }
 
 function getTemplateEnvKeySet(tpl) {
@@ -932,17 +980,70 @@ function getTemplateSupportedOptions(tpl = state.currentTemplate) {
   };
 }
 
+function renderTemplateDropdown() {
+  const menu = document.getElementById("template-dropdown-menu");
+  if (!menu) return;
+  const activeId = state.currentTemplate?.templateId || DEFAULT_TEMPLATE.templateId;
+  const isPreset = PRESET_TEMPLATES.some((p) => p.templateId === activeId);
+  menu.replaceChildren();
+
+  for (const preset of PRESET_TEMPLATES) {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = `template-dropdown-item${preset.templateId === activeId ? " is-active" : ""}`;
+    item.setAttribute("role", "option");
+    item.setAttribute("aria-selected", String(preset.templateId === activeId));
+    item.dataset.templateId = preset.templateId;
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "template-dropdown-item-name";
+    nameSpan.textContent = preset.name;
+
+    const idSpan = document.createElement("span");
+    idSpan.className = "template-dropdown-item-id";
+    idSpan.textContent = preset.templateId;
+
+    item.append(nameSpan, idSpan);
+    menu.appendChild(item);
+  }
+
+  const sep = document.createElement("div");
+  sep.className = "template-dropdown-sep";
+  menu.appendChild(sep);
+
+  const customItem = document.createElement("button");
+  customItem.type = "button";
+  customItem.className = `template-dropdown-item${!isPreset ? " is-active" : ""}`;
+  customItem.setAttribute("role", "option");
+  customItem.setAttribute("aria-selected", String(!isPreset));
+  customItem.dataset.action = "custom";
+
+  const customLabel = document.createElement("span");
+  customLabel.className = "template-dropdown-item-name";
+  customLabel.textContent = "Другой темплейт";
+  customItem.appendChild(customLabel);
+
+  if (!isPreset && activeId) {
+    const customIdSpan = document.createElement("span");
+    customIdSpan.className = "template-dropdown-item-id";
+    customIdSpan.textContent = activeId;
+    customItem.appendChild(customIdSpan);
+  }
+  menu.appendChild(customItem);
+}
+
 function updateTemplateUI() {
   const nameEl = document.getElementById("template-display-name");
   const badgeEl = document.getElementById("template-id-badge");
   const tplId = state.currentTemplate.templateId || "casls01eko";
   if (nameEl) {
-    nameEl.textContent = state.currentTemplate.name || "comfy.work";
+    nameEl.textContent = state.currentTemplate.name || "comfy.work CUDA 13";
     if (nameEl.tagName === "A") {
       nameEl.href = `https://console.runpod.io/hub/template/${encodeURIComponent(tplId)}?id=${encodeURIComponent(tplId)}`;
     }
   }
   if (badgeEl) badgeEl.textContent = tplId;
+  renderTemplateDropdown();
 
   const supported = getTemplateSupportedOptions(state.currentTemplate);
   const newManagerWrap = document.getElementById("opt-new-manager")?.closest(".checkbox-control");
@@ -966,7 +1067,9 @@ function updateTemplateUI() {
 }
 
 function initTemplateControls() {
-  const editBtn = document.getElementById("edit-template-btn");
+  const selectWrap = document.getElementById("template-select-wrap");
+  const selectBtn = document.getElementById("template-select-btn");
+  const dropdownMenu = document.getElementById("template-dropdown-menu");
   const form = document.getElementById("template-edit-form");
   const input = document.getElementById("custom-template-input");
   const saveBtn = document.getElementById("save-template-btn");
@@ -974,14 +1077,16 @@ function initTemplateControls() {
   const cancelBtn = document.getElementById("cancel-template-btn");
   const msgEl = document.getElementById("template-edit-msg");
 
-  if (!editBtn || !form) return;
+  if (!form) return;
 
-  const closeModal = () => {
-    form.hidden = true;
-    if (msgEl) msgEl.hidden = true;
+  const closeDropdown = () => {
+    if (dropdownMenu) dropdownMenu.hidden = true;
+    if (selectWrap) selectWrap.classList.remove("is-open");
+    if (selectBtn) selectBtn.setAttribute("aria-expanded", "false");
   };
 
-  editBtn.addEventListener("click", () => {
+  const openCustomModal = () => {
+    closeDropdown();
     form.hidden = false;
     if (input) {
       input.value = state.currentTemplate.templateId;
@@ -989,7 +1094,47 @@ function initTemplateControls() {
       input.select();
     }
     if (msgEl) msgEl.hidden = true;
-  });
+  };
+
+  if (selectBtn && dropdownMenu) {
+    renderTemplateDropdown();
+    selectBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const willOpen = dropdownMenu.hidden;
+      dropdownMenu.hidden = !willOpen;
+      if (selectWrap) selectWrap.classList.toggle("is-open", willOpen);
+      selectBtn.setAttribute("aria-expanded", String(willOpen));
+    });
+
+    dropdownMenu.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".template-dropdown-item");
+      if (!btn) return;
+      e.stopPropagation();
+      if (btn.dataset.action === "custom") {
+        openCustomModal();
+        return;
+      }
+      const nextId = btn.dataset.templateId;
+      closeDropdown();
+      if (nextId && nextId !== state.currentTemplate?.templateId) {
+        await loadTemplate(nextId);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (selectWrap && !selectWrap.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeDropdown();
+    });
+  }
+
+  const closeModal = () => {
+    form.hidden = true;
+    if (msgEl) msgEl.hidden = true;
+  };
 
   cancelBtn.addEventListener("click", closeModal);
   document.getElementById("template-modal-close")?.addEventListener("click", closeModal);
@@ -1046,6 +1191,20 @@ function getGpuSortOrder(gpuId, tier) {
   return GPU_SORT_ORDER[gpuId] ?? tier.rank;
 }
 
+function getCompatibleCudaVersionsForTemplate(rawCudaVersions, isUnavailable, tpl = state.currentTemplate) {
+  const allowed = Array.isArray(tpl?.allowedCudaVersions) && tpl.allowedCudaVersions.length > 0
+    ? tpl.allowedCudaVersions
+    : DEFAULT_TEMPLATE.allowedCudaVersions;
+  const allowedSet = new Set(allowed.map((v) => String(v).trim()));
+  return (Array.isArray(rawCudaVersions) ? rawCudaVersions : [])
+    .filter((c) => {
+      const ver = String(c?.version || "").trim();
+      if (!ver || !allowedSet.has(ver)) return false;
+      return isUnavailable || Boolean(c.available);
+    })
+    .map((c) => c.version);
+}
+
 async function fetchGpuCatalog(silent = false) {
   if (!state.hasApiKey) return;
 
@@ -1064,7 +1223,7 @@ async function fetchGpuCatalog(silent = false) {
     const loadingTd = document.createElement("td");
     loadingTd.colSpan = 4;
     loadingTd.className = "empty-cell";
-    loadingTd.textContent = "Загрузка доступных видеокарт (CUDA >= 13.0)...";
+    loadingTd.textContent = "Загрузка доступных видеокарт...";
     loadingRow.appendChild(loadingTd);
     tbody.appendChild(loadingRow);
   }
@@ -1089,12 +1248,8 @@ async function fetchGpuCatalog(silent = false) {
             ? "NONE"
             : gpu.availability;
           const isUnavailable = effectiveAvailability === "NONE";
-          const cuda13List = (gpu.cudaVersions || [])
-            .filter((c) => Number.parseFloat(c.version) >= 13.0 && (isUnavailable || c.available))
-            .map((c) => c.version);
-
-          if (!isUnavailable && cuda13List.length === 0) continue;
-          if (isUnavailable && (gpu.cudaVersions || []).length > 0 && cuda13List.length === 0) continue;
+          const rawCudaVersions = Array.isArray(gpu.cudaVersions) ? gpu.cudaVersions : [];
+          const cudaVersions = getCompatibleCudaVersionsForTemplate(rawCudaVersions, isUnavailable, state.currentTemplate);
 
           const tier = findTierInfo(gpu.id);
           const displayName = cleanGpuName(gpu.id, gpu.name);
@@ -1110,7 +1265,8 @@ async function fetchGpuCatalog(silent = false) {
             maxCount: cloudMaxCount,
             vramGb: Number.isFinite(gpu.memory) ? gpu.memory : null,
             minRam: Number.isFinite(gpu.minRam) ? gpu.minRam : null,
-            cudaVersions: cuda13List,
+            rawCudaVersions,
+            cudaVersions,
             tierRank: tier ? tier.rank : 99,
             sortOrder: getGpuSortOrder(gpu.id, tier),
             tierKey: tier ? tier.key : `other-${gpu.id}`,
@@ -1241,13 +1397,16 @@ function renderGpuTable() {
   const maxPrice = getMaxPriceFromSlider();
   const minRamGb = normalizeMinRamGb(state.minRamGb);
 
-  let displayRows = [...state.catalogRows];
-  if (state.secureOnly) {
-    displayRows = displayRows.filter((r) => r.cloud === "SECURE");
-  }
-  if (!state.showUnavailable) {
-    displayRows = displayRows.filter((r) => r.availability !== "NONE");
-  }
+  let displayRows = state.catalogRows.filter((r) => {
+    if (state.secureOnly && r.cloud !== "SECURE") return false;
+    const isUnavail = r.availability === "NONE";
+    if (!state.showUnavailable && isUnavail) return false;
+    const rawCudas = Array.isArray(r.rawCudaVersions) ? r.rawCudaVersions : [];
+    const matched = getCompatibleCudaVersionsForTemplate(rawCudas, isUnavail, state.currentTemplate);
+    if (!isUnavail && matched.length === 0) return false;
+    if (isUnavail && rawCudas.length > 0 && matched.length === 0) return false;
+    return true;
+  });
 
   const gpuColCount = 4;
 
@@ -3225,16 +3384,28 @@ function buildPayload(candidate) {
     return `{{ RUNPOD_SECRET_${actualName} }}`;
   };
 
-  const env = {
-    API_KEY_COMFY_ORG: secretRef("API_KEY_COMFY_ORG"),
-    CIVITAI_API_KEY: secretRef("CIVITAI_API_KEY"),
-    COMFYUI_BACKUP: secretRef("COMFYUI_BACKUP"),
-    HF_TOKEN: secretRef("HF_TOKEN")
-  };
-
   const tplId = tpl.templateId || DEFAULT_TEMPLATE.templateId;
+  const preset = PRESET_TEMPLATES.find((p) => p.templateId === tplId) || null;
   const supported = getTemplateSupportedOptions(tpl);
   const envKeys = getTemplateEnvKeySet(tpl);
+  const hasHfSecret = Boolean(secretsByName.get("HF_TOKEN") || secretsByName.get("HD_TOKEN"));
+  const hfSecretKey = secretsByName.has("HF_TOKEN") ? "HF_TOKEN" : "HD_TOKEN";
+
+  const env = {};
+  if (tplId === DEFAULT_TEMPLATE.templateId) {
+    env.API_KEY_COMFY_ORG = secretRef("API_KEY_COMFY_ORG");
+    env.CIVITAI_API_KEY = secretRef("CIVITAI_API_KEY");
+    env.COMFYUI_BACKUP = secretRef("COMFYUI_BACKUP");
+    env.HF_TOKEN = secretRef("HF_TOKEN");
+  } else {
+    if (envKeys.has("API_KEY_COMFY_ORG")) env.API_KEY_COMFY_ORG = secretRef("API_KEY_COMFY_ORG");
+    if (envKeys.has("CIVITAI_API_KEY")) env.CIVITAI_API_KEY = secretRef("CIVITAI_API_KEY");
+    if (envKeys.has("COMFYUI_BACKUP")) env.COMFYUI_BACKUP = secretRef("COMFYUI_BACKUP");
+    if ((preset?.forceHfToken && hasHfSecret) || envKeys.has("HF_TOKEN")) {
+      env.HF_TOKEN = secretRef(hfSecretKey);
+    }
+  }
+
   if (tplId === DEFAULT_TEMPLATE.templateId || envKeys.has("STUDENT_MODE")) {
     env.STUDENT_MODE = "0";
   }
@@ -4649,11 +4820,7 @@ async function init() {
   if (state.hasApiKey) {
     state.initialProfileLoaded = false;
     updateApiKeyRequirementsBanner();
-    if (savedTemplateId) {
-      await loadTemplate(savedTemplateId);
-    } else {
-      updateTemplateUI();
-    }
+    await loadTemplate(savedTemplateId || DEFAULT_TEMPLATE.templateId);
     const profileTasks = [fetchBalance(), fetchAccountInfo(), fetchActivePods()];
     fetchGpuCatalog();
     Promise.allSettled(profileTasks).finally(() => {
