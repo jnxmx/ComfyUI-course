@@ -1677,6 +1677,8 @@ function savePodLaunchMeta(podId, meta) {
     all[podId] = {
       launchMode: meta.launchMode === "queue" ? "queue" : "single",
       huntMode: Boolean(meta.huntMode),
+      templateId: meta.templateId || null,
+      httpPorts: Array.isArray(meta.httpPorts) ? meta.httpPorts : null,
       candidate: meta.candidate && meta.candidate.gpuId
         ? {
             gpuId: meta.candidate.gpuId,
@@ -1738,6 +1740,89 @@ function podExposesHttpPort(pod, portNum) {
     if (priv === target && kind === "http") return true;
   }
   return false;
+}
+
+function parseTemplateHttpPorts(portsList) {
+  if (!Array.isArray(portsList)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const entry of portsList) {
+    const raw = String(entry || "").trim().toLowerCase();
+    if (!raw) continue;
+    const match = raw.match(/^(\d+)(?:\/(http|tcp))?$/);
+    if (!match) continue;
+    const portNum = Number(match[1]);
+    const proto = match[2] || "http";
+    if (!Number.isFinite(portNum) || portNum <= 0 || proto !== "http") continue;
+    if (seen.has(portNum)) continue;
+    seen.add(portNum);
+    out.push(portNum);
+  }
+  return out;
+}
+
+const KNOWN_HTTP_PORT_LABELS = Object.freeze({
+  7860: "ComfyUI",
+  7861: "FileBrowser",
+  7862: "Fizgig",
+  8188: "ComfyUI",
+  8080: "FileBrowser",
+  8888: "JupyterLab",
+  8675: "AI Toolkit",
+  8081: "Fizgig"
+});
+
+function getHttpPortLabel(portNum) {
+  return KNOWN_HTTP_PORT_LABELS[Number(portNum)] || `Порт ${portNum}`;
+}
+
+function getPodHttpPortsConfig(ctrl) {
+  if (!ctrl) {
+    return {
+      templateId: "casls01eko",
+      isDefaultTemplate: true,
+      ports: [7860, 7861, 7862],
+      primaryPort: 7860
+    };
+  }
+  const templateId = ctrl.templateId || ctrl.pod?.templateId || (ctrl.isOurPod ? "casls01eko" : null);
+  const isDefaultTemplate = templateId === "casls01eko";
+
+  let ports = [];
+  if (Array.isArray(ctrl.templateHttpPorts) && ctrl.templateHttpPorts.length > 0) {
+    ports = [...ctrl.templateHttpPorts];
+  } else {
+    const fromPodDeclared = parseTemplateHttpPorts(ctrl.pod?.ports);
+    if (fromPodDeclared.length > 0) {
+      ports = fromPodDeclared;
+    } else if (Array.isArray(ctrl.pod?.runtime?.ports)) {
+      const seen = new Set();
+      for (const p of ctrl.pod.runtime.ports) {
+        if (!p) continue;
+        const priv = Number(p.privatePort ?? p.private_port);
+        const kind = String(p.type || "http").toLowerCase();
+        if (Number.isFinite(priv) && priv > 0 && kind === "http" && !seen.has(priv)) {
+          seen.add(priv);
+          ports.push(priv);
+        }
+      }
+    }
+  }
+
+  if (ports.length === 0 && templateId && state.currentTemplate?.templateId === templateId) {
+    ports = parseTemplateHttpPorts(state.currentTemplate.ports);
+  }
+
+  if (ports.length === 0 && isDefaultTemplate) {
+    ports = [7860, 7861, 7862];
+  }
+
+  return {
+    templateId,
+    isDefaultTemplate,
+    ports,
+    primaryPort: ports[0] || null
+  };
 }
 
 function getContainerFatalReason(lowerLine, source = "system") {
@@ -2038,6 +2123,10 @@ function getOrCreatePodController(podId, initData = {}) {
       launchMode: initData.launchMode || savedMeta?.launchMode || (savedMeta ? "single" : null),
       huntMode: initData.huntMode ?? Boolean(savedMeta?.huntMode),
       launchCandidate: initData.launchCandidate || savedMeta?.candidate || null,
+      templateId: initData.templateId || initData.pod?.templateId || savedMeta?.templateId || (isOur ? "casls01eko" : null),
+      templateHttpPorts: Array.isArray(initData.templateHttpPorts)
+        ? initData.templateHttpPorts
+        : (Array.isArray(savedMeta?.httpPorts) ? savedMeta.httpPorts : null),
       startedAtMs: parsePodStartMs(initData.pod) || Date.now(),
       isOurPod: isOur,
       isExpanded: initData.isExpanded !== undefined ? initData.isExpanded : true,
@@ -2240,9 +2329,10 @@ function isPodRestoreBackupEnabled(ctrl) {
 }
 
 function getPodDeployStageLabel(ctrl) {
-  if (!ctrl.isOurPod) {
+  const portCfg = getPodHttpPortsConfig(ctrl);
+  if (!ctrl.isOurPod || !portCfg.isDefaultTemplate) {
     if (!isPodRuntimeActive(ctrl.pod)) return "Загрузка контейнера";
-    return podExposesHttpPort(ctrl.pod, 7860) ? "Запуск ComfyUI" : "Запуск...";
+    return portCfg.primaryPort ? `Запуск ${getHttpPortLabel(portCfg.primaryPort)}` : "Запуск...";
   }
   if (!ctrl.initialProbeDone && !ctrl.cudaStagePassed) {
     return "Загрузка статуса...";
@@ -2472,16 +2562,20 @@ function createPodCardElement(ctrl) {
   mainActions.className = "ready-actions pod-card-main-actions";
   mainActions.hidden = true;
 
-  const comfyUrl = `https://${ctrl.podId}-7860.proxy.runpod.net/`;
+  const initPortCfg = getPodHttpPortsConfig(ctrl);
+  const initPrimaryPort = initPortCfg.primaryPort || 7860;
+  const initPrimaryUrl = `https://${ctrl.podId}-${initPrimaryPort}.proxy.runpod.net/`;
   const openSplitGroup = document.createElement("div");
   openSplitGroup.className = "btn-split-group";
 
   const openComfyLink = document.createElement("a");
-  openComfyLink.href = comfyUrl;
+  openComfyLink.href = initPrimaryUrl;
   openComfyLink.target = "_blank";
   openComfyLink.rel = "noopener noreferrer";
   openComfyLink.className = "btn-split-main btn-open-comfy";
-  openComfyLink.textContent = "Открыть";
+  openComfyLink.textContent = initPortCfg.isDefaultTemplate
+    ? "Открыть"
+    : `Открыть · ${getHttpPortLabel(initPrimaryPort)}`;
 
   const openCaretBtn = document.createElement("button");
   openCaretBtn.type = "button";
@@ -2517,9 +2611,10 @@ function createPodCardElement(ctrl) {
     openCaretBtn.setAttribute("aria-expanded", String(willOpen));
   });
 
+  copyLinkBtn.dataset.url = initPrimaryUrl;
   copyLinkBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
-    const ok = await copyTextToClipboard(comfyUrl);
+    const ok = await copyTextToClipboard(copyLinkBtn.dataset.url || initPrimaryUrl);
     const labelSpan = copyLinkBtn.querySelector("span");
     if (ok && labelSpan) {
       copyLinkBtn.classList.add("is-copied");
@@ -2541,21 +2636,11 @@ function createPodCardElement(ctrl) {
   openMenu.appendChild(copyLinkBtn);
   openSplitGroup.append(openComfyLink, openCaretBtn, openMenu);
 
-  const mainFizgigLink = document.createElement("a");
-  mainFizgigLink.href = `https://${ctrl.podId}-7862.proxy.runpod.net/`;
-  mainFizgigLink.target = "_blank";
-  mainFizgigLink.rel = "noopener noreferrer";
-  mainFizgigLink.className = "btn btn-fizgig btn-link-fizgig";
-  mainFizgigLink.textContent = "Fizgig ↗";
+  const secondaryPortsContainer = document.createElement("div");
+  secondaryPortsContainer.className = "pod-secondary-ports";
+  secondaryPortsContainer.style.display = "contents";
 
-  const mainFileBrowserLink = document.createElement("a");
-  mainFileBrowserLink.href = `https://${ctrl.podId}-7861.proxy.runpod.net/`;
-  mainFileBrowserLink.target = "_blank";
-  mainFileBrowserLink.rel = "noopener noreferrer";
-  mainFileBrowserLink.className = "btn btn-secondary btn-link-filebrowser";
-  mainFileBrowserLink.innerHTML = `<svg class="btn-icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg><span>FileBrowser</span>`;
-
-  mainActions.append(openSplitGroup, mainFileBrowserLink, mainFizgigLink);
+  mainActions.append(openSplitGroup, secondaryPortsContainer);
 
   const deleteBtn = document.createElement("button");
   deleteBtn.type = "button";
@@ -2738,13 +2823,14 @@ function updatePodCardElement(ctrl, cardEl) {
     statusTextEl.className = `pod-status-text is-${statusInfo.tone}`;
   }
 
-  const has7860 = ctrl.isOurPod || podExposesHttpPort(ctrl.pod, 7860);
-  const has7861 = ctrl.isOurPod || podExposesHttpPort(ctrl.pod, 7861);
-  const has7862 = ctrl.isOurPod || podExposesHttpPort(ctrl.pod, 7862);
+  const portCfg = getPodHttpPortsConfig(ctrl);
+  const primaryPort = portCfg.primaryPort;
+  const secondaryPorts = portCfg.ports.slice(1);
+  const primaryUrl = primaryPort ? `https://${ctrl.podId}-${primaryPort}.proxy.runpod.net/` : "";
 
   const quickOpenBtn = cardEl.querySelector(".btn-quick-open");
   if (quickOpenBtn) {
-    quickOpenBtn.hidden = !isComfyReady || !has7860 || ctrl.isExpanded;
+    quickOpenBtn.hidden = !isComfyReady || !primaryPort || ctrl.isExpanded;
   }
 
   const alertBox = cardEl.querySelector(".pod-card-alert");
@@ -2764,13 +2850,45 @@ function updatePodCardElement(ctrl, cardEl) {
 
   const mainActionsEl = cardEl.querySelector(".pod-card-main-actions");
   if (mainActionsEl) {
-    mainActionsEl.hidden = !isComfyReady || (!has7860 && !has7861 && !has7862);
+    mainActionsEl.hidden = !isComfyReady || portCfg.ports.length === 0;
     const splitGroup = mainActionsEl.querySelector(".btn-split-group");
-    if (splitGroup) splitGroup.hidden = !has7860;
-    const fbLink = mainActionsEl.querySelector(".btn-link-filebrowser");
-    if (fbLink) fbLink.hidden = !has7861;
-    const fizgigLink = mainActionsEl.querySelector(".btn-link-fizgig");
-    if (fizgigLink) fizgigLink.hidden = !has7862;
+    if (splitGroup) {
+      splitGroup.hidden = !primaryPort;
+      const openLink = splitGroup.querySelector(".btn-open-comfy");
+      if (openLink && primaryPort) {
+        openLink.href = primaryUrl;
+        openLink.textContent = portCfg.isDefaultTemplate
+          ? "Открыть"
+          : `Открыть · ${getHttpPortLabel(primaryPort)}`;
+      }
+      const copyBtn = splitGroup.querySelector(".btn-split-menu-item");
+      if (copyBtn) copyBtn.dataset.url = primaryUrl;
+    }
+    const secContainer = mainActionsEl.querySelector(".pod-secondary-ports");
+    if (secContainer) {
+      const portsKey = `${ctrl.podId}:${secondaryPorts.join(",")}`;
+      if (secContainer.dataset.portsKey !== portsKey) {
+        secContainer.dataset.portsKey = portsKey;
+        secContainer.innerHTML = "";
+        for (const portNum of secondaryPorts) {
+          const link = document.createElement("a");
+          link.href = `https://${ctrl.podId}-${portNum}.proxy.runpod.net/`;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          if (portNum === 7861 || portNum === 8080) {
+            link.className = "btn btn-secondary btn-link-filebrowser";
+            link.innerHTML = `<svg class="btn-icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg><span>FileBrowser</span>`;
+          } else if (portNum === 7862 || portNum === 8081) {
+            link.className = "btn btn-fizgig btn-link-fizgig";
+            link.textContent = "Fizgig ↗";
+          } else {
+            link.className = "btn btn-secondary btn-port-link";
+            link.textContent = `${getHttpPortLabel(portNum)} ↗`;
+          }
+          secContainer.appendChild(link);
+        }
+      }
+    }
   }
 
   const deployMetricsEl = cardEl.querySelector(".pod-deploy-metrics");
@@ -3301,20 +3419,25 @@ async function pollHealthForPod(ctrl) {
 
     syncPodStateFromApi(ctrl, pod);
 
+    const portCfg = getPodHttpPortsConfig(ctrl);
+    const primaryPort = portCfg.primaryPort;
+
     if (isPodRuntimeActive(pod)) {
-      if (!ctrl.isOurPod && !podExposesHttpPort(pod, 7860)) {
+      if (!primaryPort || (primaryPort !== 7860 && (!ctrl.isOurPod || !portCfg.isDefaultTemplate))) {
         if (pod.status === "RUNNING") {
           ctrl.containerStarted = true;
           ctrl.stages.provision = "done";
           ctrl.stages.container = "done";
           ctrl.stages.ready = "done";
           ctrl.liveStepLabel = "";
-          ctrl.subtitle = "Контейнер запущен и готов к работе.";
+          ctrl.subtitle = primaryPort
+            ? `${getHttpPortLabel(primaryPort)} запущен и готов к работе.`
+            : "Контейнер запущен и готов к работе.";
         }
         ctrl.initialProbeDone = true;
       } else {
         try {
-          const statsRes = await fetch(`https://${ctrl.podId}-7860.proxy.runpod.net/system_stats`, {
+          const statsRes = await fetch(`https://${ctrl.podId}-${primaryPort}.proxy.runpod.net/system_stats`, {
             cache: "no-store"
           });
           if (statsRes.ok && ctrl.stages.cuda !== "error") {
@@ -3335,15 +3458,17 @@ async function pollHealthForPod(ctrl) {
             ctrl.stages.ready = "done";
             ctrl.liveStepLabel = "";
             ctrl.status = "RUNNING";
-            ctrl.subtitle = "ComfyUI и Fizgig доступны и готовы к работе!";
-          } else if (!ctrl.isOurPod && (statsRes.status === 404 || statsRes.status === 405)) {
+            ctrl.subtitle = portCfg.isDefaultTemplate
+              ? "ComfyUI и Fizgig доступны и готовы к работе!"
+              : `${getHttpPortLabel(primaryPort)} доступен и готов к работе!`;
+          } else if ((!ctrl.isOurPod || !portCfg.isDefaultTemplate) && (statsRes.status === 404 || statsRes.status === 405)) {
             ctrl.containerStarted = true;
             ctrl.stages.provision = "done";
             ctrl.stages.container = "done";
             ctrl.stages.ready = "done";
             ctrl.liveStepLabel = "";
             ctrl.status = "RUNNING";
-            ctrl.subtitle = "Сервис на порту 7860 запущен.";
+            ctrl.subtitle = `Сервис на порту ${primaryPort} запущен.`;
           }
         } catch {
         } finally {
@@ -3758,8 +3883,16 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
       if (winner) {
         const { candidate, created } = winner;
         const newPodId = created.id;
+        const activeTplId = state.currentTemplate?.templateId || "casls01eko";
+        const activeHttpPorts = parseTemplateHttpPorts(state.currentTemplate?.ports);
         markPodAsOurs(newPodId);
-        savePodLaunchMeta(newPodId, { launchMode: "queue", huntMode, candidate });
+        savePodLaunchMeta(newPodId, {
+          launchMode: "queue",
+          huntMode,
+          candidate,
+          templateId: activeTplId,
+          httpPorts: activeHttpPorts
+        });
         await deleteHeldBadPods(newPodId);
         if (pendingCard) pendingCard.hidden = true;
         if (state.currentDeploySessionId === sessionId) state.currentDeploySessionId = null;
@@ -3776,6 +3909,8 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
           price: candidate.price,
           status: created.status || "CREATED",
           pod: created,
+          templateId: activeTplId,
+          templateHttpPorts: activeHttpPorts,
           isOurPod: true,
           isExpanded: true
         });
@@ -3863,11 +3998,15 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
         const newPodId = created?.id;
         if (!newPodId) throw new Error("RunPod вернул пустой ID.");
 
+        const activeTplId = state.currentTemplate?.templateId || "casls01eko";
+        const activeHttpPorts = parseTemplateHttpPorts(state.currentTemplate?.ports);
         markPodAsOurs(newPodId);
         savePodLaunchMeta(newPodId, {
           launchMode: isSingleCandidate ? "single" : "queue",
           huntMode,
-          candidate
+          candidate,
+          templateId: activeTplId,
+          httpPorts: activeHttpPorts
         });
         await deleteHeldBadPods(newPodId);
         if (pendingCard) pendingCard.hidden = true;
@@ -3887,6 +4026,8 @@ async function startDeploymentSequence(candidates, oldBadPodId = null, { singleG
           price: candidate.price,
           status: created.status || "CREATED",
           pod: created,
+          templateId: activeTplId,
+          templateHttpPorts: activeHttpPorts,
           isOurPod: true,
           isExpanded: true
         });
