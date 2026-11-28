@@ -1776,6 +1776,24 @@ function getHttpPortLabel(portNum) {
   return KNOWN_HTTP_PORT_LABELS[Number(portNum)] || `Порт ${portNum}`;
 }
 
+function getPodPortToken(ctrl, portNum) {
+  const env = ctrl?.pod?.env;
+  if (!env || typeof env !== "object") return "";
+  const p = Number(portNum);
+  let raw = "";
+  if (p === 8188 || p === 7860) raw = env.COMFYUI_PASSWORD || "";
+  else if (p === 8888) raw = env.JUPYTER_PASSWORD || "";
+  const val = String(raw || "").trim();
+  if (!val || val === "[redacted]" || /^\{\{.*\}\}$/.test(val)) return "";
+  return val;
+}
+
+function buildPodPortUrl(ctrl, portNum) {
+  const base = `https://${ctrl.podId}-${portNum}.proxy.runpod.net/`;
+  const token = getPodPortToken(ctrl, portNum);
+  return token ? `${base}?token=${encodeURIComponent(token)}` : base;
+}
+
 function getPodHttpPortsConfig(ctrl) {
   if (!ctrl) {
     return {
@@ -2564,7 +2582,7 @@ function createPodCardElement(ctrl) {
 
   const initPortCfg = getPodHttpPortsConfig(ctrl);
   const initPrimaryPort = initPortCfg.primaryPort || 7860;
-  const initPrimaryUrl = `https://${ctrl.podId}-${initPrimaryPort}.proxy.runpod.net/`;
+  const initPrimaryUrl = buildPodPortUrl(ctrl, initPrimaryPort);
   const openSplitGroup = document.createElement("div");
   openSplitGroup.className = "btn-split-group";
 
@@ -2826,7 +2844,7 @@ function updatePodCardElement(ctrl, cardEl) {
   const portCfg = getPodHttpPortsConfig(ctrl);
   const primaryPort = portCfg.primaryPort;
   const secondaryPorts = portCfg.ports.slice(1);
-  const primaryUrl = primaryPort ? `https://${ctrl.podId}-${primaryPort}.proxy.runpod.net/` : "";
+  const primaryUrl = primaryPort ? buildPodPortUrl(ctrl, primaryPort) : "";
 
   const quickOpenBtn = cardEl.querySelector(".btn-quick-open");
   if (quickOpenBtn) {
@@ -2866,13 +2884,13 @@ function updatePodCardElement(ctrl, cardEl) {
     }
     const secContainer = mainActionsEl.querySelector(".pod-secondary-ports");
     if (secContainer) {
-      const portsKey = `${ctrl.podId}:${secondaryPorts.join(",")}`;
+      const portsKey = `${ctrl.podId}:${secondaryPorts.map((p) => `${p}=${getPodPortToken(ctrl, p)}`).join(",")}`;
       if (secContainer.dataset.portsKey !== portsKey) {
         secContainer.dataset.portsKey = portsKey;
         secContainer.innerHTML = "";
         for (const portNum of secondaryPorts) {
           const link = document.createElement("a");
-          link.href = `https://${ctrl.podId}-${portNum}.proxy.runpod.net/`;
+          link.href = buildPodPortUrl(ctrl, portNum);
           link.target = "_blank";
           link.rel = "noopener noreferrer";
           if (portNum === 7861 || portNum === 8080) {
