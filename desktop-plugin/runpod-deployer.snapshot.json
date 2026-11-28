@@ -20,7 +20,7 @@
           "dirName": "comfyui-runpod-desktop",
           "id": "comfyui-runpod-desktop",
           "type": "cnr",
-          "version": "0.1.4",
+          "version": "0.1.5",
           "enabled": true
         }
       ],
